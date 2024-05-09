@@ -1,0 +1,6 @@
+@Dr.NutrizioNino.Api_HostAddress = http://localhost:5083
+
+GET {{Dr.NutrizioNino.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

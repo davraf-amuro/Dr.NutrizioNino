@@ -1,0 +1,33 @@
+﻿@using Dr.NutrizioNino.Models.Dto
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Guid</th>
+            <th>Nome</th>
+            <th></th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var brand in brands)
+        {
+            <tr>
+                <td>@brand.Id</td>
+                <td>@brand.Name</td>
+                <td><button class="btn btn-warning" @onclick="e => Modify(brand)">Modifica</button></td>
+                <td><button class="btn btn-danger" @onclick="e => Delete(brand)">Elimina</button></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    [Parameter] public IList<BrandDto>? brands { get; set; } = [];
+
+    public void Modify(BrandDto brand) {}
+    public void Delete(BrandDto brand)
+    {
+        this.brands?.Remove(brand);    
+    }
+}

@@ -1,0 +1,38 @@
+﻿@page "/brands"
+@using Dr.NutrizioNino.Models.Dto
+@using Dr.NutrizioNino.Web.Services
+@attribute [StreamRendering]
+@inject BrandsClient client
+
+<PageTitle>Marche</PageTitle>
+
+
+<h1>Marchi</h1>
+<p>Anagrafica dei marchi</p>
+<button>+</button>
+
+@if (brands == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <BrandsList brands="brands"></BrandsList>
+    
+}
+
+@code {
+    private IList<BrandDto>? brands = [];
+    private bool getBranchesError;
+    private bool shouldRender = false;
+
+    protected override bool ShouldRender() => shouldRender;
+
+    protected override async Task OnInitializedAsync()
+    {
+        
+        var response = await client.GetBrandsAsync();
+        brands = response.Data;
+        shouldRender = true;
+    }
+}
