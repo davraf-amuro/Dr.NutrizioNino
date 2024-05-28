@@ -14,7 +14,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: MyAllowSpecificOrigins,
                       policy =>
                       {
-                          policy.WithOrigins("http://localhost:5120/");
+                          policy.WithOrigins("http://localhost:5120", "http://localhost:5173");
                       });
 });
 
@@ -28,10 +28,14 @@ builder.Services.AddDbContext<DrNutrizioNinoContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DrNutrizioNinoSql"));
 });
 
+builder.Services.AddScoped<IUnitOfMeasureRepository, UnitsOfMeasuresRepository>();
+builder.Services.AddScoped<UnitsOfMeasuresService, UnitsOfMeasuresService>();
 builder.Services.AddScoped<IFoodsRepository, FoodsRepository>();
 builder.Services.AddScoped<FoodsService, FoodsService>();
 builder.Services.AddScoped<IBrandsRepository, BrandsReporitoy>();
 builder.Services.AddScoped<BrandsService, BrandsService>();
+builder.Services.AddScoped<INutrientsRepository, NutrientsRepository>();
+builder.Services.AddScoped<NutrientsService, NutrientsService>();
 
 var app = builder.Build();
 
@@ -49,6 +53,9 @@ app.UseStaticFiles();
 //aggiungi gli endpoint 
 app.MapsFoodsEndpoints();
 app.MapsBrandsEndpoints();
+app.MapsNutrientsEndpoints();
+app.MapUnitsOfMeasureEndpoints();
 
 app.Run();
+public partial class Program() { }
 

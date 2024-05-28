@@ -9,7 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Dr.NutrizioNino.Models\Dr.NutrizioNino.Models.csproj" />
     <ProjectReference Include="..\Dr.NutrizioNino.Web.Client\Dr.NutrizioNino.Web.Client.csproj" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.6" />
   </ItemGroup>
 
 </Project>

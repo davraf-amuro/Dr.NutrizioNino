@@ -31,12 +31,13 @@
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[UnitsOfMeasure]",
+         "Name": "[dbo].[UnitsOfMeasures]",
          "ObjectType": 0
       }
    ],
    "UiHint": null,
    "UncountableWords": null,
+   "UseAsyncStoredProcedureCalls": true,
    "UseBoolPropertiesWithoutDefaultSql": false,
    "UseDatabaseNames": false,
    "UseDateOnlyTimeOnly": true,

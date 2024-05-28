@@ -7,11 +7,11 @@ using System.Collections.Generic;
 
 namespace Dr.NutrizioNino.Api.Models.Configurations
 {
-    public partial class UnitsOfMeasuresConfiguration : IEntityTypeConfiguration<UnitOfMeasure>
+    public partial class UnitsOfMeasureConfiguration : IEntityTypeConfiguration<UnitOfMeasure>
     {
         public void Configure(EntityTypeBuilder<UnitOfMeasure> entity)
         {
-            entity.ToTable("UnitsOfMeasures");
+            entity.HasKey(e => e.Id).HasName("PK_UnitsOfMeasure");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Name)

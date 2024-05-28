@@ -1,13 +1,26 @@
-﻿<h3>Aggiungi/Modifica Marchio</h3>
+﻿@using Dr.NutrizioNino.Models.Dto
+<h3>Aggiungi/Modifica Marchio</h3>
 
-<table>
-    <tr>
-        <td>Guid</td><td></td>
-        <td>Nome</td><td></td>
-    </tr>
-</table>
+<EditForm
+    Model="brand"
+    OnValidSubmit="() => OnSave.InvokeAsync(brand)">
+
+     <div class="form-group">
+        <label for="name">Nome:</label>
+        @* <InputText id="name" @bind-Value="brand.Name" class="form-control" /> *@
+        <InputText ></InputText>
+    </div>
+
+
+    <button type="submit" class="btn btn-primary">Salva</button>
+    <button type="button" class="btn btn-warning" @onclick="OnUndo">Annulla</button>
+</EditForm>
 
 
 @code {
+    [Parameter] public BrandDto brand { get; set; }
 
+    [Parameter] public EventCallback<BrandDto> OnSave { get; set; }
+
+    [Parameter] public EventCallback OnUndo { get; set; }
 }

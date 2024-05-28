@@ -23,10 +23,7 @@ namespace Dr.NutrizioNino.Api.Infrastructure
             throw new NotImplementedException();
         }
 
-        public async Task<IEnumerable<Brand>> GetBrandsAsync()
-        {
-            return await brandsContext.Brands.ToListAsync();
-        }
+        public async Task<IEnumerable<Brand>> GetBrandsAsync() => brandsContext.Brands.AsNoTracking();
 
         public Task UpdateBrandAsync(Brand brand)
         {

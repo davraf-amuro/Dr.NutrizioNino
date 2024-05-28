@@ -8,13 +8,17 @@ namespace Dr.NutrizioNino.Api.Infrastructure
         internal static async Task<Food> CreateFood()
         {
             var newFood = new Food() { Id = Guid.NewGuid() };
-            newFood.Nutrients = new List<Nutrient>();
+            newFood.FoodsNutrients = new List<FoodNutrient>();
             return newFood;
         }
 
-        internal static async Task<Nutrient> CreateNutrient()
+        internal static async Task<Nutrient> CreateNutrient(CreateNutrientDto newNutrientDto)
         {
-            return new Nutrient() { Id = new Guid() };
+            return new Nutrient
+            {
+                Id = Guid.NewGuid(),
+                Name = newNutrientDto.Name,
+            };
         }
 
         public static async Task<Brand> CreateBrand(CreateBrandDto newBrandDto)
@@ -32,7 +36,8 @@ namespace Dr.NutrizioNino.Api.Infrastructure
             return new UnitOfMeasure
             {
                 Id = Guid.NewGuid(),
-                Name = newUnitOfMeasure.Name
+                Name = newUnitOfMeasure.Name,
+                Abbreviation = newUnitOfMeasure.Abbreviation
             };
         }
     }

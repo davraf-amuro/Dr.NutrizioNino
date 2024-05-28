@@ -11,11 +11,12 @@ namespace Dr.NutrizioNino.Api.Models.Configurations
     {
         public void Configure(EntityTypeBuilder<Nutrient> entity)
         {
+            entity.HasKey(e => e.Id).HasName("PK_Nutrients_1");
+
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(50);
-            entity.Property(e => e.Quantity).HasColumnType("numeric(4, 2)");
 
             OnConfigurePartial(entity);
         }

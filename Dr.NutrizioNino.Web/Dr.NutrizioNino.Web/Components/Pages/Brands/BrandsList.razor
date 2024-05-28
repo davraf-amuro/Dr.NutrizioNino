@@ -1,4 +1,5 @@
 ﻿@using Dr.NutrizioNino.Models.Dto
+@rendermode InteractiveServer
 
 <table class="table">
     <thead>
@@ -15,8 +16,8 @@
             <tr>
                 <td>@brand.Id</td>
                 <td>@brand.Name</td>
-                <td><button class="btn btn-warning" @onclick="e => Modify(brand)">Modifica</button></td>
-                <td><button class="btn btn-danger" @onclick="e => Delete(brand)">Elimina</button></td>
+                <td><button class="btn btn-warning" @onclick="()=>OnModifyCallBack.InvokeAsync(brand)">Modifica</button></td>
+                <td><button class="btn btn-danger" @onclick="()=>OnDeleteCallBack.InvokeAsync(brand)">Elimina</button></td>
             </tr>
         }
     </tbody>
@@ -24,10 +25,9 @@
 
 @code {
     [Parameter] public IList<BrandDto>? brands { get; set; } = [];
+    BrandDto? currentBrand;
 
-    public void Modify(BrandDto brand) {}
-    public void Delete(BrandDto brand)
-    {
-        this.brands?.Remove(brand);    
-    }
+    [Parameter] public EventCallback OnModifyCallBack { get; set; }
+
+    [Parameter] public EventCallback OnDeleteCallBack { get; set; }
 }

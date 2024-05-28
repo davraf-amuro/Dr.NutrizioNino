@@ -1,10 +1,9 @@
 ﻿using Dr.NutrizioNino.Api.Dto;
+using Dr.NutrizioNino.Api.Helpers;
 using Dr.NutrizioNino.Api.Infrastructure;
 using Dr.NutrizioNino.Api.Interfaces;
 using Dr.NutrizioNino.Api.Models;
 using Dr.NutrizioNino.Models.Dto;
-using Microsoft.AspNetCore.Mvc;
-using System.Collections.Immutable;
 
 namespace Dr.NutrizioNino.Api.Services
 {
@@ -12,8 +11,8 @@ namespace Dr.NutrizioNino.Api.Services
     {
         public async Task<ApiResponseDto<BrandDto>> GetBrandsAsync()
         {
-            var brands = await brandsRepository.GetBrandsAsync();
-        
+            var brands = await brandsRepository.GetBrandsAsync().ConfigureAwait(false);
+
             return new ApiResponseDto<BrandDto>()
             {
                 Success = true,

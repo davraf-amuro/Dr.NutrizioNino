@@ -18,6 +18,8 @@ public partial class DrNutrizioNinoContext : DbContext
 
     public virtual DbSet<Food> Foods { get; set; }
 
+    public virtual DbSet<FoodNutrient> FoodsNutrients { get; set; }
+
     public virtual DbSet<Nutrient> Nutrients { get; set; }
 
     public virtual DbSet<UnitOfMeasure> UnitsOfMeasures { get; set; }
@@ -26,8 +28,9 @@ public partial class DrNutrizioNinoContext : DbContext
     {
         modelBuilder.ApplyConfiguration(new Configurations.BrandConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.FoodConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.FoodsNutrientConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.NutrientConfiguration());
-        modelBuilder.ApplyConfiguration(new Configurations.UnitsOfMeasuresConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.UnitsOfMeasureConfiguration());
 
         OnModelCreatingPartial(modelBuilder);
     }

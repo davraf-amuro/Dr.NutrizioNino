@@ -27,23 +27,6 @@ namespace Dr.NutrizioNino.Api.Models.Configurations
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Foods_UnitsOfMeasure");
 
-            entity.HasMany(d => d.Nutrients).WithMany(p => p.Foods)
-                .UsingEntity<Dictionary<string, object>>(
-                    "FoodsNutrient",
-                    r => r.HasOne<Nutrient>().WithMany()
-                        .HasForeignKey("NutrientsId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK_Foods_Nutrients_Nutrients"),
-                    l => l.HasOne<Food>().WithMany()
-                        .HasForeignKey("FoodId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK_Foods_Nutrients_Foods"),
-                    j =>
-                    {
-                        j.HasKey("FoodId", "NutrientsId");
-                        j.ToTable("Foods_Nutrients");
-                    });
-
             OnConfigurePartial(entity);
         }
 
