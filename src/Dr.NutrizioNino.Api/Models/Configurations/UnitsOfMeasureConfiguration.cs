@@ -14,6 +14,9 @@ namespace Dr.NutrizioNino.Api.Models.Configurations
             entity.HasKey(e => e.Id).HasName("PK_UnitsOfMeasure");
 
             entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.Property(e => e.Abbreviation)
+                .IsRequired()
+                .HasMaxLength(5);
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(50);

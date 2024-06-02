@@ -9,9 +9,9 @@
         <td>&nbsp;</td>
       </tr>
 
-      <tr v-for="(brand, index) in brands.data" :key="index">
-        <td>{{ brand.id }}</td>
-        <td>{{ brand.name }}</td>
+      <tr v-for="(brand, index) in brands" :key="index">
+        <td>{{ brand }}</td>
+        <td>{{ brand }}</td>
         <td><button @click="Update(brand)">Modifica</button></td>
         <td><button @click="Delete(brand)">Elimina</button></td>
       </tr>
@@ -34,6 +34,6 @@ function Update(brand: any) {
 
 function Delete(brand: any) {
   console.log(brand)
-  brands.value = brands.value.filter((x) => x.id != brand.id)
+  //brands.value = brands.value.filter((x) => x.id != brand.id)
 }
 </script>

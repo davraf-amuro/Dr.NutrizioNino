@@ -11,6 +11,7 @@ public partial class Nutrient
 
     public string Name { get; set; }
 
-    public int PositionOrder {  get; set; }
+    public int PositionOrder { get; set; }
+
     public virtual ICollection<FoodNutrient> FoodsNutrients { get; set; } = new List<FoodNutrient>();
 }

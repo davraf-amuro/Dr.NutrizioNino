@@ -11,11 +11,13 @@ public partial class FoodNutrient
 
     public Guid NutrientId { get; set; }
 
-    public int UnitOfMeasure { get; set; }
+    public Guid UnitOfMeasure { get; set; }
 
     public decimal Quantity { get; set; }
 
     public virtual Food Food { get; set; }
 
     public virtual Nutrient Nutrient { get; set; }
+
+    public virtual UnitOfMeasure UnitOfMeasureNavigation { get; set; }
 }

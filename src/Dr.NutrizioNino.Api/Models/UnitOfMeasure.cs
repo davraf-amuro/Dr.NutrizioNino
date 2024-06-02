@@ -11,6 +11,9 @@ public partial class UnitOfMeasure
 
     public string Name { get; set; }
 
-    public string Abbreviation { get; set; }    
+    public string Abbreviation { get; set; }
+
     public virtual ICollection<Food> Foods { get; set; } = new List<Food>();
+
+    public virtual ICollection<FoodNutrient> FoodsNutrients { get; set; } = new List<FoodNutrient>();
 }
