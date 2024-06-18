@@ -22,6 +22,7 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .WithOpenApi();
             group.MapDelete("{id}", async (UnitsOfMeasuresService service, Guid id) => await service.DeleteUnitOfMeasureAsync(id))
                 .WithOpenApi();
+
         }
     }
 }

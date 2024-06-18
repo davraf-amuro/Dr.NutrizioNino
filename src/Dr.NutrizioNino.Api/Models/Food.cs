@@ -11,8 +11,6 @@ public partial class Food
 
     public string Name { get; set; }
 
-    public Guid UnitOfMeasureId { get; set; }
-
     public decimal Quantity { get; set; }
 
     public string Barcode { get; set; }
@@ -25,5 +23,4 @@ public partial class Food
 
     public virtual ICollection<FoodNutrient> FoodsNutrients { get; set; } = new List<FoodNutrient>();
 
-    public virtual UnitOfMeasure UnitOfMeasure { get; set; }
 }

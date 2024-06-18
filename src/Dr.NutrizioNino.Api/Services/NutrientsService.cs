@@ -40,5 +40,16 @@ namespace Dr.NutrizioNino.Api.Services
         {
             await nutrientsRepository.DeleteNutrientAsync(id);
         }
+
+        public async Task<ApiResponseDto<NutrientsGetForFoodCreatingInfo>> GetNutrientsForFoodCreating() 
+        {
+            var nutrients = await nutrientsRepository.GetNutrientsForFoodCreatingAsync();
+
+            return new ApiResponseDto<NutrientsGetForFoodCreatingInfo>
+            {
+                Success = true,
+                Data = nutrients.OrderBy(x => x.PositionOrder).ToList()
+            };
+        }
     }
 }

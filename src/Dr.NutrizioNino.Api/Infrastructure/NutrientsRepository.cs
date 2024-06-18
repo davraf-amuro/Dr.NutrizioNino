@@ -18,7 +18,8 @@ namespace Dr.NutrizioNino.Api.Infrastructure
             throw new NotImplementedException();
         }
 
-        public async Task<IEnumerable<Nutrient>> GetNutrientsAsync() => nutrientsContest.Nutrients.AsNoTracking();
+        public async Task<IEnumerable<Nutrient>> GetNutrientsAsync() => 
+            nutrientsContest.Nutrients.AsNoTracking();
 
         public async Task<Nutrient> GetNutrientAsync(Guid id)
         {
@@ -29,5 +30,9 @@ namespace Dr.NutrizioNino.Api.Infrastructure
         {
             throw new NotImplementedException();
         }
+
+        
+        public  async Task<IEnumerable<NutrientsGetForFoodCreatingInfo>> GetNutrientsForFoodCreatingAsync() =>
+            nutrientsContest.NutrientsGetForFoodCreatingInfoes.AsNoTracking();
     }
 }

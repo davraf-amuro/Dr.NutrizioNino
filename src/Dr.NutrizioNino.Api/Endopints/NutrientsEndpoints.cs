@@ -28,6 +28,13 @@ namespace Dr.NutrizioNino.Api.Endopints
             group.MapDelete("{id}", async (NutrientsService service, Guid id) => await service.DeleteBrandAsync(id))
                 .WithOpenApi();
 
+            group.MapGet("getforfoodcreating", async (NutrientsService service) =>
+            {
+                var result = await service.GetNutrientsForFoodCreating();
+                return result.Success ? Results.Ok(result) : Results.NotFound(result);
+            }) 
+                .WithOpenApi()
+                .Produces<ApiResponseDto<NutrientsGetForFoodCreatingInfo>>();
 
         }
     }

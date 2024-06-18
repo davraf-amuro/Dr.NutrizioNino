@@ -24,6 +24,10 @@ public partial class DrNutrizioNinoContext : DbContext
 
     public virtual DbSet<UnitOfMeasure> UnitsOfMeasures { get; set; }
 
+    public virtual DbSet<NutrientsGetForFoodCreatingInfo> NutrientsGetForFoodCreatingInfoes { get; set; }
+
+    public virtual DbSet<FoodDashboard> FoodsDashboard { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfiguration(new Configurations.BrandConfiguration());
@@ -31,6 +35,8 @@ public partial class DrNutrizioNinoContext : DbContext
         modelBuilder.ApplyConfiguration(new Configurations.FoodsNutrientConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.NutrientConfiguration());
         modelBuilder.ApplyConfiguration(new Configurations.UnitsOfMeasureConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.NutrientsGetForFoodCreatingInfoConfiguration());
+        modelBuilder.ApplyConfiguration(new Configurations.FoodDashboardConfiguration());
 
         OnModelCreatingPartial(modelBuilder);
     }

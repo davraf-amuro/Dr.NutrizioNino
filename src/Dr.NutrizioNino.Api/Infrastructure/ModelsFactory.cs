@@ -5,10 +5,19 @@ namespace Dr.NutrizioNino.Api.Infrastructure
 {
     internal static class ModelsFactory
     {
-        internal static async Task<Food> CreateFood()
+        internal static async Task<Food> CreateFood(CreateFoodDto foodDto)
         {
             var newFood = new Food() { Id = Guid.NewGuid() };
-            newFood.FoodsNutrients = new List<FoodNutrient>();
+            //newFood.FoodsNutrients = new List<FoodNutrient>();
+            
+            if (foodDto != null)
+            {
+                newFood.Name = foodDto.Name;
+                newFood.BrandId = foodDto.BrandId;
+                newFood.Barcode = foodDto.Barcode;
+                newFood.Calorie = foodDto.Calorie;
+            }
+
             return newFood;
         }
 

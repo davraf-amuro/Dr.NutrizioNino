@@ -4,12 +4,13 @@ using Dr.NutrizioNino.Models.Dto;
 
 namespace Dr.NutrizioNino.Api.Infrastructure
 {
-    public class FoodsRepository : IFoodsRepository
+    public class FoodsRepository(DrNutrizioNinoContext context) : IFoodsRepository
     {
         public async Task<Food> CreateFoodAsync(CreateFoodDto newFoodDto)
         {
-            var newFood = await ModelsFactory.CreateFood();
-
+            var newFood = await ModelsFactory.CreateFood(newFoodDto);
+            context.Foods.Add(newFood);
+            context.SaveChanges();
             return await Task.FromResult(newFood);
         }
         public async Task DeleteFoodAsync(Guid id)
@@ -22,11 +23,16 @@ namespace Dr.NutrizioNino.Api.Infrastructure
         }
         public async Task<IEnumerable<Food>> GetFoodsAsync()
         {
-            return await Task.FromResult(new List<Food>());
+            return context.Foods;
         }
         public async Task UpdateFoodAsync(Food food)
         {
             throw new Exception("Not implemented yet!");
+        }
+
+        public async Task<IEnumerable<FoodDashboard>> GetFoodsDashboardAsync()
+        {
+            return context.FoodsDashboard;
         }
 
     }

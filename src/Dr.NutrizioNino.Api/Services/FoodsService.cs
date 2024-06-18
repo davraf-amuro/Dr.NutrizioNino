@@ -37,5 +37,15 @@ namespace Dr.NutrizioNino.Api.Services
         {
             await foodRepository.DeleteFoodAsync(id);
         }
+
+        public async Task<ApiResponseDto<FoodDashboard>> GetFoodsDashboardAsync()
+        {
+            var request = await foodRepository.GetFoodsDashboardAsync().ConfigureAwait(false);
+            return new ApiResponseDto<FoodDashboard>
+            {
+                Success = true,
+                Data = request.ToList()
+            };
+        }
     }
 }

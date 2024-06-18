@@ -9,5 +9,7 @@ namespace Dr.NutrizioNino.Api.Interfaces
         Task<Nutrient> GetNutrientAsync(Guid id);
         Task<IEnumerable<Nutrient>> GetNutrientsAsync();
         Task UpdateNutrientAsync(Nutrient nutrient);
+
+        Task<IEnumerable<NutrientsGetForFoodCreatingInfo>> GetNutrientsForFoodCreatingAsync();
     }
 }

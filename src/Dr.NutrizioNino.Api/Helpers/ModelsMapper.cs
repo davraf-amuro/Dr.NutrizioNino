@@ -7,7 +7,7 @@ namespace Dr.NutrizioNino.Api.Helpers
     {
         public static BrandDto AsDto(this Brand brand) => new BrandDto(brand.Id, brand.Name);
 
-        public static FoodDto AsDto(this Food food) => new FoodDto(food.Id, food.Name);
+        public static FoodDto AsDto(this Food food) => new FoodDto(food.Id, food.Name, food.Barcode, food.BrandId, food.Calorie);
 
         public static NutrientDto AsDto(this Nutrient nutrient) => new NutrientDto(
                                                                                     nutrient.Id

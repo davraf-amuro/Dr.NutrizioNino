@@ -11,6 +11,7 @@ namespace Dr.NutrizioNino.Api.Models.Configurations
     {
         public void Configure(EntityTypeBuilder<Food> entity)
         {
+            entity.ToTable("Foods");
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.Barcode).HasMaxLength(50);
             entity.Property(e => e.Name)
@@ -21,11 +22,6 @@ namespace Dr.NutrizioNino.Api.Models.Configurations
             entity.HasOne(d => d.Brand).WithMany(p => p.Foods)
                 .HasForeignKey(d => d.BrandId)
                 .HasConstraintName("FK_Foods_Brands");
-
-            entity.HasOne(d => d.UnitOfMeasure).WithMany(p => p.Foods)
-                .HasForeignKey(d => d.UnitOfMeasureId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Foods_UnitsOfMeasure");
 
             OnConfigurePartial(entity);
         }

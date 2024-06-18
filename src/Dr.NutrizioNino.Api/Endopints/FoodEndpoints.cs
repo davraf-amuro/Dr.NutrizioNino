@@ -23,6 +23,10 @@ namespace Dr.NutrizioNino.Api.Endopints
             group.MapDelete("{id}", async (FoodsService service, Guid id) => await service.DeleteFoodAsync(id))
                 .WithOpenApi();
 
+            group.MapGet("dashboard", async (FoodsService service) => await service.GetFoodsDashboardAsync())
+                .WithOpenApi();
+
+            group.MapGet("newgui", () => Guid.NewGuid().ToString()).WithOpenApi().WithName("newgui");
         }
     }
 }
