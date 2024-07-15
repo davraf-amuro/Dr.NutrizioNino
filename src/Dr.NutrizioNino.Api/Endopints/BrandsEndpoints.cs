@@ -11,7 +11,7 @@ namespace Dr.NutrizioNino.Api.Endopints
         {
             var group = endpoints.MapGroup("brands").WithOpenApi().WithTags("Brands");
 
-            group.MapGet("", async (BrandsService service) =>
+            group.MapGet("", async (DrService service) =>
             {
                 var result = await service.GetBrandsAsync();
                 return result.Success ? Results.Ok(result) : Results.NotFound(result);
@@ -19,13 +19,13 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .WithOpenApi()
                 .Produces<ApiResponseDto<BrandDto>>()
             ;
-            group.MapGet("{id}", async (BrandsService service, Guid id) => await service.GetBrandAsync(id))
+            group.MapGet("{id}", async (DrService service, Guid id) => await service.GetBrandAsync(id))
                 .WithOpenApi();
-            group.MapPost("", async (BrandsService service, CreateBrandDto newBrand) => await service.CreateBrandAsync(newBrand))
+            group.MapPost("", async (DrService service, CreateBrandDto newBrand) => await service.CreateBrandAsync(newBrand))
                 .WithOpenApi();
-            group.MapPut("{id}", async (BrandsService service, Guid id, Brand brand) => await service.UpdateBrandAsync(brand))
+            group.MapPut("{id}", async (DrService service, Guid id, Brand brand) => await service.UpdateBrandAsync(brand))
                 .WithOpenApi();
-            group.MapDelete("{id}", async (BrandsService service, Guid id) => await service.DeleteBrandAsync(id))
+            group.MapDelete("{id}", async (DrService service, Guid id) => await service.DeleteBrandAsync(id))
                 .WithOpenApi();
 
         }

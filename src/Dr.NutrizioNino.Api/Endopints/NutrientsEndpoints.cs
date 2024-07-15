@@ -11,7 +11,7 @@ namespace Dr.NutrizioNino.Api.Endopints
         {
             var group = endpoints.MapGroup("nutrients").WithOpenApi().WithTags("Nutrients");
 
-            group.MapGet("", async (NutrientsService service) =>
+            group.MapGet("", async (DrService service) =>
             {
                 var result = await service.GetNutrientsAsync();
                 return result.Success ? Results.Ok(result) : Results.NotFound(result);
@@ -19,22 +19,22 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .WithOpenApi()
                 .Produces<ApiResponseDto<NutrientDto>>()
             ;
-            group.MapGet("{id}", async (NutrientsService service, Guid id) => await service.GetNutrientAsync(id))
+            group.MapGet("{id}", async (DrService service, Guid id) => await service.GetNutrientAsync(id))
                 .WithOpenApi();
-            group.MapPost("", async (NutrientsService service, CreateNutrientDto newNutrient) => await service.CreateNutrientAsync(newNutrient))
+            group.MapPost("", async (DrService service, CreateNutrientDto newNutrient) => await service.CreateNutrientAsync(newNutrient))
                 .WithOpenApi();
-            group.MapPut("{id}", async (NutrientsService service, Guid id, Nutrient nutrient) => await service.UpdateNutrientAsync(nutrient))
+            group.MapPut("{id}", async (DrService service, Guid id, Nutrient nutrient) => await service.UpdateNutrientAsync(nutrient))
                 .WithOpenApi();
-            group.MapDelete("{id}", async (NutrientsService service, Guid id) => await service.DeleteBrandAsync(id))
+            group.MapDelete("{id}", async (DrService service, Guid id) => await service.DeleteBrandAsync(id))
                 .WithOpenApi();
 
-            group.MapGet("getforfoodcreating", async (NutrientsService service) =>
-            {
-                var result = await service.GetNutrientsForFoodCreating();
-                return result.Success ? Results.Ok(result) : Results.NotFound(result);
-            }) 
-                .WithOpenApi()
-                .Produces<ApiResponseDto<NutrientsGetForFoodCreatingInfo>>();
+            //group.MapGet("getforfoodcreating", async (DrService service) =>
+            //{
+            //    var result = await service.GetNutrientsForFoodCreating();
+            //    return result.Success ? Results.Ok(result) : Results.NotFound(result);
+            //})
+            //    .WithOpenApi()
+            //    .Produces<ApiResponseDto<NutrientsGetForFoodCreatingInfo>>();
 
         }
     }

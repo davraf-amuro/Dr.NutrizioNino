@@ -1,17 +1,16 @@
 ﻿using Dr.NutrizioNino.Api.Dto;
 using Dr.NutrizioNino.Api.Helpers;
 using Dr.NutrizioNino.Api.Infrastructure;
-using Dr.NutrizioNino.Api.Interfaces;
 using Dr.NutrizioNino.Api.Models;
 using Dr.NutrizioNino.Models.Dto;
 
 namespace Dr.NutrizioNino.Api.Services
 {
-    public class BrandsService(IBrandsRepository brandsRepository)
+    public partial class DrService
     {
         public async Task<ApiResponseDto<BrandDto>> GetBrandsAsync()
         {
-            var brands = await brandsRepository.GetBrandsAsync().ConfigureAwait(false);
+            var brands = await drRepository.GetBrandsAsync().ConfigureAwait(false);
 
             return new ApiResponseDto<BrandDto>()
             {
@@ -22,24 +21,24 @@ namespace Dr.NutrizioNino.Api.Services
 
         public async Task<Brand> GetBrandAsync(Guid id)
         {
-            return await brandsRepository.GetBrandAsync(id);
+            return await drRepository.GetBrandAsync(id);
         }
 
         public async Task<Brand> CreateBrandAsync(CreateBrandDto newBrandDto)
         {
             var brand = await ModelsFactory.CreateBrand(newBrandDto);
-            return await brandsRepository.CreateBrandAsync(brand);
+            return null; //await drRepository.CreateBrandAsync();
         }
 
         public async Task UpdateBrandAsync(Brand brand)
         {
-            await brandsRepository.UpdateBrandAsync(brand);
+            await drRepository.UpdateBrandAsync(brand);
         }
 
-        public async Task DeleteBrandAsync(Guid id)
-        {
-            await brandsRepository.DeleteBrandAsync(id);
-        }
+        //public async Task DeleteBrandAsync(Guid id)
+        //{
+        //    await drRepository.DeleteBrandAsync(id);
+        //}
 
     }
 }

@@ -1,6 +1,5 @@
 using Dr.NutrizioNino.Api.Endopints;
 using Dr.NutrizioNino.Api.Infrastructure;
-using Dr.NutrizioNino.Api.Interfaces;
 using Dr.NutrizioNino.Api.Models;
 using Dr.NutrizioNino.Api.Services;
 using Microsoft.EntityFrameworkCore;
@@ -28,14 +27,8 @@ builder.Services.AddDbContext<DrNutrizioNinoContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DrNutrizioNinoSql"));
 });
 
-builder.Services.AddScoped<IUnitOfMeasureRepository, UnitsOfMeasuresRepository>();
-builder.Services.AddScoped<UnitsOfMeasuresService, UnitsOfMeasuresService>();
-builder.Services.AddScoped<IFoodsRepository, FoodsRepository>();
-builder.Services.AddScoped<FoodsService, FoodsService>();
-builder.Services.AddScoped<IBrandsRepository, BrandsReporitoy>();
-builder.Services.AddScoped<BrandsService, BrandsService>();
-builder.Services.AddScoped<INutrientsRepository, NutrientsRepository>();
-builder.Services.AddScoped<NutrientsService, NutrientsService>();
+builder.Services.AddScoped<DrRepository>();
+builder.Services.AddScoped<DrService>();
 
 var app = builder.Build();
 

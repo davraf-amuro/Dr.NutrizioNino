@@ -1,17 +1,16 @@
 ﻿using Dr.NutrizioNino.Api.Dto;
 using Dr.NutrizioNino.Api.Helpers;
 using Dr.NutrizioNino.Api.Infrastructure;
-using Dr.NutrizioNino.Api.Interfaces;
 using Dr.NutrizioNino.Api.Models;
 using Dr.NutrizioNino.Models.Dto;
 
 namespace Dr.NutrizioNino.Api.Services
 {
-    public class NutrientsService(INutrientsRepository nutrientsRepository)
+    public partial class DrService
     {
         public async Task<ApiResponseDto<NutrientDto>> GetNutrientsAsync()
         {
-            var nutrient = await nutrientsRepository.GetNutrientsAsync().ConfigureAwait(false);
+            var nutrient = await drRepository.GetNutrientsAsync().ConfigureAwait(false);
 
             return new ApiResponseDto<NutrientDto>()
             {
@@ -22,34 +21,34 @@ namespace Dr.NutrizioNino.Api.Services
 
         public async Task<Nutrient> GetNutrientAsync(Guid id)
         {
-            return await nutrientsRepository.GetNutrientAsync(id);
+            return await drRepository.GetNutrientAsync(id);
         }
 
         public async Task<Nutrient> CreateNutrientAsync(CreateNutrientDto newNutrientDto)
         {
             var nutrient = await ModelsFactory.CreateNutrient(newNutrientDto);
-            return await nutrientsRepository.CreateNutrientAsync(nutrient);
+            return await drRepository.CreateNutrientAsync(nutrient);
         }
 
         public async Task UpdateNutrientAsync(Nutrient nutrient)
         {
-            await nutrientsRepository.UpdateNutrientAsync(nutrient);
+            await drRepository.UpdateNutrientAsync(nutrient);
         }
 
         public async Task DeleteBrandAsync(Guid id)
         {
-            await nutrientsRepository.DeleteNutrientAsync(id);
+            await drRepository.DeleteNutrientAsync(id);
         }
 
-        public async Task<ApiResponseDto<NutrientsGetForFoodCreatingInfo>> GetNutrientsForFoodCreating() 
-        {
-            var nutrients = await nutrientsRepository.GetNutrientsForFoodCreatingAsync();
+        //public async Task<ApiResponseDto<NutrientsGetForFoodCreatingInfo>> GetNutrientsForFoodCreating()
+        //{
+        //    var nutrients = await drRepository.GetNutrientsForFoodCreatingAsync();
 
-            return new ApiResponseDto<NutrientsGetForFoodCreatingInfo>
-            {
-                Success = true,
-                Data = nutrients.OrderBy(x => x.PositionOrder).ToList()
-            };
-        }
+        //    return new ApiResponseDto<NutrientsGetForFoodCreatingInfo>
+        //    {
+        //        Success = true,
+        //        Data = nutrients.OrderBy(x => x.PositionOrder).ToList()
+        //    };
+        //}
     }
 }

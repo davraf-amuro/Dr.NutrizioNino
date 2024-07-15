@@ -1,7 +1,4 @@
-﻿using Dr.NutrizioNino.Api.Dto;
-using Dr.NutrizioNino.Models.Dto;
-using Microsoft.AspNetCore.Mvc.Testing;
-using System.Text.Json;
+﻿using Microsoft.AspNetCore.Mvc.Testing;
 
 public class FoodsEndpointTests : IClassFixture<WebApplicationFactory<Program>>
 {

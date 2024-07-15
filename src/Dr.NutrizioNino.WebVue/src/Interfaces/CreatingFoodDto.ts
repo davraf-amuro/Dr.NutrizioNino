@@ -1,4 +1,4 @@
-import type { FoodNutrient } from './FoodNutrient'
+import type { FoodNutrient } from './foods/FoodNutrient'
 
 export interface CreatingFoodDto {
   id: string

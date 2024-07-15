@@ -53,8 +53,13 @@
     <br />
 
     <h3>Nutrienti:</h3>
-    <div v-for="fnu in foodNutrients" :key="fnu.nutrientId">
+    <!-- <div v-for="fnu in foodNutrients" :key="fnu.nutrientId">
       <foodnutrientinput :food-nutrient="fnu" :units-of-measures="uom"></foodnutrientinput>
+    </div> -->
+    <div v-for="fnu in myFood.nutrients" :key="fnu.nutrientId">
+      <foodnutrientinput
+        :dto="{foodNutrient: fnu, unitsOfMeasures: uom, unitOfMeasureSelectedId: }"
+      ></foodnutrientinput>
     </div>
   </div>
   <br />
@@ -73,9 +78,11 @@ import type { BrandsApiResponse } from '@/Interfaces/BrandsApiResponse'
 import type { ApiResponseDto } from '@/Interfaces/ApiResponseDto'
 import type { UnitOfMeasureDto } from '@/Interfaces/UnitOfMeasureDto'
 import type { Nutrient } from '@/Interfaces/Nutrient'
-import type { FoodNutrient } from '@/Interfaces/FoodNutrient'
+import type { FoodNutrient } from '@/Interfaces/foods/FoodNutrient'
 import type { CreatingFoodDto } from '@/Interfaces/CreatingFoodDto'
 import foodnutrientinput from '../Foods/FoodNutrientInput.vue'
+import FoodNutrientInput from '../Foods/FoodNutrientInput.vue'
+import type { FoodNutrientInputDto } from '@/Interfaces/foods/FoodNutrientInputDto'
 
 const waiting = ref(true)
 const brands = ref()
@@ -112,6 +119,12 @@ axios.get('https://localhost:44360/nutrients').then(function (response) {
     foodNutrients.value.push(fn)
   })
 })
+
+let dto: FoodNutrientInputDto = {
+  foodNutrient: undefined,
+  unitsOfMeasures: [],
+  unitOfMeasureSelectedId: ''
+}
 
 const cancelHandler = () => {
   emit('cancel')

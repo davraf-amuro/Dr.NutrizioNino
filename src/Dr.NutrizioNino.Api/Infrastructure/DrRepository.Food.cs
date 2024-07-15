@@ -1,16 +1,15 @@
-﻿using Dr.NutrizioNino.Api.Interfaces;
-using Dr.NutrizioNino.Api.Models;
+﻿using Dr.NutrizioNino.Api.Models;
 using Dr.NutrizioNino.Models.Dto;
 
 namespace Dr.NutrizioNino.Api.Infrastructure
 {
-    public class FoodsRepository(DrNutrizioNinoContext context) : IFoodsRepository
+    public partial class DrRepository
     {
         public async Task<Food> CreateFoodAsync(CreateFoodDto newFoodDto)
         {
             var newFood = await ModelsFactory.CreateFood(newFoodDto);
-            context.Foods.Add(newFood);
-            context.SaveChanges();
+            drContext.Foods.Add(newFood);
+            drContext.SaveChanges();
             return await Task.FromResult(newFood);
         }
         public async Task DeleteFoodAsync(Guid id)
@@ -23,7 +22,7 @@ namespace Dr.NutrizioNino.Api.Infrastructure
         }
         public async Task<IEnumerable<Food>> GetFoodsAsync()
         {
-            return context.Foods;
+            return drContext.Foods;
         }
         public async Task UpdateFoodAsync(Food food)
         {
@@ -32,7 +31,7 @@ namespace Dr.NutrizioNino.Api.Infrastructure
 
         public async Task<IEnumerable<FoodDashboard>> GetFoodsDashboardAsync()
         {
-            return context.FoodsDashboard;
+            return drContext.FoodsDashboard;
         }
 
     }

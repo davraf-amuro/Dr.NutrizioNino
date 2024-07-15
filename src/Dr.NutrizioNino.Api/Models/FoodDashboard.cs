@@ -13,7 +13,7 @@
         public decimal Calorie { get; set; }
 
         public string UnitOfMeasureDescription { get; set; }
-        
+
         public string Abbreviation { get; set; }
     }
 }

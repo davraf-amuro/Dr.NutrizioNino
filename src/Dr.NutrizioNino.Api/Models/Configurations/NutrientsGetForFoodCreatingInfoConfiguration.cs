@@ -9,7 +9,7 @@ namespace Dr.NutrizioNino.Api.Models.Configurations
         {
             entity.ToView("Nutrients_GetForFoodCreating")
                 .HasKey(x => x.FoodId);
-            
+
 
             OnConfigurePartial(entity);
         }

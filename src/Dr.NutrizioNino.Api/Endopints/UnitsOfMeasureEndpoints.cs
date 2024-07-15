@@ -12,15 +12,15 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .WithOpenApi()
                 .WithTags("Units Of Measures");
 
-            group.MapGet("", async (UnitsOfMeasuresService service) => await service.GetUnitsOfMeasuresAsync())
+            group.MapGet("", async (DrService service) => await service.GetUnitsOfMeasuresAsync())
                 .WithOpenApi();
-            group.MapGet("{id}", async (UnitsOfMeasuresService service, Guid id) => await service.GetUnitOfMeasureAsync(id))
+            group.MapGet("{id}", async (DrService service, Guid id) => await service.GetUnitOfMeasureAsync(id))
                 .WithOpenApi();
-            group.MapPost("", async (UnitsOfMeasuresService service, CreateUnitOfMeasureDto newUnitOfMeasure) => await service.CreateUnitOfMeasureAsync(newUnitOfMeasure))
+            group.MapPost("", async (DrService service, CreateUnitOfMeasureDto newUnitOfMeasure) => await service.CreateUnitOfMeasureAsync(newUnitOfMeasure))
                 .WithOpenApi();
-            group.MapPut("{id}", async (UnitsOfMeasuresService service, Guid id, UnitOfMeasure unitOfMeasure) => await service.UpdateUnitOfMeasureAsync(unitOfMeasure))
+            group.MapPut("{id}", async (DrService service, Guid id, UnitOfMeasure unitOfMeasure) => await service.UpdateUnitOfMeasureAsync(unitOfMeasure))
                 .WithOpenApi();
-            group.MapDelete("{id}", async (UnitsOfMeasuresService service, Guid id) => await service.DeleteUnitOfMeasureAsync(id))
+            group.MapDelete("{id}", async (DrService service, Guid id) => await service.DeleteUnitOfMeasureAsync(id))
                 .WithOpenApi();
 
         }

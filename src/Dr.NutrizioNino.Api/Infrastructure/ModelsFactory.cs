@@ -9,7 +9,7 @@ namespace Dr.NutrizioNino.Api.Infrastructure
         {
             var newFood = new Food() { Id = Guid.NewGuid() };
             //newFood.FoodsNutrients = new List<FoodNutrient>();
-            
+
             if (foodDto != null)
             {
                 newFood.Name = foodDto.Name;

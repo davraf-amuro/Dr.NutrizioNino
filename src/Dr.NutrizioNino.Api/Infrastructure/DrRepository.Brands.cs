@@ -1,16 +1,13 @@
-﻿using Dr.NutrizioNino.Api.Interfaces;
-using Dr.NutrizioNino.Api.Models;
+﻿using Dr.NutrizioNino.Api.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dr.NutrizioNino.Api.Infrastructure
 {
-    public class BrandsReporitoy(DrNutrizioNinoContext brandsContext) : IBrandsRepository
+    public partial class DrRepository
     {
-        public Task<Brand> CreateBrandAsync(Brand brand)
+        public Task CreateBrandAsync(Guid id)
         {
-            brandsContext.Brands.Add(brand);
-            _ = brandsContext.SaveChanges();
-            return Task.FromResult(brand);
+            throw new NotImplementedException();
         }
 
         public Task DeleteBrandAsync(Guid id)
@@ -23,7 +20,7 @@ namespace Dr.NutrizioNino.Api.Infrastructure
             throw new NotImplementedException();
         }
 
-        public async Task<IEnumerable<Brand>> GetBrandsAsync() => brandsContext.Brands.AsNoTracking();
+        public async Task<IEnumerable<Brand>> GetBrandsAsync() => drContext.Brands.AsNoTracking();
 
         public Task UpdateBrandAsync(Brand brand)
         {
