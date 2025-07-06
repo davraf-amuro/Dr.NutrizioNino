@@ -1,14 +1,13 @@
 ﻿namespace Dr.NutrizioNino.Api.Dto
 {
-    public class ApiResponseDto<T>
+    public class ApiResponseSingleDto<T>
     {
-        public ApiResponseDto()
+        public ApiResponseSingleDto()
         {
-            this.Data = [];
             this.Errors = [];
         }
         public bool Success { get; set; }
-        public IList<T>? Data { get; set; }
+        public T? Data { get; set; }
         public IList<string> Errors { get; set; }
 
     }

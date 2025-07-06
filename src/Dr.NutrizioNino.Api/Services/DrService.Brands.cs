@@ -8,11 +8,11 @@ namespace Dr.NutrizioNino.Api.Services
 {
     public partial class DrService
     {
-        public async Task<ApiResponseDto<BrandDto>> GetBrandsAsync()
+        public async Task<ApiResponseMultipleDto<BrandDto>> GetBrandsAsync()
         {
             var brands = await drRepository.GetBrandsAsync().ConfigureAwait(false);
 
-            return new ApiResponseDto<BrandDto>()
+            return new ApiResponseMultipleDto<BrandDto>()
             {
                 Success = true,
                 Data = brands.Select(x => x.AsDto()).ToList()

@@ -3,9 +3,15 @@ using Dr.NutrizioNino.Api.Infrastructure;
 using Dr.NutrizioNino.Api.Models;
 using Dr.NutrizioNino.Api.Services;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, services, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services)
+);
 
 // Add services to the container.
 builder.Services.AddCors(options =>
@@ -25,6 +31,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<DrNutrizioNinoContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DrNutrizioNinoSql"));
+    options.EnableSensitiveDataLogging();
+    options.EnableDetailedErrors();
 });
 
 builder.Services.AddScoped<DrRepository>();

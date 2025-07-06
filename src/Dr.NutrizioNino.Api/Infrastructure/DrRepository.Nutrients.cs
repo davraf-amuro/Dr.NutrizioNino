@@ -1,4 +1,5 @@
 ﻿using Dr.NutrizioNino.Api.Models;
+using Dr.NutrizioNino.Models.Dto;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dr.NutrizioNino.Api.Infrastructure
@@ -30,8 +31,21 @@ namespace Dr.NutrizioNino.Api.Infrastructure
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// restituisce tutti i nutrienti. Se riceve il guid di un cibo restituisce i nutrienti di quel cibo più quelli mancanti
+        /// </summary>
+        /// <param name="id">Guid del cibo</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<NutrientsGetForFoodCreatingInfo>> GetAllNutrientsForFood(Guid? id)
+        {
+            var nutrients = await drContext.NutrientsGetForFoodCreatingInfoes
+                .FromSqlRaw($"EXECUTE dbo.Full_Nutrients_For_Food {id}")
+                .AsNoTracking()
+                .ToListAsync()
+                .ConfigureAwait(false);
 
-        //public async Task<IEnumerable<NutrientsGetForFoodCreatingInfo>> GetNutrientsForFoodCreatingAsync() =>
-        //    drContext.NutrientsGetForFoodCreatingInfoes.AsNoTracking();
+            return nutrients;
+        }
+
     }
 }

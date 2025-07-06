@@ -8,11 +8,11 @@ namespace Dr.NutrizioNino.Api.Services
 {
     public partial class DrService
     {
-        public async Task<ApiResponseDto<UnitOfMeasureDto>> GetUnitsOfMeasuresAsync()
+        public async Task<ApiResponseMultipleDto<UnitOfMeasureDto>> GetUnitsOfMeasuresAsync()
         {
             var uom = await drRepository.GetUnitsOfMeasuresAsync().ConfigureAwait(false);
 
-            return new ApiResponseDto<UnitOfMeasureDto>()
+            return new ApiResponseMultipleDto<UnitOfMeasureDto>()
             {
                 Success = true,
                 Data = uom.Select(x => x.AsDto()).ToList()
@@ -30,13 +30,13 @@ namespace Dr.NutrizioNino.Api.Services
             return await drRepository.CreateUnitOfMeasureAsync(unitOfMeasure).ConfigureAwait(false);
         }
 
-        public async Task<ApiResponseDto<UnitOfMeasureDto>> UpdateUnitOfMeasureAsync(UnitOfMeasure unitOfMeasure)
+        public async Task<ApiResponseMultipleDto<UnitOfMeasureDto>> UpdateUnitOfMeasureAsync(UnitOfMeasure unitOfMeasure)
         {
             var result = await drRepository.UpdateUnitOfMeasureAsync(unitOfMeasure).ConfigureAwait(false);
             var data = new List<UnitOfMeasureDto>();
             if (result != null) data.Add(result.AsDto());
 
-            return new ApiResponseDto<UnitOfMeasureDto>
+            return new ApiResponseMultipleDto<UnitOfMeasureDto>
             {
                 Success = (result != null),
                 Data = data

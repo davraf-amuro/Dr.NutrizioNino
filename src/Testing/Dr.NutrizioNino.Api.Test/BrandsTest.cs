@@ -17,7 +17,7 @@ public class BrandsEndpointTests : IClassFixture<WebApplicationFactory<Program>>
         var response = await _client.GetAsync("https://localhost:44360/brands");
         response.EnsureSuccessStatusCode();
         var payload = response.Content.ReadAsStringAsync().Result;
-        var apiResponse = JsonSerializer.Deserialize<ApiResponseDto<BrandDto>>(payload);
+        var apiResponse = JsonSerializer.Deserialize<ApiResponseMultipleDto<BrandDto>>(payload);
 
         Assert.True(apiResponse.Success == true);
     }

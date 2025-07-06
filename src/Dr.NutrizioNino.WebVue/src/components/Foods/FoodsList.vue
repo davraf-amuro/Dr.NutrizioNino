@@ -7,22 +7,41 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps } from 'vue'
+import { defineProps, h } from 'vue'
 import type { FoodDashboardDto } from '@/Interfaces/foods/FoodDashboardDto'
-import type { ApiResponseDto } from '@/Interfaces/ApiResponseDto'
-import { NDataTable, type DataTableColumns } from 'naive-ui'
+import { NDataTable, type DataTableColumns, NButton } from 'naive-ui'
 
-const columns: DataTableColumns = [
+const columns: DataTableColumns<FoodDashboardDto> = [
   { title: 'Nome', key: 'name' },
   { title: 'Kcal', key: 'calorie' },
   { title: 'Quantità', key: 'quantity' },
   { title: 'UdM', key: 'abbreviation' },
-  { title: 'Marca', key: 'brandDescription' }
+  { title: 'Marca', key: 'brandDescription' },
+  {
+    title: '',
+    key: 'actions',
+    render(row) {
+      return h(
+        NButton,
+        {
+          strong: true,
+          tertiary: true,
+          size: 'small',
+          onClick: () => modify(row)
+        },
+        { default: () => 'Modfifica' }
+      )
+    }
+  }
 ]
 
 const props = defineProps<{
   foods: FoodDashboardDto[]
 }>()
+
+function modify(row: FoodDashboardDto): void {
+  row.name = row.id
+}
 </script>
 
 <style scoped></style>

@@ -1,15 +1,15 @@
 <template>
   <div class="container">
     <div class="column-1-4">
-      {{ data?.foodNutrient?.nutrientName }}
+      {{ prop.foodNutrientDto?.name }}
     </div>
     <div class="column-2-4">
       <n-select
-        :options="data.unitsOfMeasures"
+        :options="prop.unitsOfMeasures"
         value-field="id"
         label-field="name"
         size="tiny"
-        v-model:value="data.unitOfMeasureSelectedId"
+        v-model:value="selectedId"
       ></n-select>
     </div>
     <div class="column-1-4">
@@ -20,21 +20,25 @@
         :show-button="false"
         :default-value="0.0"
         size="tiny"
-        v-model:value="data.foodNutrient.quantity"
+        v-model:value="prop.foodNutrientDto.quantity"
       ></n-input-number>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { FoodNutrientInputDto } from '@/Interfaces/foods/FoodNutrientInputDto'
 import { NSelect, NInputNumber } from 'naive-ui'
 import { ref } from 'vue'
+import type { FoodNutrientDto } from '@/Interfaces/foods/FoodNutrientDto'
+import type { UnitOfMeasureDto } from '@/Interfaces/UnitOfMeasureDto'
 
-const pps = defineProps<{
-  dto: FoodNutrientInputDto
+const prop = defineProps<{
+  foodNutrientDto: FoodNutrientDto
+  unitsOfMeasures: UnitOfMeasureDto[]
+  unitOfMeasureSelectedId: number
 }>()
-const data = ref<FoodNutrientInputDto>(pps.dto)
+
+const selectedId = ref<number>(prop.unitOfMeasureSelectedId)
 </script>
 
 <style scoped></style>

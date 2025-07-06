@@ -7,20 +7,10 @@ namespace Dr.NutrizioNino.Api.Services
 {
     public partial class DrService
     {
-        public async Task<ApiResponseDto<FoodDto>> GetFoodsAsync()
-        {
-            var request = await drRepository.GetFoodsAsync().ConfigureAwait(false);
-            return new ApiResponseDto<FoodDto>
-            {
-                Success = true,
-                Data = request.Select(x => x.AsDto()).ToList()
-            };
-        }
-
-        public async Task<Food> GetFoodAsync(Guid id)
-        {
-            return await drRepository.GetFoodAsync(id);
-        }
+        //public async Task<Food> GetFoodAsync(Guid id)
+        //{
+        //    return await drRepository.GetFoodAsync(id);
+        //}
 
         public async Task<Food> CreateFoodAsync(CreateFoodDto newFoodDto)
         {
@@ -37,33 +27,44 @@ namespace Dr.NutrizioNino.Api.Services
             await drRepository.DeleteFoodAsync(id);
         }
 
-        public async Task<ApiResponseDto<FoodDashboard>> GetFoodsDashboardAsync()
+        public async Task<ApiResponseMultipleDto<FoodDashboardInfo>> GetFoodsDashboardAsync()
         {
             var request = await drRepository.GetFoodsDashboardAsync().ConfigureAwait(false);
-            return new ApiResponseDto<FoodDashboard>
+            return new ApiResponseMultipleDto<FoodDashboardInfo>
             {
                 Success = true,
                 Data = request.ToList()
             };
         }
 
-        public async Task<ApiResponseDto<FoodCreationTemplateDto>> FactoryGetNew()
+        public async Task<ApiResponseSingleDto<FoodDashboardInfo>> GetFoodDashboardAsync(Guid id)
         {
-            var nutrients = (await drRepository.GetNutrientsAsync()).Select(x => x.AsDto()).ToList();
-            var foodCreationTemplateDto = new FoodCreationTemplateDto(
+            var request = await drRepository.GetFoodDashboardAsync(id).ConfigureAwait(false);
+            return new ApiResponseSingleDto<FoodDashboardInfo>
+            {
+                Success = true,
+                Data = request
+            };
+        }
+
+        public async Task<ApiResponseSingleDto<FoodInfo>> GetFullFood(Guid? id)
+        {
+            var nutrients = (await drRepository.GetAllNutrientsForFood(id)).ToList();
+            var foodCreationTemplateDto = new FoodInfo(
                 Guid.Empty
-                , "Default Food"
+                , "Empty Food"
                 , Constants.GetDefaultQuantity()
                 , null
-                , Guid.Empty
-                , Constants.GetDefaultCaolires()
+                , Constants.GetDefaultBrandId()
+                , Constants.GetDefaultCalories()
+                , Constants.GetDefaultUnitOfMeasure()
                 , nutrients
                 );
 
-            return new ApiResponseDto<FoodCreationTemplateDto>
+            return new ApiResponseSingleDto<FoodInfo>
             {
                 Success = true,
-                Data = new List<FoodCreationTemplateDto> { foodCreationTemplateDto }
+                Data = foodCreationTemplateDto
             };
         }
     }

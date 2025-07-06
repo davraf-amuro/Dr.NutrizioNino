@@ -17,7 +17,7 @@ namespace Dr.NutrizioNino.Api.Endopints
                 return result.Success ? Results.Ok(result) : Results.NotFound(result);
             })
                 .WithOpenApi()
-                .Produces<ApiResponseDto<NutrientDto>>()
+                .Produces<ApiResponseMultipleDto<NutrientInfo>>()
             ;
             group.MapGet("{id}", async (DrService service, Guid id) => await service.GetNutrientAsync(id))
                 .WithOpenApi();

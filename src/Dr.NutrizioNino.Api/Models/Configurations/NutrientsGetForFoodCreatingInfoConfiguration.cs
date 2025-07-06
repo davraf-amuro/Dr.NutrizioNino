@@ -7,8 +7,8 @@ namespace Dr.NutrizioNino.Api.Models.Configurations
     {
         public void Configure(EntityTypeBuilder<NutrientsGetForFoodCreatingInfo> entity)
         {
-            entity.ToView("Nutrients_GetForFoodCreating")
-                .HasKey(x => x.FoodId);
+            entity.ToView("Full_Nutrients_For_Food")
+                .HasKey(x => x.NutrientId);
 
 
             OnConfigurePartial(entity);

@@ -1,6 +1,6 @@
 ﻿namespace Dr.NutrizioNino.Api.Models
 {
-    public class FoodDashboard
+    public class FoodDashboardInfo
     {
         public Guid Id { get; set; }
 

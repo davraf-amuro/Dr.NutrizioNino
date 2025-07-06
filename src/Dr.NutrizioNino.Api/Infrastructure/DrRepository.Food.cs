@@ -1,5 +1,7 @@
-﻿using Dr.NutrizioNino.Api.Models;
+﻿using Dr.NutrizioNino.Api.Helpers;
+using Dr.NutrizioNino.Api.Models;
 using Dr.NutrizioNino.Models.Dto;
+using Microsoft.EntityFrameworkCore;
 
 namespace Dr.NutrizioNino.Api.Infrastructure
 {
@@ -7,19 +9,17 @@ namespace Dr.NutrizioNino.Api.Infrastructure
     {
         public async Task<Food> CreateFoodAsync(CreateFoodDto newFoodDto)
         {
-            var newFood = await ModelsFactory.CreateFood(newFoodDto);
-            drContext.Foods.Add(newFood);
-            drContext.SaveChanges();
-            return await Task.FromResult(newFood);
+            //var newFood = await ModelsFactory.CreateFood(newFoodDto);
+            //drContext.Foods.Add(newFood);
+            //drContext.SaveChanges();
+            //return await Task.FromResult(newFood);
+            return await Task.FromResult(new Food());
         }
         public async Task DeleteFoodAsync(Guid id)
         {
             throw new Exception("Not implemented yet!");
         }
-        public async Task<Food> GetFoodAsync(Guid id)
-        {
-            return await Task.FromResult(new Food());
-        }
+
         public async Task<IEnumerable<Food>> GetFoodsAsync()
         {
             return drContext.Foods;
@@ -29,10 +29,14 @@ namespace Dr.NutrizioNino.Api.Infrastructure
             throw new Exception("Not implemented yet!");
         }
 
-        public async Task<IEnumerable<FoodDashboard>> GetFoodsDashboardAsync()
+        public async Task<IEnumerable<FoodDashboardInfo>> GetFoodsDashboardAsync()
         {
             return drContext.FoodsDashboard;
         }
 
+        internal async Task<FoodDashboardInfo?> GetFoodDashboardAsync(Guid id)
+        {
+            return await drContext.FoodsDashboard.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
+        }
     }
 }

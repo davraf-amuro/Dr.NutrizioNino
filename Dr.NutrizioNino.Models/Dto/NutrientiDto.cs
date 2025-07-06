@@ -6,14 +6,12 @@ using System.Threading.Tasks;
 
 namespace Dr.NutrizioNino.Models.Dto
 {
-    public record FoodDto(
+    public record NutrientDto(
         Guid Id
         , string Name
-        , decimal Quantity
-        , string? Barcode
-        , Guid? BrandId
-        , int Calorie
-        , IList<NutrientDto> Nutrients
-        )
-    { }
+        , int PositionOrder
+        , Guid DefaultUnitOfMeasureId
+        , decimal DefaultQuantity
+        );
+
 }

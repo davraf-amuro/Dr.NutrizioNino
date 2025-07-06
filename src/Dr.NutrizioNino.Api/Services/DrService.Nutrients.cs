@@ -8,11 +8,11 @@ namespace Dr.NutrizioNino.Api.Services
 {
     public partial class DrService
     {
-        public async Task<ApiResponseDto<NutrientDto>> GetNutrientsAsync()
+        public async Task<ApiResponseMultipleDto<NutrientInfo>> GetNutrientsAsync()
         {
             var nutrient = await drRepository.GetNutrientsAsync().ConfigureAwait(false);
 
-            return new ApiResponseDto<NutrientDto>()
+            return new ApiResponseMultipleDto<NutrientInfo>()
             {
                 Success = true,
                 Data = nutrient.OrderBy(x => x.PositionOrder).Select(x => x.AsDto()).ToList()
