@@ -15,15 +15,18 @@ const fullFood = ref<ApiResponseSingeDto<FoodDto>>()
 const foodsService = new FoodsService()
 //carica i dati da FoodsService.GetDashboard
 foodsService.GetDashboard().then((response) => {
+  console.log('GetDashboard è stata chiamata')
   dashboard.value = response
 })
 
 foodsService.FoodFactoryGetNew().then((response) => {
-  fullFood.value = response
+  // fullFood.value = response
 })
 
 // Definisci una nuova funzione per creare un nuovo cibo
 function createNewFood() {
+  console.log('createNewFood è stata chiamata')
+  isNew.value = true
   foodsService.FoodFactoryGetNew().then((response) => {
     fullFood.value = response
     isNew.value = true // Assicurati che isNew sia reattivo se necessario
@@ -37,7 +40,7 @@ async function completeHandler() {
     //TODO: fatti restituire l'id del nuovo oggetto
     //TODO: api per recuperare l'oggetto row da aggiungere alla dashboard
     var row = await foodsService.GetDashboardRow('37a5b00b-b6ed-45a4-92c5-779803498ed6')
-    dashboard.value.data.push(row.data) // Access the 'data' property of 'row'
+    // dashboard.value.data.push(row.data) // Access the 'data' property of 'row'
 
     isNew.value = false
   } catch (error) {

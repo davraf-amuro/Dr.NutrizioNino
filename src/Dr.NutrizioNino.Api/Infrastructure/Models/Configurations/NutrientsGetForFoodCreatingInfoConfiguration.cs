@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Dr.NutrizioNino.Api.Models.Configurations
+namespace Dr.NutrizioNino.Api.Infrastructure.Models.Configurations
 {
     public partial class NutrientsGetForFoodCreatingInfoConfiguration : IEntityTypeConfiguration<NutrientsGetForFoodCreatingInfo>
     {

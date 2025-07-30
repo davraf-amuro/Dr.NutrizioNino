@@ -15,13 +15,7 @@
         <b>Marca:</b>
       </div>
       <div class="column-3-4">
-        <n-select
-          :options="brands"
-          value-field="id"
-          label-field="name"
-          size="tiny"
-          v-model:value="food.brandId"
-        ></n-select>
+        <n-select :options="brands" value-field="id" label-field="name" size="tiny"></n-select>
       </div>
     </div>
     <!-- {{ food.brandId } -->
@@ -30,13 +24,7 @@
         <b>Unità di misura</b>
       </div>
       <div class="column-2-4">
-        <n-select
-          :options="uom"
-          value-field="id"
-          label-field="name"
-          size="tiny"
-          v-model:value="food.unitOfMeasureId"
-        ></n-select>
+        <n-select :options="uom" value-field="id" label-field="name" size="tiny"></n-select>
       </div>
       <div class="column-1-4">
         <n-input-number
@@ -46,7 +34,6 @@
           :show-button="false"
           :default-value="0.0"
           size="tiny"
-          v-model:value="food.quantity"
         ></n-input-number>
       </div>
     </div>
@@ -84,18 +71,15 @@ const brands = ref()
 const uom = ref<UnitOfMeasureDto[]>([])
 const props = defineProps<{ food: FoodDto }>()
 
-const emit = defineEmits<{
-  cancel: any
-  complete: any
-}>()
+const emit = defineEmits<{ cancel: any; complete: any }>()
 
-axios.get('https://localhost:44360/brands').then(function (response) {
+axios.get('https://localhost:7048/brands').then(function (response) {
   const casted: BrandsApiResponse = response.data
   brands.value = casted.data
 })
 
 //carico la collezione di unità di misura per le combo
-axios.get('https://localhost:44360/unitsOfMeasures').then(function (response) {
+axios.get('https://localhost:7048/unitsOfMeasures').then(function (response) {
   const casted: ApiResponseMultipleDto<UnitOfMeasureDto> = response.data
   uom.value = casted.data
 })

@@ -1,7 +1,6 @@
 ﻿using Dr.NutrizioNino.Api.Dto;
-using Dr.NutrizioNino.Api.Models;
+using Dr.NutrizioNino.Api.Infrastructure.Models;
 using Dr.NutrizioNino.Api.Services;
-using Dr.NutrizioNino.Models.Dto;
 
 namespace Dr.NutrizioNino.Api.Endopints
 {
@@ -15,13 +14,6 @@ namespace Dr.NutrizioNino.Api.Endopints
 
             group.MapGet("{id}", async (DrService service, Guid id) => await service.GetFullFood(id))
                 .WithOpenApi();
-
-            //group.MapPost("", async (DrService service, CreateFoodDto newFoodDto) => await service.CreateFoodAsync(newFoodDto))
-            //    .WithOpenApi();
-            //group.MapPut("{id}", async (DrService service, Guid id, Food food) => await service.UpdateFoodAsync(food))
-            //    .WithOpenApi();
-            //group.MapDelete("{id}", async (DrService service, Guid id) => await service.DeleteFoodAsync(id))
-            //    .WithOpenApi();
 
             group.MapGet("dashboard", async (DrService service) => await service.GetFoodsDashboardAsync())
                 .WithOpenApi()

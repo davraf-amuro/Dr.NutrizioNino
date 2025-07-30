@@ -1,4 +1,4 @@
-﻿namespace Dr.NutrizioNino.Models.Dto
+﻿namespace Dr.NutrizioNino.Api.Infrastructure.Models
 {
     public record NutrientInfo(Guid Id, string Name, int PositionOrder, Guid DefaultUnitOfMeasureId, decimal DefaultQuantity);
 }

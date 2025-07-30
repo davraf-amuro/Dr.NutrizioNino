@@ -1,5 +1,8 @@
-﻿namespace Dr.NutrizioNino.Api.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Dr.NutrizioNino.Api.Infrastructure.Models
 {
+    [Table("Foods_Dashboard")]
     public class FoodDashboardInfo
     {
         public Guid Id { get; set; }

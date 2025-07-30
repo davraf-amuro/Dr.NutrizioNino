@@ -1,7 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Dr.NutrizioNino.Api.Infrastructure.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Dr.NutrizioNino.Api.Models.Configurations
+namespace Dr.NutrizioNino.Api.Infrastructure.Models.Configurations
 {
     public partial class FoodDashboardConfiguration : IEntityTypeConfiguration<FoodDashboardInfo>
     {

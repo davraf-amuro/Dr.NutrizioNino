@@ -1,4 +1,5 @@
-﻿using Dr.NutrizioNino.Api.Models;
+﻿using Dr.NutrizioNino.Api.Infrastructure.Models;
+using Dr.NutrizioNino.Api.Models;
 using Dr.NutrizioNino.Models.Dto;
 
 namespace Dr.NutrizioNino.Api.Helpers

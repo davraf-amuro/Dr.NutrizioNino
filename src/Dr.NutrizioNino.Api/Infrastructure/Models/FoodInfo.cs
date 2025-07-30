@@ -1,6 +1,4 @@
-﻿using Dr.NutrizioNino.Api.Models;
-
-namespace Dr.NutrizioNino.Models.Dto
+﻿namespace Dr.NutrizioNino.Api.Infrastructure.Models
 {
  /// <summary>
  /// Record in sola lettura usato come dto sia per la creazione che per la modifica di un alimento.

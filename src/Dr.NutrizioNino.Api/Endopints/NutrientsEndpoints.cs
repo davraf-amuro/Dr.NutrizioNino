@@ -1,4 +1,5 @@
 ﻿using Dr.NutrizioNino.Api.Dto;
+using Dr.NutrizioNino.Api.Infrastructure.Models;
 using Dr.NutrizioNino.Api.Models;
 using Dr.NutrizioNino.Api.Services;
 using Dr.NutrizioNino.Models.Dto;
