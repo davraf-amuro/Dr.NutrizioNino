@@ -11,7 +11,7 @@ public partial class FoodNutrient
 
     public Guid NutrientId { get; set; }
 
-    public Guid UnitOfMeasure { get; set; }
+    public Guid UnitOfMeasureId { get; set; }
 
     public decimal Quantity { get; set; }
 

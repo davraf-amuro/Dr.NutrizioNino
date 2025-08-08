@@ -7,6 +7,11 @@ import type { ApiResponseSingeDto } from '@/Interfaces/ApiResponseSingeDto'
 import type { ApiResponseMultipleDto } from '@/Interfaces/ApiResponseMultipleDto'
 
 export class FoodsService {
+  public async GetDashboard(): Promise<ApiResponseMultipleDto<FoodDashboardDto>> {
+    const data = await this.dashboardFetchData()
+    return data
+  }
+
   private async dashboardFetchData(): Promise<ApiResponseMultipleDto<FoodDashboardDto>> {
     try {
       const response = await axios.get(`${config.API_BASE_URL}/foods/dashboard`)
@@ -32,8 +37,8 @@ export class FoodsService {
     }
   }
 
-  public async GetDashboard(): Promise<ApiResponseMultipleDto<FoodDashboardDto>> {
-    const data = await this.dashboardFetchData()
+  public async FoodFactoryGetNew(): Promise<ApiResponseSingeDto<FoodDto>> {
+    const data = await this.foodFactoryFetchData()
     return data
   }
 
@@ -47,8 +52,18 @@ export class FoodsService {
     }
   }
 
-  public async FoodFactoryGetNew(): Promise<ApiResponseSingeDto<FoodDto>> {
-    const data = await this.foodFactoryFetchData()
-    return data
+  public async PostNewFood(food: FoodDto): Promise<string> {
+    const id = await this.postNewFoodData(food)
+    return id
+  }
+
+  private async postNewFoodData(food: FoodDto): Promise<string> {
+    try {
+      const response = await axios.post(`${config.API_BASE_URL}/foods/create`, food)
+      return response.data.id // Torna solo l'ID
+    } catch (error) {
+      console.error(error)
+      throw error
+    }
   }
 }

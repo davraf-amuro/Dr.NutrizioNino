@@ -32,6 +32,12 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .WithName("getnewfood")
                 .Produces<ApiResponseSingleDto<FoodInfo>>(StatusCodes.Status200OK);
 
+            group.MapPost("Create", async (DrService service, FoodInfo foodInfo) =>
+            {
+                var newFoodId = await service.InsertFullFood(foodInfo);
+                return Results.Ok(newFoodId);
+            })
+                .WithOpenApi();
         }
     }
 }

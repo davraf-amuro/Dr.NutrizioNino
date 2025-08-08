@@ -64,6 +64,32 @@ namespace Dr.NutrizioNino.Api.Services
                 Data = foodCreationTemplateDto
             };
         }
+
+        public async Task<Guid> InsertFullFood(FoodInfo foodInfo)
+        {
+            var food = new Food
+            {
+                Id = Guid.NewGuid(),
+                Name = foodInfo.Name,
+                Quantity = foodInfo.Quantity,
+                BrandId = foodInfo.BrandId,
+                Calorie = foodInfo.Calorie
+            };
+
+            foreach (var nutrient in foodInfo.Nutrients)
+            {
+                food.FoodsNutrients.Add(new FoodNutrient
+                {
+                    FoodId = food.Id,
+                    Quantity = nutrient.Quantity,
+                    NutrientId = nutrient.NutrientId,
+                    UnitOfMeasureId = nutrient.UnitOfMeasureId,
+                });
+            }
+
+            await drRepository.InsertFullFood(food);
+            return food.Id;
+        }
     }
 }
 

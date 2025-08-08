@@ -6,7 +6,7 @@
         <b>Nome:</b>
       </div>
       <div class="column-3-4">
-        <n-input :minlength="3" :maxlength="50" size="tiny" :value="food?.name"></n-input>
+        <n-input v-model="localFood.name" :minlength="3" :maxlength="50" size="tiny"></n-input>
       </div>
     </div>
 
@@ -84,11 +84,14 @@ axios.get('https://localhost:7048/unitsOfMeasures').then(function (response) {
   uom.value = casted.data
 })
 
+const localFood = ref({ ...props.food })
+
+// Aggiorna il valore originale quando necessario
 const cancelHandler = () => {
   emit('cancel')
 }
 const completeHandler = () => {
-  emit('complete')
+  emit('complete', localFood.value)
 }
 waiting.value = false
 </script>

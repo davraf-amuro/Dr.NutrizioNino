@@ -19,32 +19,33 @@ foodsService.GetDashboard().then((response) => {
   dashboard.value = response
 })
 
-foodsService.FoodFactoryGetNew().then((response) => {
-  // fullFood.value = response
-})
-
-// Definisci una nuova funzione per creare un nuovo cibo
-function createNewFood() {
-  console.log('createNewFood è stata chiamata')
-  isNew.value = true
-  foodsService.FoodFactoryGetNew().then((response) => {
-    fullFood.value = response
-    isNew.value = true // Assicurati che isNew sia reattivo se necessario
-  })
-}
-
 async function completeHandler() {
   try {
-    // Implementa la logica per gestire il completamento
-    //TODO: manda l'oggetto fullFood.value.data al db
-    //TODO: fatti restituire l'id del nuovo oggetto
-    //TODO: api per recuperare l'oggetto row da aggiungere alla dashboard
-    var row = await foodsService.GetDashboardRow('37a5b00b-b6ed-45a4-92c5-779803498ed6')
-    // dashboard.value.data.push(row.data) // Access the 'data' property of 'row'
+    // Posta il nuovo FoodDto alle API e ottieni l'ID
+    const id = await foodsService.PostNewFood(fullFood.value!.data)
+
+    // Recupera la riga della dashboard usando l'ID del FoodDto creato
+    const row = await foodsService.GetDashboardRow(id)
+
+    // Aggiungi la riga alla dashboard
+    if (dashboard.value) {
+      dashboard.value.data?.push(row.data)
+    }
 
     isNew.value = false
   } catch (error) {
-    console.error('Errore durante il recupero della riga della dashboard:', error)
+    console.error('Errore durante il completamento del nuovo cibo:', error)
+  }
+}
+
+async function createNewFood() {
+  try {
+    // Recupera un nuovo FoodDto dal servizio
+    const response = await foodsService.FoodFactoryGetNew()
+    fullFood.value = response
+    isNew.value = true
+  } catch (error) {
+    console.error('Errore durante la creazione del nuovo cibo:', error)
   }
 }
 </script>

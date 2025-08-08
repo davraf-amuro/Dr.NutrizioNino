@@ -28,7 +28,7 @@ namespace Dr.NutrizioNino.Api.Models.Configurations
                 .HasConstraintName("FK_Foods_Nutrients_Nutrients");
 
             entity.HasOne(d => d.UnitOfMeasureNavigation).WithMany(p => p.FoodsNutrients)
-                .HasForeignKey(d => d.UnitOfMeasure)
+                .HasForeignKey(d => d.UnitOfMeasureId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Foods_Nutrients_UnitsOfMeasures");
 

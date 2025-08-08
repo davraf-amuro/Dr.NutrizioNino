@@ -39,5 +39,12 @@ namespace Dr.NutrizioNino.Api.Infrastructure
         {
             return await drContext.FoodsDashboard.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
         }
+
+        internal async Task<Guid> InsertFullFood(Food food)
+        {
+            drContext.Foods.Add(food);
+            await drContext.SaveChangesAsync();
+            return food.Id;
+        }
     }
 }
