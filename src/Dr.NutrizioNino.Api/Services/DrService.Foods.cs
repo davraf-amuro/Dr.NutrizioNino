@@ -72,8 +72,10 @@ namespace Dr.NutrizioNino.Api.Services
                 Id = Guid.NewGuid(),
                 Name = foodInfo.Name,
                 Quantity = foodInfo.Quantity,
+                Barcode = null,
                 BrandId = foodInfo.BrandId,
-                Calorie = foodInfo.Calorie
+                Calorie = foodInfo.Calorie,
+                UnitOfMeasureId = foodInfo.UnitOfMeasureId
             };
 
             foreach (var nutrient in foodInfo.Nutrients)
@@ -81,9 +83,9 @@ namespace Dr.NutrizioNino.Api.Services
                 food.FoodsNutrients.Add(new FoodNutrient
                 {
                     FoodId = food.Id,
-                    Quantity = nutrient.Quantity,
                     NutrientId = nutrient.NutrientId,
                     UnitOfMeasureId = nutrient.UnitOfMeasureId,
+                    Quantity = nutrient.Quantity
                 });
             }
 

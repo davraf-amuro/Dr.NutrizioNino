@@ -6,7 +6,12 @@
         <b>Nome:</b>
       </div>
       <div class="column-3-4">
-        <n-input v-model="localFood.name" :minlength="3" :maxlength="50" size="tiny"></n-input>
+        <n-input
+          v-model:value="localFood.name"
+          :minlength="3"
+          :maxlength="50"
+          size="tiny"
+        ></n-input>
       </div>
     </div>
 
@@ -15,7 +20,13 @@
         <b>Marca:</b>
       </div>
       <div class="column-3-4">
-        <n-select :options="brands" value-field="id" label-field="name" size="tiny"></n-select>
+        <n-select
+          v-model:value="localFood.brandId"
+          :options="brands"
+          value-field="id"
+          label-field="name"
+          size="tiny"
+        ></n-select>
       </div>
     </div>
     <!-- {{ food.brandId } -->
@@ -24,7 +35,13 @@
         <b>Unità di misura</b>
       </div>
       <div class="column-2-4">
-        <n-select :options="uom" value-field="id" label-field="name" size="tiny"></n-select>
+        <n-select
+          v-model:value="localFood.unitOfMeasureId"
+          :options="uom"
+          value-field="id"
+          label-field="name"
+          size="tiny"
+        ></n-select>
       </div>
       <div class="column-1-4">
         <n-input-number
@@ -32,7 +49,7 @@
           :max="9999"
           :parse="parseFloat"
           :show-button="false"
-          :default-value="0.0"
+          v-model:value="localFood.quantity"
           size="tiny"
         ></n-input-number>
       </div>
@@ -40,7 +57,7 @@
     <br />
 
     <h3>Nutrienti:</h3>
-    <div v-for="fnu in food.nutrients" :key="fnu.nutrientId">
+    <div v-for="fnu in localFood.nutrients" :key="fnu.nutrientId">
       <foodnutrientinput
         :foodNutrientDto="fnu"
         :unitsOfMeasures="uom"
@@ -57,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineProps } from 'vue'
+import { ref, watch } from 'vue'
 import axios from 'axios'
 import { NSelect, NInput, NInputNumber, NFlex, NButton } from 'naive-ui'
 import type { FoodDto } from '@/Interfaces/foods/FoodDto'
@@ -86,12 +103,22 @@ axios.get('https://localhost:7048/unitsOfMeasures').then(function (response) {
 
 const localFood = ref({ ...props.food })
 
+// Sincronizza localFood quando la prop food cambia
+watch(
+  () => props.food,
+  (newFood) => {
+    localFood.value = { ...newFood }
+  },
+  { deep: true }
+)
+
 // Aggiorna il valore originale quando necessario
 const cancelHandler = () => {
   emit('cancel')
 }
 const completeHandler = () => {
-  emit('complete', localFood.value)
+  // Sincronizza localFood con il prop originale prima di emettere
+  emit('complete', { ...localFood.value })
 }
 waiting.value = false
 </script>

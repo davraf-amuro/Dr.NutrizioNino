@@ -17,7 +17,7 @@
         , string? Barcode
         , Guid? BrandId
         , int Calorie
-        , Guid? UnitOfMeasureId
+        , Guid UnitOfMeasureId
         , IList<NutrientsGetForFoodCreatingInfo> Nutrients
         )
     { }

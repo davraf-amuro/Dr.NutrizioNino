@@ -17,7 +17,7 @@ namespace Dr.NutrizioNino.Api.Models.Configurations
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(50);
-            entity.Property(e => e.Quantity).HasColumnType("numeric(4, 2)");
+            entity.Property(e => e.Quantity).HasColumnType("numeric(6, 2)");
 
             entity.HasOne(d => d.Brand).WithMany(p => p.Foods)
                 .HasForeignKey(d => d.BrandId)

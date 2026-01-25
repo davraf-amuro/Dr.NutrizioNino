@@ -19,8 +19,14 @@ foodsService.GetDashboard().then((response) => {
   dashboard.value = response
 })
 
-async function completeHandler() {
+async function completeHandler(updatedFood: FoodDto) {
   try {
+    // Aggiorna fullFood.value!.data con i dati modificati dall'utente
+    if (fullFood.value) {
+      fullFood.value.data = updatedFood
+    }
+    console.log('Dati in fullFood prima di inviare:', fullFood.value!.data)
+
     // Posta il nuovo FoodDto alle API e ottieni l'ID
     const id = await foodsService.PostNewFood(fullFood.value!.data)
 
@@ -56,13 +62,13 @@ async function createNewFood() {
     <br />
     <button @click="createNewFood" v-if="!isNew">Nuovo</button>
     <br v-if="!isNew" />
-    <foodList v-if="!isNew" :foods="dashboard?.data || []"></foodList>
+    <foodList v-if="!isNew" :foods="dashboard?.data || []" />
 
     <foodDetail
       v-if="isNew"
       @cancel="isNew = false"
-      @complete="completeHandler"
+      @complete="completeHandler($event)"
       :food="fullFood!.data"
-    ></foodDetail>
+    />
   </div>
 </template>
