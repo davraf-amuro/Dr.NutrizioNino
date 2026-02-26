@@ -6,12 +6,9 @@ using Dr.NutrizioNino.Api.Middleware;
 using Dr.NutrizioNino.Api.Models;
 using Dr.NutrizioNino.Api.Services;
 using Dr.NutrizioNino.Api.Transformers;
-using Microsoft.AspNetCore.Connections.Features;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using Serilog;
-using System.Net;
 
 try
 {

@@ -1,4 +1,4 @@
-﻿namespace Dr.NutrizioNino.Api.Middleware;
+namespace Dr.NutrizioNino.Api.Middleware;
 //public class SecurityTokenFilter : IEndpointFilter
 //{
 //    private readonly ITokenService _tokenService;

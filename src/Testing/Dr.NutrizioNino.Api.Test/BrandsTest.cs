@@ -1,7 +1,6 @@
-using Dr.NutrizioNino.Api.Dto;
+using System.Text.Json;
 using Dr.NutrizioNino.Models.Dto;
 using Microsoft.AspNetCore.Mvc.Testing;
-using System.Text.Json;
 
 public class BrandsEndpointTests : IClassFixture<WebApplicationFactory<Program>>
 {
@@ -16,9 +15,9 @@ public class BrandsEndpointTests : IClassFixture<WebApplicationFactory<Program>>
     {
         var response = await _client.GetAsync("https://localhost:44360/brands");
         response.EnsureSuccessStatusCode();
-        var payload = response.Content.ReadAsStringAsync().Result;
-        var apiResponse = JsonSerializer.Deserialize<ApiResponseMultipleDto<BrandDto>>(payload);
+        var payload = await response.Content.ReadAsStringAsync();
+        var apiResponse = JsonSerializer.Deserialize<List<BrandDto>>(payload);
 
-        Assert.True(apiResponse.Success == true);
+        Assert.NotNull(apiResponse);
     }
 }

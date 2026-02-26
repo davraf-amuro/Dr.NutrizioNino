@@ -1,10 +1,9 @@
-﻿namespace Dr.NutrizioNino.Api.Interfaces
+namespace Dr.NutrizioNino.Api.Interfaces;
+
+public interface IAuthorizationTokens
 {
-    public interface IAuthorizationTokens
-    {
-        bool UseTokens { get; set; }
-        List<string> TokensAllowed { get; set; }
-        bool UseOrigins { get; set; }
-        List<string> OriginsAllowed { get; set; }
-    }
+    bool UseTokens { get; set; }
+    List<string> TokensAllowed { get; set; }
+    bool UseOrigins { get; set; }
+    List<string> OriginsAllowed { get; set; }
 }

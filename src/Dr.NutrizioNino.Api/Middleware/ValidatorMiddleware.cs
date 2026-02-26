@@ -1,4 +1,4 @@
-﻿using Dr.NutrizioNino.Api.Interfaces;
+using Dr.NutrizioNino.Api.Interfaces;
 using Dr.NutrizioNino.Api.Models;
 using Microsoft.Extensions.Options;
 

@@ -1,53 +1,52 @@
-﻿using Dr.NutrizioNino.Api.Models;
+using Dr.NutrizioNino.Api.Models;
 using Dr.NutrizioNino.Models.Dto;
 
-namespace Dr.NutrizioNino.Api.Infrastructure
+namespace Dr.NutrizioNino.Api.Infrastructure;
+
+internal static class ModelsFactory
 {
-    internal static class ModelsFactory
+    internal static async Task<Food> CreateFood(CreateFoodDto foodDto)
     {
-        internal static async Task<Food> CreateFood(CreateFoodDto foodDto)
+        var newFood = new Food() { Id = Guid.NewGuid() };
+        //newFood.FoodsNutrients = new List<FoodNutrient>();
+
+        if (foodDto != null)
         {
-            var newFood = new Food() { Id = Guid.NewGuid() };
-            //newFood.FoodsNutrients = new List<FoodNutrient>();
-
-            if (foodDto != null)
-            {
-                newFood.Name = foodDto.Name;
-                newFood.BrandId = foodDto.BrandId;
-                newFood.Barcode = foodDto.Barcode;
-                newFood.Calorie = foodDto.Calorie;
-            }
-
-            return newFood;
+            newFood.Name = foodDto.Name;
+            newFood.BrandId = foodDto.BrandId;
+            newFood.Barcode = foodDto.Barcode;
+            newFood.Calorie = foodDto.Calorie;
         }
 
-        internal static async Task<Nutrient> CreateNutrient(CreateNutrientDto newNutrientDto)
-        {
-            return new Nutrient
-            {
-                Id = Guid.NewGuid(),
-                Name = newNutrientDto.Name,
-            };
-        }
+        return newFood;
+    }
 
-        public static async Task<Brand> CreateBrand(CreateBrandDto newBrandDto)
+    internal static async Task<Nutrient> CreateNutrient(CreateNutrientDto newNutrientDto)
+    {
+        return new Nutrient
         {
-            return new Brand
-            {
-                // assegna un nuovo guid a id
-                Id = Guid.NewGuid(),
-                Name = newBrandDto.Name,
-            };
-        }
+            Id = Guid.NewGuid(),
+            Name = newNutrientDto.Name,
+        };
+    }
 
-        public static async Task<UnitOfMeasure> CreateUnitOfMeasure(CreateUnitOfMeasureDto newUnitOfMeasure)
+    public static async Task<Brand> CreateBrand(CreateBrandDto newBrandDto)
+    {
+        return new Brand
         {
-            return new UnitOfMeasure
-            {
-                Id = Guid.NewGuid(),
-                Name = newUnitOfMeasure.Name,
-                Abbreviation = newUnitOfMeasure.Abbreviation
-            };
-        }
+            // assegna un nuovo guid a id
+            Id = Guid.NewGuid(),
+            Name = newBrandDto.Name,
+        };
+    }
+
+    public static async Task<UnitOfMeasure> CreateUnitOfMeasure(CreateUnitOfMeasureDto newUnitOfMeasure)
+    {
+        return new UnitOfMeasure
+        {
+            Id = Guid.NewGuid(),
+            Name = newUnitOfMeasure.Name,
+            Abbreviation = newUnitOfMeasure.Abbreviation
+        };
     }
 }

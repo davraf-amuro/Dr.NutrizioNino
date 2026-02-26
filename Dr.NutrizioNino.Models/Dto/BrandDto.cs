@@ -1,4 +1,3 @@
-﻿namespace Dr.NutrizioNino.Models.Dto
-{
-    public record BrandDto(Guid Id, string Name);
-}
+namespace Dr.NutrizioNino.Models.Dto;
+
+public record BrandDto(Guid Id, string Name);

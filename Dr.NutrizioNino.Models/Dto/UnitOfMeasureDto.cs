@@ -1,4 +1,3 @@
-﻿namespace Dr.NutrizioNino.Models.Dto
-{
-    public record UnitOfMeasureDto(Guid Id, string Name, string Abbreviation);
-}
+namespace Dr.NutrizioNino.Models.Dto;
+
+public record UnitOfMeasureDto(Guid Id, string Name, string Abbreviation);

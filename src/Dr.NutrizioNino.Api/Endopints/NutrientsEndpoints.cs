@@ -1,4 +1,3 @@
-﻿using Dr.NutrizioNino.Api.Dto;
 using Dr.NutrizioNino.Api.Infrastructure.Models;
 using Dr.NutrizioNino.Api.Models;
 using Dr.NutrizioNino.Api.Services;
@@ -10,24 +9,23 @@ namespace Dr.NutrizioNino.Api.Endopints
     {
         public static void MapsNutrientsEndpoints(this IEndpointRouteBuilder endpoints)
         {
-            var group = endpoints.MapGroup("nutrients").WithOpenApi().WithTags("Nutrients");
+            var group = endpoints.MapGroup("nutrients").WithTags("Nutrients");
 
             group.MapGet("", async (DrService service) =>
             {
                 var result = await service.GetNutrientsAsync();
-                return result.Success ? Results.Ok(result) : Results.NotFound(result);
+                return result.Count > 0 ? Results.Ok(result) : Results.NotFound();
             })
-                .WithOpenApi()
-                .Produces<ApiResponseMultipleDto<NutrientInfo>>()
+                .Produces<IList<NutrientInfo>>()
             ;
             group.MapGet("{id}", async (DrService service, Guid id) => await service.GetNutrientAsync(id))
-                .WithOpenApi();
+                ;
             group.MapPost("", async (DrService service, CreateNutrientDto newNutrient) => await service.CreateNutrientAsync(newNutrient))
-                .WithOpenApi();
+                ;
             group.MapPut("{id}", async (DrService service, Guid id, Nutrient nutrient) => await service.UpdateNutrientAsync(nutrient))
-                .WithOpenApi();
+                ;
             group.MapDelete("{id}", async (DrService service, Guid id) => await service.DeleteBrandAsync(id))
-                .WithOpenApi();
+                ;
 
         }
     }

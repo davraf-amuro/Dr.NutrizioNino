@@ -1,9 +1,8 @@
-﻿using Asp.Versioning;
+using Asp.Versioning;
 
-namespace Dr.NutrizioNino.Api.Endopints
+namespace Dr.NutrizioNino.Api.Endopints;
+
+public class ApiVersionFactory
 {
-    public class ApiVersionFactory
-    {
-        public static ApiVersion Version1 => new ApiVersion(1);
-    }
+    public static ApiVersion Version1 => new ApiVersion(1);
 }

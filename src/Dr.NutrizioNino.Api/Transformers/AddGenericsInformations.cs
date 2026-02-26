@@ -1,17 +1,19 @@
-﻿using Microsoft.AspNetCore.OpenApi;
+using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
 
-namespace Dr.NutrizioNino.Api.Transformers
+namespace Dr.NutrizioNino.Api.Transformers;
+
+public class AddGenericsInformations : IOpenApiOperationTransformer
 {
-    public class AddGenericsInformations : IOpenApiOperationTransformer
+    public async Task TransformAsync(OpenApiOperation operation, OpenApiOperationTransformerContext context, CancellationToken cancellationToken)
     {
-        public async Task TransformAsync(OpenApiOperation operation, OpenApiOperationTransformerContext context, CancellationToken cancellationToken)
+        if (operation.OperationId == "generics.GetCoverage")
         {
-            if (operation.OperationId == "generics.GetCoverage")
+            foreach (var parameter in operation.Parameters)
             {
-                foreach (var parameter in operation.Parameters)
+                if (parameter.Name == "CivicEgon")
                 {
-                    if (parameter.Name == "CivicEgon") parameter.Description = "";
+                    parameter.Description = "";
                 }
             }
         }

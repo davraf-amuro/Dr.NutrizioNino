@@ -1,6 +1,17 @@
 @Dr.NutrizioNino.Api_HostAddress = http://localhost:5083
+@FoodId = 00000000-0000-0000-0000-000000000000
 
 GET {{Dr.NutrizioNino.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+
+GET {{Dr.NutrizioNino.Api_HostAddress}}/foods/getnewfood
+Accept: application/json
+
+###
+
+GET {{Dr.NutrizioNino.Api_HostAddress}}/foods/9dcfdb75-a0e5-40e5-aec7-3d5aa242353b
 Accept: application/json
 
 ###

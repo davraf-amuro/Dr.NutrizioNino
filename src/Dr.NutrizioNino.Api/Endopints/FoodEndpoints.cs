@@ -1,4 +1,3 @@
-﻿using Dr.NutrizioNino.Api.Dto;
 using Dr.NutrizioNino.Api.Infrastructure.Models;
 using Dr.NutrizioNino.Api.Services;
 
@@ -9,35 +8,44 @@ namespace Dr.NutrizioNino.Api.Endopints
         public static void MapsFoodsEndpoints(this IEndpointRouteBuilder endpoints)
         {
             var group = endpoints.MapGroup("foods")
-                .WithOpenApi()
                 .WithTags("Foods");
 
-            group.MapGet("{id}", async (DrService service, Guid id) => await service.GetFullFood(id))
-                .WithOpenApi();
+            group.MapGet("{id}", async (DrService service, Guid id) =>
+            {
+                var result = await service.GetFullFood(id);
+                return result is not null ? Results.Ok(result) : Results.NotFound();
+            })
+                .Produces<FoodInfo>(StatusCodes.Status200OK)
+                .Produces(StatusCodes.Status404NotFound);
 
-            group.MapGet("dashboard", async (DrService service) => await service.GetFoodsDashboardAsync())
-                .WithOpenApi()
+            group.MapGet("dashboard", async (DrService service) =>
+            {
+                var result = await service.GetFoodsDashboardAsync();
+                return result.Count > 0 ? Results.Ok(result) : Results.NotFound();
+            })
                 .WithName("dashboard")
-                .Produces<ApiResponseMultipleDto<FoodDashboardInfo>>(StatusCodes.Status200OK);
+                .Produces<IList<FoodDashboardInfo>>(StatusCodes.Status200OK);
 
-            group.MapGet("dashboard/{id}", async (DrService service, Guid id) => await service.GetFoodDashboardAsync(id))
-                .WithOpenApi()
+            group.MapGet("dashboard/{id}", async (DrService service, Guid id) =>
+            {
+                var result = await service.GetFoodDashboardAsync(id);
+                return result is not null ? Results.Ok(result) : Results.NotFound();
+            })
                 .WithName("dashboardrow")
-                .Produces<ApiResponseMultipleDto<FoodDashboardInfo>>(StatusCodes.Status200OK);
+                .Produces<FoodDashboardInfo>(StatusCodes.Status200OK);
 
-            group.MapGet("newgui", () => Guid.NewGuid().ToString()).WithOpenApi().WithName("newgui");
+            group.MapGet("newgui", () => Guid.NewGuid().ToString()).WithName("newgui");
 
             group.MapGet("getnewfood", async (DrService service) => await service.GetFullFood(null))
-                .WithOpenApi()
                 .WithName("getnewfood")
-                .Produces<ApiResponseSingleDto<FoodInfo>>(StatusCodes.Status200OK);
+                .Produces<FoodInfo>(StatusCodes.Status200OK);
 
             group.MapPost("Create", async (DrService service, FoodInfo foodInfo) =>
             {
                 var newFoodId = await service.InsertFullFood(foodInfo);
                 return Results.Ok(newFoodId);
             })
-                .WithOpenApi();
+                ;
         }
     }
 }

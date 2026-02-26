@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.3.11520.95 d18.3
+VisualStudioVersion = 18.3.11520.95
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{F975C519-685E-4497-A5EA-CE977FBC0FB9}"
 EndProject
@@ -18,6 +18,33 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{C5C570BE-A925-4163-9639-A91B66980EC6}"
 	ProjectSection(SolutionItems) = preProject
 		..\davraf-guidelines\your-solution-root\.github\copilot-instructions.md = ..\davraf-guidelines\your-solution-root\.github\copilot-instructions.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "instructions", "instructions", "{0ED1C3D5-417C-48C2-8B5D-9DA3A0777287}"
+	ProjectSection(SolutionItems) = preProject
+		.github\instructions\database-provider.instructions.md = .github\instructions\database-provider.instructions.md
+		.github\instructions\minimal-api-architecture.instructions.md = .github\instructions\minimal-api-architecture.instructions.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "propts", "propts", "{42A54EA2-39EA-40AB-84FD-4A5B00140783}"
+	ProjectSection(SolutionItems) = preProject
+		.github\prompts\card-project-generator.prompt.md = .github\prompts\card-project-generator.prompt.md
+		.github\prompts\enpoints-analyzer.prompt.md = .github\prompts\enpoints-analyzer.prompt.md
+		.github\prompts\readme-generator.prompt.md = .github\prompts\readme-generator.prompt.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{44F31447-E93B-4314-87D6-98214F91BC2D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C6B1953C-2B99-43CD-AA47-BCCBABF0E629}"
+	ProjectSection(SolutionItems) = preProject
+		.dockerignore = .dockerignore
+		.editorconfig = .editorconfig
+		.gitattributes = .gitattributes
+		.gitignore = .gitignore
+		Directory.Build.props = Directory.Build.props
+		global.json = global.json
+		postgre-compose.yml = postgre-compose.yml
+		README.md = README.md
 	EndProjectSection
 EndProject
 Global
@@ -47,6 +74,9 @@ Global
 		{12940D7A-3736-4E4E-93B5-DDCCFB6B7318} = {F975C519-685E-4497-A5EA-CE977FBC0FB9}
 		{0B086997-9976-466F-BDC7-4E9520DCBBDE} = {F975C519-685E-4497-A5EA-CE977FBC0FB9}
 		{B843981E-1051-424C-B4F5-5564BB993FB6} = {0B086997-9976-466F-BDC7-4E9520DCBBDE}
+		{0ED1C3D5-417C-48C2-8B5D-9DA3A0777287} = {C5C570BE-A925-4163-9639-A91B66980EC6}
+		{42A54EA2-39EA-40AB-84FD-4A5B00140783} = {C5C570BE-A925-4163-9639-A91B66980EC6}
+		{44F31447-E93B-4314-87D6-98214F91BC2D} = {C5C570BE-A925-4163-9639-A91B66980EC6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {330D8A46-B625-4C56-8597-2918205C2135}

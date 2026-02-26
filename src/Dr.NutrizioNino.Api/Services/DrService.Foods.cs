@@ -1,4 +1,3 @@
-﻿using Dr.NutrizioNino.Api.Dto;
 using Dr.NutrizioNino.Api.Helpers;
 using Dr.NutrizioNino.Api.Infrastructure.Models;
 using Dr.NutrizioNino.Api.Models;
@@ -24,45 +23,41 @@ namespace Dr.NutrizioNino.Api.Services
             await drRepository.DeleteFoodAsync(id);
         }
 
-        public async Task<ApiResponseMultipleDto<FoodDashboardInfo>> GetFoodsDashboardAsync()
+        public async Task<IList<FoodDashboardInfo>> GetFoodsDashboardAsync()
         {
             var request = await drRepository.GetFoodsDashboardAsync().ConfigureAwait(false);
-            return new ApiResponseMultipleDto<FoodDashboardInfo>
-            {
-                Success = true,
-                Data = request.ToList()
-            };
+            return request.ToList();
         }
 
-        public async Task<ApiResponseSingleDto<FoodDashboardInfo>> GetFoodDashboardAsync(Guid id)
+        public async Task<FoodDashboardInfo?> GetFoodDashboardAsync(Guid id)
         {
-            var request = await drRepository.GetFoodDashboardAsync(id).ConfigureAwait(false);
-            return new ApiResponseSingleDto<FoodDashboardInfo>
-            {
-                Success = true,
-                Data = request
-            };
+            return await drRepository.GetFoodDashboardAsync(id).ConfigureAwait(false);
         }
 
-        public async Task<ApiResponseSingleDto<FoodInfo>> GetFullFood(Guid? id)
+        public async Task<FoodInfo?> GetFullFood(Guid? id)
         {
             var nutrients = (await drRepository.GetAllNutrientsForFood(id)).ToList();
+            var food = id.HasValue
+                ? await drRepository.GetFoodAsync(id.Value).ConfigureAwait(false)
+                : null;
+
+            if (id.HasValue && food is null)
+            {
+                return null;
+            }
+
             var foodCreationTemplateDto = new FoodInfo(
-                Guid.Empty
-                , "Empty Food"
-                , Constants.GetDefaultQuantity()
-                , null
-                , Constants.GetDefaultBrandId()
-                , Constants.GetDefaultCalories()
-                , Constants.GetDefaultUnitOfMeasure()
+                food?.Id ?? Guid.Empty
+                , food?.Name ?? "Empty Food"
+                , food?.Quantity ?? Constants.GetDefaultQuantity()
+                , food?.Barcode
+                , food?.BrandId ?? Constants.GetDefaultBrandId()
+                , food?.Calorie ?? Constants.GetDefaultCalories()
+                , food?.UnitOfMeasureId ?? Constants.GetDefaultUnitOfMeasure()
                 , nutrients
                 );
 
-            return new ApiResponseSingleDto<FoodInfo>
-            {
-                Success = true,
-                Data = foodCreationTemplateDto
-            };
+            return foodCreationTemplateDto;
         }
 
         public async Task<Guid> InsertFullFood(FoodInfo foodInfo)
