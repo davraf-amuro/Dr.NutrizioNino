@@ -96,11 +96,6 @@ try
         options.DarkMode = false;
         options.DefaultHttpClient = new KeyValuePair<ScalarTarget, ScalarClient>(ScalarTarget.CSharp, ScalarClient.HttpClient);
     });
-    app.UseSwaggerUI(options =>
-    {
-        //punto swaggerUI al nuovo percorso del file openapi
-        options.SwaggerEndpoint("/openapi/v1.json", app.Environment.ApplicationName);
-    });
 
     app.UseCors(permitGetPost);
     app.UseHttpsRedirection();
