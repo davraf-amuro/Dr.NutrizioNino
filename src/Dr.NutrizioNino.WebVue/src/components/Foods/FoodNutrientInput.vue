@@ -6,9 +6,7 @@
     <div class="column-2-4">
       <n-select
         v-model:value="prop.foodNutrientDto.unitOfMeasureId"
-        :options="prop.unitsOfMeasures"
-        value-field="id"
-        label-field="name"
+        :options="unitOfMeasureOptions"
         size="tiny"
       ></n-select>
     </div>
@@ -27,15 +25,23 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { NSelect, NInputNumber } from 'naive-ui'
+import type { SelectOption } from 'naive-ui'
 import type { FoodNutrientDto } from '@/Interfaces/foods/FoodNutrientDto'
 import type { UnitOfMeasureDto } from '@/Interfaces/UnitOfMeasureDto'
 
 const prop = defineProps<{
   foodNutrientDto: FoodNutrientDto
   unitsOfMeasures: UnitOfMeasureDto[]
-  unitOfMeasureSelectedId: number
 }>()
+
+const unitOfMeasureOptions = computed<SelectOption[]>(() =>
+  prop.unitsOfMeasures.map((unit) => ({
+    label: unit.name,
+    value: unit.id
+  }))
+)
 </script>
 
 <style scoped></style>

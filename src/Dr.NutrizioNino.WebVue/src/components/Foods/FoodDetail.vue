@@ -23,6 +23,7 @@
         <n-select
           v-model:value="localFood.brandId"
           :options="brands"
+          placeholder="-seleziona-"
           value-field="id"
           label-field="name"
           size="tiny"
@@ -61,7 +62,6 @@
       <foodnutrientinput
         :foodNutrientDto="fnu"
         :unitsOfMeasures="uom"
-        :unitOfMeasureSelectedId="fnu.unitOfMeasureId"
       ></foodnutrientinput>
     </div>
   </div>
@@ -78,27 +78,43 @@ import { ref, watch } from 'vue'
 import axios from 'axios'
 import { NSelect, NInput, NInputNumber, NFlex, NButton } from 'naive-ui'
 import type { FoodDto } from '@/Interfaces/foods/FoodDto'
-import type { BrandsApiResponse } from '@/Interfaces/BrandsApiResponse'
-import type { ApiResponseMultipleDto } from '@/Interfaces/ApiResponseMultipleDto'
 import type { UnitOfMeasureDto } from '@/Interfaces/UnitOfMeasureDto'
+import type { Brand } from '@/Interfaces/Brand'
+import config from '@/config'
 import foodnutrientinput from '../Foods/FoodNutrientInput.vue'
 
 const waiting = ref(true)
-const brands = ref()
+const brands = ref<Brand[]>([])
 const uom = ref<UnitOfMeasureDto[]>([])
 const props = defineProps<{ food: FoodDto }>()
+const emptyGuid = '00000000-0000-0000-0000-000000000000'
 
 const emit = defineEmits<{ cancel: any; complete: any }>()
 
-axios.get('https://localhost:7048/brands').then(function (response) {
-  const casted: BrandsApiResponse = response.data
-  brands.value = casted.data
+const ensureBrandSelection = () => {
+  if (!brands.value.length) {
+    return
+  }
+
+  const brandId = localFood.value.brandId
+  const hasValidBrand =
+    !!brandId && brandId !== emptyGuid && brands.value.some((brand) => brand.id === brandId)
+
+  if (hasValidBrand) {
+    return
+  }
+
+  localFood.value.brandId = null
+}
+
+axios.get(`${config.API_BASE_URL}/brands`).then(function (response) {
+  brands.value = response.data
+  ensureBrandSelection()
 })
 
 //carico la collezione di unità di misura per le combo
-axios.get('https://localhost:7048/unitsOfMeasures').then(function (response) {
-  const casted: ApiResponseMultipleDto<UnitOfMeasureDto> = response.data
-  uom.value = casted.data
+axios.get(`${config.API_BASE_URL}/unitsOfMeasures`).then(function (response) {
+  uom.value = response.data
 })
 
 const localFood = ref({ ...props.food })
@@ -108,6 +124,7 @@ watch(
   () => props.food,
   (newFood) => {
     localFood.value = { ...newFood }
+    ensureBrandSelection()
   },
   { deep: true }
 )

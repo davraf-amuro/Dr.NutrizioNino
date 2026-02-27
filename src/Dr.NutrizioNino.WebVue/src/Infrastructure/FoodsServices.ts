@@ -3,16 +3,14 @@ import config from '@/config'
 
 import type { FoodDashboardDto } from '../Interfaces/foods/FoodDashboardDto'
 import type { FoodDto } from '../Interfaces/foods/FoodDto'
-import type { ApiResponseSingeDto } from '@/Interfaces/ApiResponseSingeDto'
-import type { ApiResponseMultipleDto } from '@/Interfaces/ApiResponseMultipleDto'
 
 export class FoodsService {
-  public async GetDashboard(): Promise<ApiResponseMultipleDto<FoodDashboardDto>> {
+  public async GetDashboard(): Promise<FoodDashboardDto[]> {
     const data = await this.dashboardFetchData()
     return data
   }
 
-  private async dashboardFetchData(): Promise<ApiResponseMultipleDto<FoodDashboardDto>> {
+  private async dashboardFetchData(): Promise<FoodDashboardDto[]> {
     try {
       const response = await axios.get(`${config.API_BASE_URL}/foods/dashboard`)
       return response.data
@@ -22,12 +20,12 @@ export class FoodsService {
     }
   }
 
-  public async GetDashboardRow(id: string): Promise<ApiResponseSingeDto<FoodDashboardDto>> {
+  public async GetDashboardRow(id: string): Promise<FoodDashboardDto> {
     const data = await this.dashboardRowFetchData(id)
     return data
   }
 
-  private async dashboardRowFetchData(id: string): Promise<ApiResponseSingeDto<FoodDashboardDto>> {
+  private async dashboardRowFetchData(id: string): Promise<FoodDashboardDto> {
     try {
       const response = await axios.get(`${config.API_BASE_URL}/foods/dashboard/${id}`)
       return response.data
@@ -37,12 +35,12 @@ export class FoodsService {
     }
   }
 
-  public async FoodFactoryGetNew(): Promise<ApiResponseSingeDto<FoodDto>> {
+  public async FoodFactoryGetNew(): Promise<FoodDto> {
     const data = await this.foodFactoryFetchData()
     return data
   }
 
-  private async foodFactoryFetchData(): Promise<ApiResponseSingeDto<FoodDto>> {
+  private async foodFactoryFetchData(): Promise<FoodDto> {
     try {
       const response = await axios.get(`${config.API_BASE_URL}/foods/getnewfood`)
       return response.data
@@ -60,7 +58,7 @@ export class FoodsService {
   private async postNewFoodData(food: FoodDto): Promise<string> {
     try {
       const response = await axios.post(`${config.API_BASE_URL}/foods/create`, food)
-      return response.data.id // Torna solo l'ID
+      return response.data
     } catch (error) {
       console.error(error)
       throw error

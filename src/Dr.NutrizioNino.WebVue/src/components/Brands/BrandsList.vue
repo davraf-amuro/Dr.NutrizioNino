@@ -10,8 +10,8 @@
       </tr>
 
       <tr v-for="(brand, index) in brands" :key="index">
-        <td>{{ brand }}</td>
-        <td>{{ brand }}</td>
+        <td>{{ brand.id }}</td>
+        <td>{{ brand.name }}</td>
         <td><button @click="Update(brand)">Modifica</button></td>
         <td><button @click="Delete(brand)">Elimina</button></td>
       </tr>
@@ -22,9 +22,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import axios from 'axios'
+import config from '@/config'
+import type { Brand } from '@/Interfaces/Brand'
 
-const brands = ref([])
-axios.get('https://localhost:7048/brands').then(function (response) {
+const brands = ref<Brand[]>([])
+axios.get(`${config.API_BASE_URL}/brands`).then(function (response) {
   brands.value = response.data
 })
 

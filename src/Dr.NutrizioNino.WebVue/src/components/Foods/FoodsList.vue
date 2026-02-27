@@ -7,7 +7,7 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, h } from 'vue'
+import { h } from 'vue'
 import type { FoodDashboardDto } from '@/Interfaces/foods/FoodDashboardDto'
 import { NDataTable, type DataTableColumns, NButton } from 'naive-ui'
 

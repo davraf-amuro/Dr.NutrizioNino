@@ -3,14 +3,12 @@ import { ref } from 'vue'
 import foodList from '../components/Foods/FoodsList.vue'
 import foodDetail from '../components/Foods/FoodDetail.vue'
 import { FoodsService } from '@/Infrastructure/FoodsServices'
-import type { ApiResponseMultipleDto } from '@/Interfaces/ApiResponseMultipleDto'
-import type { ApiResponseSingeDto } from '@/Interfaces/ApiResponseSingeDto'
 import type { FoodDashboardDto } from '@/Interfaces/foods/FoodDashboardDto'
 import type { FoodDto } from '@/Interfaces/foods/FoodDto'
 
 const isNew = ref(false)
-const dashboard = ref<ApiResponseMultipleDto<FoodDashboardDto>>()
-const fullFood = ref<ApiResponseSingeDto<FoodDto>>()
+const dashboard = ref<FoodDashboardDto[]>([])
+const fullFood = ref<FoodDto>()
 
 const foodsService = new FoodsService()
 //carica i dati da FoodsService.GetDashboard
@@ -19,24 +17,22 @@ foodsService.GetDashboard().then((response) => {
   dashboard.value = response
 })
 
-async function completeHandler(updatedFood: FoodDto) {
+async function completeHandler(updatedFood?: FoodDto) {
   try {
-    // Aggiorna fullFood.value!.data con i dati modificati dall'utente
-    if (fullFood.value) {
-      fullFood.value.data = updatedFood
+    if (updatedFood) {
+      fullFood.value = updatedFood
     }
-    console.log('Dati in fullFood prima di inviare:', fullFood.value!.data)
 
-    // Posta il nuovo FoodDto alle API e ottieni l'ID
-    const id = await foodsService.PostNewFood(fullFood.value!.data)
+    if (!fullFood.value) {
+      return
+    }
+    console.log('Dati in fullFood prima di inviare:', fullFood.value)
 
-    // Recupera la riga della dashboard usando l'ID del FoodDto creato
+    const id = await foodsService.PostNewFood(fullFood.value!)
+
     const row = await foodsService.GetDashboardRow(id)
 
-    // Aggiungi la riga alla dashboard
-    if (dashboard.value) {
-      dashboard.value.data?.push(row.data)
-    }
+    dashboard.value.push(row)
 
     isNew.value = false
   } catch (error) {
@@ -46,7 +42,6 @@ async function completeHandler(updatedFood: FoodDto) {
 
 async function createNewFood() {
   try {
-    // Recupera un nuovo FoodDto dal servizio
     const response = await foodsService.FoodFactoryGetNew()
     fullFood.value = response
     isNew.value = true
@@ -62,13 +57,13 @@ async function createNewFood() {
     <br />
     <button @click="createNewFood" v-if="!isNew">Nuovo</button>
     <br v-if="!isNew" />
-    <foodList v-if="!isNew" :foods="dashboard?.data || []" />
+    <foodList v-if="!isNew" :foods="dashboard" />
 
     <foodDetail
       v-if="isNew"
       @cancel="isNew = false"
-      @complete="completeHandler($event)"
-      :food="fullFood!.data"
+      @complete="completeHandler"
+      :food="fullFood!"
     />
   </div>
 </template>

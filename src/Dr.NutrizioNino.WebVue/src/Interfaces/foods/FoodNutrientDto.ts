@@ -2,6 +2,6 @@ export interface FoodNutrientDto {
   nutrientId: string
   name: string
   positionOrder: number
-  unitOfMeasureId: number
+  unitOfMeasureId: string
   quantity: number
 }
