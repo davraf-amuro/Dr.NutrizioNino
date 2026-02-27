@@ -22,7 +22,22 @@ namespace Dr.NutrizioNino.Api.Endopints
             group.MapPost("", async (DrService service, CreateBrandDto newBrand) => await service.CreateBrandAsync(newBrand))
                 ;
             group.MapPut("{id}", async (DrService service, Guid id, Brand brand) => await service.UpdateBrandAsync(brand))
-                ;
+                .AddEndpointFilter(async (context, next) =>
+                {
+                    var routeId = context.GetArgument<Guid>(1);
+                    var brand = context.GetArgument<Brand>(2);
+                    if (brand.Id == Guid.Empty)
+                    {
+                        brand.Id = routeId;
+                    }
+
+                    if (brand.Id != routeId)
+                    {
+                        return Results.BadRequest("Brand id in route and body must match.");
+                    }
+
+                    return await next(context);
+                });
             group.MapDelete("{id}", async (DrService service, Guid id) => await service.DeleteBrandAsync(id))
                 ;
 

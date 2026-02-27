@@ -1,19 +1,35 @@
 <template>
-  <div>
-    <h3>Aggiungi nuovo marchio</h3>
-    Nome:
-    <input type="text" v-model="name" />
+  <n-space vertical size="medium">
+    <n-h3 style="margin: 0">{{ isEditMode ? 'Modifica marca' : 'Aggiungi nuova marca' }}</n-h3>
 
-    <br />
-    <button @click="save" :disabled="!name.trim() || isSubmitting">Salva</button>
-    <button @click="cancel" :disabled="isSubmitting">Annulla</button>
-  </div>
+    <n-form>
+      <n-form-item label="Nome">
+        <n-input
+          v-model:value="name"
+          placeholder="Inserisci il nome della marca"
+          clearable
+          :disabled="isSubmitting"
+        />
+      </n-form-item>
+    </n-form>
+
+    <n-space justify="end" size="small">
+      <n-button @click="cancel" :disabled="isSubmitting">Annulla</n-button>
+      <n-button type="primary" @click="save" :disabled="!name.trim()" :loading="isSubmitting">
+        {{ isEditMode ? 'Aggiorna' : 'Salva' }}
+      </n-button>
+    </n-space>
+  </n-space>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { NButton, NForm, NFormItem, NH3, NInput, NSpace } from 'naive-ui'
+import type { Brand } from '@/Interfaces/Brand'
 
-defineProps<{
+const props = defineProps<{
+  mode?: 'create' | 'edit'
+  brand?: Brand | null
   isSubmitting?: boolean
 }>()
 
@@ -23,6 +39,15 @@ const emit = defineEmits<{
 }>()
 
 const name = ref('')
+const isEditMode = computed(() => props.mode === 'edit')
+
+watch(
+  () => props.brand,
+  (brand) => {
+    name.value = brand?.name ?? ''
+  },
+  { immediate: true }
+)
 
 function save() {
   emit('save', name.value.trim())

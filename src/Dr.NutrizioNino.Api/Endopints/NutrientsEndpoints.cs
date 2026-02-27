@@ -24,7 +24,7 @@ namespace Dr.NutrizioNino.Api.Endopints
                 ;
             group.MapPut("{id}", async (DrService service, Guid id, Nutrient nutrient) => await service.UpdateNutrientAsync(nutrient))
                 ;
-            group.MapDelete("{id}", async (DrService service, Guid id) => await service.DeleteBrandAsync(id))
+            group.MapDelete("{id}", async (DrService service, Guid id) => await service.DeleteNutrientAsync(id))
                 ;
 
         }

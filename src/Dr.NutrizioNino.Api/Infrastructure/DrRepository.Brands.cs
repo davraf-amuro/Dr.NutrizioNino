@@ -5,25 +5,45 @@ namespace Dr.NutrizioNino.Api.Infrastructure;
 
 public partial class DrRepository
 {
-    public Task CreateBrandAsync(Guid id)
+    public async Task<Brand> CreateBrandAsync(Brand brand)
     {
-        throw new NotImplementedException();
+        drContext.Brands.Add(brand);
+        await drContext.SaveChangesAsync().ConfigureAwait(false);
+        return brand;
     }
 
-    public Task DeleteBrandAsync(Guid id)
+    public async Task DeleteBrandAsync(Guid id)
     {
-        throw new NotImplementedException();
+        var record = await drContext.Brands.FindAsync(id).ConfigureAwait(false);
+        if (record is null)
+        {
+            return;
+        }
+
+        drContext.Brands.Remove(record);
+        await drContext.SaveChangesAsync().ConfigureAwait(false);
     }
 
-    public Task<Brand> GetBrandAsync(Guid id)
+    public async Task<Brand?> GetBrandAsync(Guid id)
     {
-        throw new NotImplementedException();
+        return await drContext.Brands
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id)
+            .ConfigureAwait(false);
     }
 
-    public async Task<IEnumerable<Brand>> GetBrandsAsync() => drContext.Brands.AsNoTracking();
+    public async Task<IEnumerable<Brand>> GetBrandsAsync() =>
+        await drContext.Brands.AsNoTracking().ToListAsync().ConfigureAwait(false);
 
-    public Task UpdateBrandAsync(Brand brand)
+    public async Task UpdateBrandAsync(Brand brand)
     {
-        throw new NotImplementedException();
+        var record = await drContext.Brands.FindAsync(brand.Id).ConfigureAwait(false);
+        if (record is null)
+        {
+            return;
+        }
+
+        record.Name = brand.Name;
+        await drContext.SaveChangesAsync().ConfigureAwait(false);
     }
 }

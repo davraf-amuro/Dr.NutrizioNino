@@ -30,7 +30,7 @@ public partial class DrService
         await drRepository.UpdateNutrientAsync(nutrient);
     }
 
-    public async Task DeleteBrandAsync(Guid id)
+    public async Task DeleteNutrientAsync(Guid id)
     {
         await drRepository.DeleteNutrientAsync(id);
     }

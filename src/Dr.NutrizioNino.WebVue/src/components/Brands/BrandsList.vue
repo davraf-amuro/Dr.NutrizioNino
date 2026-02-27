@@ -1,28 +1,21 @@
 <template>
-  <div>
-    <h3>Elenco dei marchi</h3>
-    <table>
-      <tr>
-        <td>Guid</td>
-        <td>Nome</td>
-        <td>&nbsp;</td>
-        <td>&nbsp;</td>
-      </tr>
-
-      <tr v-for="brand in brands" :key="brand.id">
-        <td>{{ brand.id }}</td>
-        <td>{{ brand.name }}</td>
-        <td><button @click="updateBrand(brand)">Modifica</button></td>
-        <td><button @click="deleteBrand(brand)">Elimina</button></td>
-      </tr>
-    </table>
-  </div>
+  <n-space vertical size="small">
+    <n-data-table
+      :columns="columns"
+      :data="brands"
+      :single-line="false"
+      :bordered="true"
+      :pagination="false"
+    />
+  </n-space>
 </template>
 
 <script setup lang="ts">
+import { h } from 'vue'
 import type { Brand } from '@/Interfaces/Brand'
+import { NButton, NDataTable, NSpace, type DataTableColumns } from 'naive-ui'
 
-defineProps<{
+const props = defineProps<{
   brands: Brand[]
 }>()
 
@@ -38,4 +31,41 @@ function updateBrand(brand: Brand) {
 function deleteBrand(brand: Brand) {
   emit('delete', brand)
 }
+
+const columns: DataTableColumns<Brand> = [
+  {
+    title: 'Guid',
+    key: 'id'
+  },
+  {
+    title: 'Nome',
+    key: 'name'
+  },
+  {
+    title: 'Azioni',
+    key: 'actions',
+    render: (row) =>
+      h(NSpace, { size: 'small' }, () => [
+        h(
+          NButton,
+          {
+            size: 'small',
+            tertiary: true,
+            onClick: () => updateBrand(row)
+          },
+          { default: () => 'Modifica' }
+        ),
+        h(
+          NButton,
+          {
+            size: 'small',
+            type: 'error',
+            tertiary: true,
+            onClick: () => deleteBrand(row)
+          },
+          { default: () => 'Elimina' }
+        )
+      ])
+  }
+]
 </script>

@@ -14,3 +14,11 @@ export const createBrand = async (payload: CreateBrandRequest): Promise<Brand> =
   const response = await apiClient.post<Brand>('/brands', payload)
   return response.data
 }
+
+export const updateBrand = async (brand: Brand): Promise<void> => {
+  await apiClient.put(`/brands/${brand.id}`, brand)
+}
+
+export const deleteBrand = async (id: string): Promise<void> => {
+  await apiClient.delete(`/brands/${id}`)
+}

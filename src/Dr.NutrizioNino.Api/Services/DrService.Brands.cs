@@ -14,15 +14,15 @@ public partial class DrService
         return brands.Select(x => x.AsDto()).ToList();
     }
 
-    public async Task<Brand> GetBrandAsync(Guid id)
+    public async Task<Brand?> GetBrandAsync(Guid id)
     {
         return await drRepository.GetBrandAsync(id);
     }
 
-    public async Task<Brand?> CreateBrandAsync(CreateBrandDto newBrandDto)
+    public async Task<Brand> CreateBrandAsync(CreateBrandDto newBrandDto)
     {
         var brand = await ModelsFactory.CreateBrand(newBrandDto);
-        return null; //await drRepository.CreateBrandAsync();
+        return await drRepository.CreateBrandAsync(brand);
     }
 
     public async Task UpdateBrandAsync(Brand brand)
@@ -30,9 +30,9 @@ public partial class DrService
         await drRepository.UpdateBrandAsync(brand);
     }
 
-    //public async Task DeleteBrandAsync(Guid id)
-    //{
-    //    await drRepository.DeleteBrandAsync(id);
-    //}
+    public async Task DeleteBrandAsync(Guid id)
+    {
+        await drRepository.DeleteBrandAsync(id);
+    }
 
 }
