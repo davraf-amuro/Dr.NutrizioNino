@@ -20,6 +20,27 @@ See [Vite Configuration Reference](https://vitejs.dev/config/).
 npm install
 ```
 
+### Environment configuration
+
+Set API endpoint via Vite env variable:
+
+```sh
+VITE_API_BASE_URL=http://localhost:5083
+```
+
+Available files:
+
+- `.env.development`
+- `.env.production`
+- `.env.example`
+
+## Frontend architecture
+
+- `src/core/http/`: shared HTTP client and interceptors
+- `src/modules/<domain>/api/`: domain API calls
+- `src/modules/<domain>/composables/`: domain state and orchestration
+- `src/components/`: presentational UI components
+
 ### Compile and Hot-Reload for Development
 
 ```sh

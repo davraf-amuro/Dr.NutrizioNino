@@ -1,26 +1,37 @@
 <template>
   <div>
     <h3>Aggiungi nuovo marchio</h3>
-    Guid: {{ myBrand.id }}
-    <br />
     Nome:
-    <input type="text" :value="myBrand.name" />
+    <input type="text" v-model="name" />
 
     <br />
-    <button @click="onUpdate">aggiorna</button>
+    <button @click="save" :disabled="!name.trim() || isSubmitting">Salva</button>
+    <button @click="cancel" :disabled="isSubmitting">Annulla</button>
   </div>
 </template>
 
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { ref } from 'vue'
 
-const myBrand = reactive({
-  id: '000-000-000',
-  name: 'Nestlé'
-})
+defineProps<{
+  isSubmitting?: boolean
+}>()
 
-function onUpdate() {
-  myBrand.name = 'ancheno'
+const emit = defineEmits<{
+  save: [name: string]
+  cancel: []
+}>()
+
+const name = ref('')
+
+function save() {
+  emit('save', name.value.trim())
+  name.value = ''
+}
+
+function cancel() {
+  emit('cancel')
+  name.value = ''
 }
 </script>
 

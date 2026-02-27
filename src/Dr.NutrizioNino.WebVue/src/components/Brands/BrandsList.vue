@@ -9,33 +9,33 @@
         <td>&nbsp;</td>
       </tr>
 
-      <tr v-for="(brand, index) in brands" :key="index">
+      <tr v-for="brand in brands" :key="brand.id">
         <td>{{ brand.id }}</td>
         <td>{{ brand.name }}</td>
-        <td><button @click="Update(brand)">Modifica</button></td>
-        <td><button @click="Delete(brand)">Elimina</button></td>
+        <td><button @click="updateBrand(brand)">Modifica</button></td>
+        <td><button @click="deleteBrand(brand)">Elimina</button></td>
       </tr>
     </table>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import axios from 'axios'
-import config from '@/config'
 import type { Brand } from '@/Interfaces/Brand'
 
-const brands = ref<Brand[]>([])
-axios.get(`${config.API_BASE_URL}/brands`).then(function (response) {
-  brands.value = response.data
-})
+defineProps<{
+  brands: Brand[]
+}>()
 
-function Update(brand: any) {
-  console.log(brand)
+const emit = defineEmits<{
+  update: [brand: Brand]
+  delete: [brand: Brand]
+}>()
+
+function updateBrand(brand: Brand) {
+  emit('update', brand)
 }
 
-function Delete(brand: any) {
-  console.log(brand)
-  //brands.value = brands.value.filter((x) => x.id != brand.id)
+function deleteBrand(brand: Brand) {
+  emit('delete', brand)
 }
 </script>

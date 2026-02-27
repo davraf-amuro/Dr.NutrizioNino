@@ -9,14 +9,13 @@
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --build --force",
-    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
     "format": "prettier --write src/"
   },
   "dependencies": {
     "axios": "^1.13.6",
     "vue": "^3.5.29",
-    "vue-router": "^5.0.3",
-    "vuex": "^4.1.0"
+    "vue-router": "^5.0.3"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.16.1",

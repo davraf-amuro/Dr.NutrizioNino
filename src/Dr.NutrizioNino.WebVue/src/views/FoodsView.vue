@@ -1,69 +1,46 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted } from 'vue'
 import foodList from '../components/Foods/FoodsList.vue'
 import foodDetail from '../components/Foods/FoodDetail.vue'
-import { FoodsService } from '@/Infrastructure/FoodsServices'
-import type { FoodDashboardDto } from '@/Interfaces/foods/FoodDashboardDto'
-import type { FoodDto } from '@/Interfaces/foods/FoodDto'
+import { useFoods } from '@/modules/foods/composables/useFoods'
 
-const isNew = ref(false)
-const dashboard = ref<FoodDashboardDto[]>([])
-const fullFood = ref<FoodDto>()
+const {
+  dashboard,
+  selectedFood,
+  brands,
+  unitsOfMeasures,
+  isCreating,
+  isLoading,
+  errorMessage,
+  loadDashboard,
+  loadLookups,
+  startCreateFood,
+  completeCreateFood,
+  cancelCreateFood
+} = useFoods()
 
-const foodsService = new FoodsService()
-//carica i dati da FoodsService.GetDashboard
-foodsService.GetDashboard().then((response) => {
-  console.log('GetDashboard è stata chiamata')
-  dashboard.value = response
+onMounted(async () => {
+  await Promise.all([loadDashboard(), loadLookups()])
 })
-
-async function completeHandler(updatedFood?: FoodDto) {
-  try {
-    if (updatedFood) {
-      fullFood.value = updatedFood
-    }
-
-    if (!fullFood.value) {
-      return
-    }
-    console.log('Dati in fullFood prima di inviare:', fullFood.value)
-
-    const id = await foodsService.PostNewFood(fullFood.value!)
-
-    const row = await foodsService.GetDashboardRow(id)
-
-    dashboard.value.push(row)
-
-    isNew.value = false
-  } catch (error) {
-    console.error('Errore durante il completamento del nuovo cibo:', error)
-  }
-}
-
-async function createNewFood() {
-  try {
-    const response = await foodsService.FoodFactoryGetNew()
-    fullFood.value = response
-    isNew.value = true
-  } catch (error) {
-    console.error('Errore durante la creazione del nuovo cibo:', error)
-  }
-}
 </script>
 
 <template>
   <div class="foods">
     <h1>Alimenti</h1>
+    <p v-if="errorMessage">{{ errorMessage }}</p>
     <br />
-    <button @click="createNewFood" v-if="!isNew">Nuovo</button>
-    <br v-if="!isNew" />
-    <foodList v-if="!isNew" :foods="dashboard" />
+    <button @click="startCreateFood" v-if="!isCreating" :disabled="isLoading">Nuovo</button>
+    <br v-if="!isCreating" />
+    <foodList v-if="!isCreating" :foods="dashboard" />
 
     <foodDetail
-      v-if="isNew"
-      @cancel="isNew = false"
-      @complete="completeHandler"
-      :food="fullFood!"
+      v-if="isCreating && selectedFood"
+      @cancel="cancelCreateFood"
+      @complete="completeCreateFood"
+      :food="selectedFood"
+      :brands="brands"
+      :units-of-measures="unitsOfMeasures"
+      :is-submitting="isLoading"
     />
   </div>
 </template>

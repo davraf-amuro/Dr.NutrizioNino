@@ -5,14 +5,14 @@
     </div>
     <div class="column-2-4">
       <n-select
-        v-model:value="prop.foodNutrientDto.unitOfMeasureId"
+        v-model:value="selectedUnitOfMeasureId"
         :options="unitOfMeasureOptions"
         size="tiny"
       ></n-select>
     </div>
     <div class="column-1-4">
       <n-input-number
-        v-model:value="prop.foodNutrientDto.quantity"
+        v-model:value="quantity"
         :min="0"
         :max="9999"
         :parse="parseFloat"
@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { NSelect, NInputNumber } from 'naive-ui'
 import type { SelectOption } from 'naive-ui'
 import type { FoodNutrientDto } from '@/Interfaces/foods/FoodNutrientDto'
@@ -36,12 +36,36 @@ const prop = defineProps<{
   unitsOfMeasures: UnitOfMeasureDto[]
 }>()
 
+const emit = defineEmits<{
+  update: [foodNutrient: FoodNutrientDto]
+}>()
+
+const selectedUnitOfMeasureId = ref<string>(prop.foodNutrientDto.unitOfMeasureId)
+const quantity = ref<number>(prop.foodNutrientDto.quantity)
+
 const unitOfMeasureOptions = computed<SelectOption[]>(() =>
   prop.unitsOfMeasures.map((unit) => ({
     label: unit.name,
     value: unit.id
   }))
 )
+
+watch(
+  () => prop.foodNutrientDto,
+  (foodNutrient) => {
+    selectedUnitOfMeasureId.value = foodNutrient.unitOfMeasureId
+    quantity.value = foodNutrient.quantity
+  },
+  { deep: true }
+)
+
+watch([selectedUnitOfMeasureId, quantity], () => {
+  emit('update', {
+    ...prop.foodNutrientDto,
+    unitOfMeasureId: selectedUnitOfMeasureId.value,
+    quantity: quantity.value
+  })
+})
 </script>
 
 <style scoped></style>

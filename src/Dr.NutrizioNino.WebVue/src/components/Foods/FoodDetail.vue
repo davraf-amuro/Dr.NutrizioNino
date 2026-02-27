@@ -1,6 +1,6 @@
 <template>
   <div>
-    <span v-if="waiting">caricamento...</span>
+    <span v-if="isSubmitting">caricamento...</span>
     <div class="container">
       <div class="column-1-4">
         <b>Nome:</b>
@@ -22,10 +22,8 @@
       <div class="column-3-4">
         <n-select
           v-model:value="localFood.brandId"
-          :options="brands"
+          :options="brandOptions"
           placeholder="-seleziona-"
-          value-field="id"
-          label-field="name"
           size="tiny"
         ></n-select>
       </div>
@@ -38,9 +36,7 @@
       <div class="column-2-4">
         <n-select
           v-model:value="localFood.unitOfMeasureId"
-          :options="uom"
-          value-field="id"
-          label-field="name"
+          :options="unitOptions"
           size="tiny"
         ></n-select>
       </div>
@@ -61,7 +57,8 @@
     <div v-for="fnu in localFood.nutrients" :key="fnu.nutrientId">
       <foodnutrientinput
         :foodNutrientDto="fnu"
-        :unitsOfMeasures="uom"
+        :unitsOfMeasures="unitsOfMeasures"
+        @update="updateNutrient"
       ></foodnutrientinput>
     </div>
   </div>
@@ -74,31 +71,55 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import axios from 'axios'
-import { NSelect, NInput, NInputNumber, NFlex, NButton } from 'naive-ui'
+import { computed, ref, watch } from 'vue'
+import { NSelect, NInput, NInputNumber, NFlex, NButton, type SelectOption } from 'naive-ui'
 import type { FoodDto } from '@/Interfaces/foods/FoodDto'
 import type { UnitOfMeasureDto } from '@/Interfaces/UnitOfMeasureDto'
 import type { Brand } from '@/Interfaces/Brand'
-import config from '@/config'
 import foodnutrientinput from '../Foods/FoodNutrientInput.vue'
 
-const waiting = ref(true)
-const brands = ref<Brand[]>([])
-const uom = ref<UnitOfMeasureDto[]>([])
-const props = defineProps<{ food: FoodDto }>()
+const props = defineProps<{
+  food: FoodDto
+  brands: Brand[]
+  unitsOfMeasures: UnitOfMeasureDto[]
+  isSubmitting?: boolean
+}>()
 const emptyGuid = '00000000-0000-0000-0000-000000000000'
 
-const emit = defineEmits<{ cancel: any; complete: any }>()
+const emit = defineEmits<{
+  cancel: []
+  complete: [food: FoodDto]
+}>()
+
+const isSubmitting = computed(() => props.isSubmitting ?? false)
+
+const brandOptions = computed<SelectOption[]>(() =>
+  props.brands.map((brand) => ({
+    label: brand.name,
+    value: brand.id
+  }))
+)
+
+const unitOptions = computed<SelectOption[]>(() =>
+  props.unitsOfMeasures.map((unit) => ({
+    label: unit.name,
+    value: unit.id
+  }))
+)
+
+const cloneFood = (food: FoodDto): FoodDto => ({
+  ...food,
+  nutrients: food.nutrients.map((nutrient) => ({ ...nutrient }))
+})
 
 const ensureBrandSelection = () => {
-  if (!brands.value.length) {
+  if (!props.brands.length) {
     return
   }
 
   const brandId = localFood.value.brandId
   const hasValidBrand =
-    !!brandId && brandId !== emptyGuid && brands.value.some((brand) => brand.id === brandId)
+    !!brandId && brandId !== emptyGuid && props.brands.some((brand) => brand.id === brandId)
 
   if (hasValidBrand) {
     return
@@ -107,23 +128,21 @@ const ensureBrandSelection = () => {
   localFood.value.brandId = null
 }
 
-axios.get(`${config.API_BASE_URL}/brands`).then(function (response) {
-  brands.value = response.data
-  ensureBrandSelection()
-})
-
-//carico la collezione di unità di misura per le combo
-axios.get(`${config.API_BASE_URL}/unitsOfMeasures`).then(function (response) {
-  uom.value = response.data
-})
-
-const localFood = ref({ ...props.food })
+const localFood = ref(cloneFood(props.food))
 
 // Sincronizza localFood quando la prop food cambia
 watch(
   () => props.food,
   (newFood) => {
-    localFood.value = { ...newFood }
+    localFood.value = cloneFood(newFood)
+    ensureBrandSelection()
+  },
+  { deep: true }
+)
+
+watch(
+  () => props.brands,
+  () => {
     ensureBrandSelection()
   },
   { deep: true }
@@ -134,10 +153,18 @@ const cancelHandler = () => {
   emit('cancel')
 }
 const completeHandler = () => {
-  // Sincronizza localFood con il prop originale prima di emettere
-  emit('complete', { ...localFood.value })
+  emit('complete', cloneFood(localFood.value))
 }
-waiting.value = false
+
+const updateNutrient = (updatedNutrient: FoodDto['nutrients'][number]) => {
+  const nutrientIndex = localFood.value.nutrients.findIndex(
+    (nutrient) => nutrient.nutrientId === updatedNutrient.nutrientId
+  )
+
+  if (nutrientIndex >= 0) {
+    localFood.value.nutrients[nutrientIndex] = { ...updatedNutrient }
+  }
+}
 </script>
 
 <style scoped></style>

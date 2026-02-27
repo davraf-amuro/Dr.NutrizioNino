@@ -11,6 +11,10 @@ import { h } from 'vue'
 import type { FoodDashboardDto } from '@/Interfaces/foods/FoodDashboardDto'
 import { NDataTable, type DataTableColumns, NButton } from 'naive-ui'
 
+const emit = defineEmits<{
+  select: [food: FoodDashboardDto]
+}>()
+
 const columns: DataTableColumns<FoodDashboardDto> = [
   { title: 'Nome', key: 'name' },
   { title: 'Kcal', key: 'calorie' },
@@ -27,9 +31,9 @@ const columns: DataTableColumns<FoodDashboardDto> = [
           strong: true,
           tertiary: true,
           size: 'small',
-          onClick: () => modify(row)
+          onClick: () => emit('select', row)
         },
-        { default: () => 'Modfifica' }
+        { default: () => 'Dettaglio' }
       )
     }
   }
@@ -38,10 +42,6 @@ const columns: DataTableColumns<FoodDashboardDto> = [
 const props = defineProps<{
   foods: FoodDashboardDto[]
 }>()
-
-function modify(row: FoodDashboardDto): void {
-  row.name = row.id
-}
 </script>
 
 <style scoped></style>
