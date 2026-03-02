@@ -47,7 +47,7 @@ onMounted(async () => {
         <list
           v-if="!isCreating"
           :brands="brands"
-          @update="startEditBrand"
+          @edit="startEditBrand"
           @delete="removeBrand"
         />
 

@@ -13,9 +13,9 @@ namespace Dr.NutrizioNino.Api.Services
             return await drRepository.CreateFoodAsync(newFoodDto);
         }
 
-        public async Task UpdateFoodAsync(Food food)
+        public async Task<bool> UpdateFoodAsync(Food food)
         {
-            await drRepository.UpdateFoodAsync(food);
+            return await drRepository.UpdateFoodAsync(food).ConfigureAwait(false);
         }
 
         public async Task DeleteFoodAsync(Guid id)

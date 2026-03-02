@@ -36,12 +36,12 @@ public partial class DrRepository
         return await drContext.Foods.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id).ConfigureAwait(false);
     }
 
-    public async Task UpdateFoodAsync(Food food)
+    public async Task<bool> UpdateFoodAsync(Food food)
     {
         var record = await drContext.Foods.FindAsync(food.Id).ConfigureAwait(false);
         if (record is null)
         {
-            return;
+            return false;
         }
 
         record.Name = food.Name;
@@ -52,6 +52,7 @@ public partial class DrRepository
         record.UnitOfMeasureId = food.UnitOfMeasureId;
 
         await drContext.SaveChangesAsync().ConfigureAwait(false);
+        return true;
     }
 
     public async Task<IEnumerable<FoodDashboardInfo>> GetFoodsDashboardAsync() =>

@@ -1,13 +1,18 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
+import { NButton, NSpace } from 'naive-ui'
 </script>
 
 <template>
   <header class="app-header">
-    <nav>
-      <RouterLink to="/foods">Alimenti</RouterLink>
-      <RouterLink to="/brands">Marche</RouterLink>
-    </nav>
+    <n-space justify="center" size="small">
+      <n-button tag="a">
+        <RouterLink to="/foods">Alimenti</RouterLink>
+      </n-button>
+      <n-button tag="a">
+        <RouterLink to="/brands">Marche</RouterLink>
+      </n-button>
+    </n-space>
   </header>
 
   <main class="app-content">
@@ -21,24 +26,9 @@ import { RouterLink, RouterView } from 'vue-router'
   margin-bottom: 1rem;
 }
 
-nav {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  font-size: 0.95rem;
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
+a {
+  color: inherit;
+  text-decoration: none;
 }
 
 .app-content {

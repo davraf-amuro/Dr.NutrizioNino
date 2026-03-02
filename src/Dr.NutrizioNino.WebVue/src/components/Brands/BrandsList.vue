@@ -1,11 +1,13 @@
 <template>
-  <n-space vertical size="small">
+  <n-space vertical size="small" class="brands-table">
     <n-data-table
       :columns="columns"
       :data="brands"
+      :row-key="(row: Brand) => row.id"
       :single-line="false"
       :bordered="true"
       :pagination="false"
+      :scroll-x="980"
     />
   </n-space>
 </template>
@@ -20,12 +22,12 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  update: [brand: Brand]
+  edit: [brand: Brand]
   delete: [brand: Brand]
 }>()
 
 function updateBrand(brand: Brand) {
-  emit('update', brand)
+  emit('edit', brand)
 }
 
 function deleteBrand(brand: Brand) {
@@ -35,22 +37,25 @@ function deleteBrand(brand: Brand) {
 const columns: DataTableColumns<Brand> = [
   {
     title: 'Guid',
-    key: 'id'
+    key: 'id',
+    width: 420
   },
   {
     title: 'Nome',
-    key: 'name'
+    key: 'name',
+    width: 300
   },
   {
     title: 'Azioni',
     key: 'actions',
+    width: 220,
     render: (row) =>
       h(NSpace, { size: 'small' }, () => [
         h(
           NButton,
           {
             size: 'small',
-            tertiary: true,
+            type: 'primary',
             onClick: () => updateBrand(row)
           },
           { default: () => 'Modifica' }
@@ -69,3 +74,9 @@ const columns: DataTableColumns<Brand> = [
   }
 ]
 </script>
+
+<style scoped>
+.brands-table {
+  width: 100%;
+}
+</style>

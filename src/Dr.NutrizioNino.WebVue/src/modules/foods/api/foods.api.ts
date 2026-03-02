@@ -17,7 +17,16 @@ export const getNewFood = async (): Promise<FoodDto> => {
   return response.data
 }
 
+export const getFoodById = async (id: string): Promise<FoodDto> => {
+  const response = await apiClient.get<FoodDto>(`/foods/${id}`)
+  return response.data
+}
+
 export const createFood = async (food: FoodDto): Promise<string> => {
   const response = await apiClient.post<string>('/foods/Create', food)
   return response.data
+}
+
+export const updateFood = async (food: FoodDto): Promise<void> => {
+  await apiClient.put(`/foods/${food.id}`, food)
 }

@@ -7,15 +7,37 @@
 </template>
 
 <script setup lang="ts">
+import { h } from 'vue'
 import type { FoodDashboardDto } from '@/Interfaces/foods/FoodDashboardDto'
-import { NDataTable, type DataTableColumns } from 'naive-ui'
+import { NButton, NDataTable, NSpace, type DataTableColumns } from 'naive-ui'
+
+const emit = defineEmits<{
+  edit: [food: FoodDashboardDto]
+}>()
 
 const columns: DataTableColumns<FoodDashboardDto> = [
   { title: 'Nome', key: 'name' },
   { title: 'Kcal', key: 'calorie' },
   { title: 'Quantità', key: 'quantity' },
   { title: 'UdM', key: 'abbreviation' },
-  { title: 'Marca', key: 'brandDescription' }
+  { title: 'Marca', key: 'brandDescription' },
+  {
+    title: 'Azioni',
+    key: 'actions',
+    width: 160,
+    render: (row) =>
+      h(NSpace, { size: 'small' }, () => [
+        h(
+          NButton,
+          {
+            size: 'small',
+            type: 'primary',
+            onClick: () => emit('edit', row)
+          },
+          { default: () => 'Modifica' }
+        )
+      ])
+  }
 ]
 
 const props = defineProps<{

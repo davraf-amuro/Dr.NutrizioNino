@@ -1,5 +1,6 @@
 <template>
   <div>
+    <h3 style="margin: 0 0 12px 0">{{ isEditMode ? 'Modifica alimento' : 'Nuovo alimento' }}</h3>
     <span v-if="isSubmitting">caricamento...</span>
     <div class="container">
       <div class="column-1-4">
@@ -66,7 +67,7 @@
 
   <n-flex justify="space-between">
     <n-button type="error" @click="cancelHandler">Annulla</n-button>
-    <n-button type="primary" @click="completeHandler">Salva</n-button>
+    <n-button type="primary" @click="completeHandler">{{ isEditMode ? 'Aggiorna' : 'Salva' }}</n-button>
   </n-flex>
 </template>
 
@@ -80,6 +81,7 @@ import foodnutrientinput from '../Foods/FoodNutrientInput.vue'
 
 const props = defineProps<{
   food: FoodDto
+  mode?: 'create' | 'edit'
   brands: Brand[]
   unitsOfMeasures: UnitOfMeasureDto[]
   isSubmitting?: boolean
@@ -92,6 +94,7 @@ const emit = defineEmits<{
 }>()
 
 const isSubmitting = computed(() => props.isSubmitting ?? false)
+const isEditMode = computed(() => props.mode === 'edit')
 
 const brandOptions = computed<SelectOption[]>(() =>
   props.brands.map((brand) => ({

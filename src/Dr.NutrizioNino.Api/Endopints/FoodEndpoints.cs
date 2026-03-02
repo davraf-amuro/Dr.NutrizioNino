@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Dr.NutrizioNino.Api.Infrastructure.Models;
+using Dr.NutrizioNino.Api.Models;
 using Dr.NutrizioNino.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using TinyHelpers.AspNetCore.Extensions;
@@ -91,7 +92,47 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .WithSummary("Create a food")
                 .WithDescription("Creates a food with related nutrients and returns its identifier.")
                 .Produces<Guid>(StatusCodes.Status200OK)
+                .ProducesDefaultProblem(StatusCodes.Status400BadRequest)
                 ;
+
+            group.MapPut("{id}", async (DrService service, Guid id, Food food) =>
+            {
+                var updated = await service.UpdateFoodAsync(food);
+                return updated
+                    ? Results.Ok()
+                    : TypedResults.Problem(new ProblemDetails
+                    {
+                        Title = "Data Not Found",
+                        Status = StatusCodes.Status404NotFound,
+                        Detail = "Food not found for update."
+                    });
+            })
+                .AddEndpointFilter(async (context, next) =>
+                {
+                    var routeId = context.GetArgument<Guid>(1);
+                    var food = context.GetArgument<Food>(2);
+                    if (food.Id == Guid.Empty)
+                    {
+                        food.Id = routeId;
+                    }
+
+                    if (food.Id != routeId)
+                    {
+                        return TypedResults.Problem(new ProblemDetails
+                        {
+                            Title = "Invalid Request",
+                            Status = StatusCodes.Status400BadRequest,
+                            Detail = "Food id in route and body must match."
+                        });
+                    }
+
+                    return await next(context);
+                })
+                .WithName("UpdateFood")
+                .WithSummary("Update a food")
+                .WithDescription("Updates an existing food by identifier.")
+                .Produces(StatusCodes.Status200OK)
+                .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound);
 
             return endpoints;
         }

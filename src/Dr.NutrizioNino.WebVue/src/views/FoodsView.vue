@@ -11,11 +11,13 @@ const {
   brands,
   unitsOfMeasures,
   isCreating,
+  formMode,
   isLoading,
   errorMessage,
   loadDashboard,
   loadLookups,
   startCreateFood,
+  startEditFood,
   completeCreateFood,
   cancelCreateFood
 } = useFoods()
@@ -44,13 +46,14 @@ onMounted(async () => {
           {{ errorMessage }}
         </n-alert>
 
-        <foodList v-if="!isCreating" :foods="dashboard" />
+        <foodList v-if="!isCreating" :foods="dashboard" @edit="(food) => startEditFood(food.id)" />
 
         <foodDetail
           v-if="isCreating && selectedFood"
           @cancel="cancelCreateFood"
           @complete="completeCreateFood"
           :food="selectedFood"
+          :mode="formMode"
           :brands="brands"
           :units-of-measures="unitsOfMeasures"
           :is-submitting="isLoading"

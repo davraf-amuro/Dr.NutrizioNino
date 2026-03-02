@@ -5,7 +5,14 @@ import type { FoodDashboardDto } from '@/Interfaces/foods/FoodDashboardDto'
 import type { FoodDto } from '@/Interfaces/foods/FoodDto'
 import { useAsyncState } from '@/core/composables/useAsyncState'
 import { getBrands } from '@/modules/brands/api/brands.api'
-import { createFood, getFoodDashboardRow, getFoodsDashboard, getNewFood } from '@/modules/foods/api/foods.api'
+import {
+  createFood,
+  getFoodById,
+  getFoodDashboardRow,
+  getFoodsDashboard,
+  getNewFood,
+  updateFood
+} from '@/modules/foods/api/foods.api'
 import { getUnitsOfMeasures } from '@/modules/units/api/units.api'
 
 const cacheTtlMs = 60_000
@@ -14,6 +21,7 @@ let dashboardCacheAt = 0
 let brandsCache: Brand[] | null = null
 let unitsCache: UnitOfMeasureDto[] | null = null
 let lookupsCacheAt = 0
+type FoodFormMode = 'create' | 'edit'
 
 export const useFoods = () => {
   const { isLoading, errorMessage, run } = useAsyncState()
@@ -22,6 +30,7 @@ export const useFoods = () => {
   const brands = ref<Brand[]>([])
   const unitsOfMeasures = ref<UnitOfMeasureDto[]>([])
   const isCreating = ref(false)
+  const formMode = ref<FoodFormMode>('create')
 
   const updateDashboardCache = (items: FoodDashboardDto[]) => {
     dashboardCache = [...items]
@@ -75,6 +84,8 @@ export const useFoods = () => {
   }
 
   const startCreateFood = async () => {
+    formMode.value = 'create'
+
     const result = await run(async () => {
       if (!brands.value.length || !unitsOfMeasures.value.length) {
         await loadLookups()
@@ -89,7 +100,44 @@ export const useFoods = () => {
     }
   }
 
+  const startEditFood = async (foodId: string) => {
+    formMode.value = 'edit'
+
+    const result = await run(async () => {
+      if (!brands.value.length || !unitsOfMeasures.value.length) {
+        await loadLookups()
+      }
+
+      return getFoodById(foodId)
+    })
+
+    if (result) {
+      selectedFood.value = result
+      isCreating.value = true
+    }
+  }
+
   const completeCreateFood = async (updatedFood: FoodDto) => {
+    if (formMode.value === 'edit') {
+      const result = await run(async () => {
+        await updateFood(updatedFood)
+        return getFoodDashboardRow(updatedFood.id)
+      })
+
+      if (result) {
+        const index = dashboard.value.findIndex((food) => food.id === result.id)
+        if (index >= 0) {
+          dashboard.value[index] = result
+        }
+
+        updateDashboardCache(dashboard.value)
+        isCreating.value = false
+        selectedFood.value = null
+      }
+
+      return
+    }
+
     const result = await run(async () => {
       const id = await createFood(updatedFood)
       return getFoodDashboardRow(id)
@@ -114,11 +162,13 @@ export const useFoods = () => {
     brands,
     unitsOfMeasures,
     isCreating,
+    formMode,
     isLoading,
     errorMessage,
     loadDashboard,
     loadLookups,
     startCreateFood,
+    startEditFood,
     completeCreateFood,
     cancelCreateFood
   }
