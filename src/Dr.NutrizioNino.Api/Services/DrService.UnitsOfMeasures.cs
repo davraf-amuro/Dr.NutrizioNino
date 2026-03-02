@@ -30,8 +30,8 @@ public partial class DrService
         return result?.AsDto();
     }
 
-    public async Task DeleteUnitOfMeasureAsync(Guid id)
+    public async Task<bool> DeleteUnitOfMeasureAsync(Guid id)
     {
-        await drRepository.DeleteUnitOfMeasureAsync(id).ConfigureAwait(false);
+        return await drRepository.DeleteUnitOfMeasureAsync(id).ConfigureAwait(false);
     }
 }

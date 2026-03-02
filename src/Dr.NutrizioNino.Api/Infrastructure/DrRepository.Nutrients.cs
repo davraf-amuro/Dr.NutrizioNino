@@ -14,16 +14,17 @@ public partial class DrRepository
         return nutrient;
     }
 
-    public async Task DeleteNutrientAsync(Guid id)
+    public async Task<bool> DeleteNutrientAsync(Guid id)
     {
         var record = await drContext.Nutrients.FindAsync(id).ConfigureAwait(false);
         if (record is null)
         {
-            return;
+            return false;
         }
 
         drContext.Nutrients.Remove(record);
         await drContext.SaveChangesAsync().ConfigureAwait(false);
+        return true;
     }
 
     public async Task<IEnumerable<Nutrient>> GetNutrientsAsync() =>
@@ -37,12 +38,12 @@ public partial class DrRepository
             .ConfigureAwait(false);
     }
 
-    public async Task UpdateNutrientAsync(Nutrient nutrient)
+    public async Task<bool> UpdateNutrientAsync(Nutrient nutrient)
     {
         var record = await drContext.Nutrients.FindAsync(nutrient.Id).ConfigureAwait(false);
         if (record is null)
         {
-            return;
+            return false;
         }
 
         record.Name = nutrient.Name;
@@ -51,6 +52,7 @@ public partial class DrRepository
         record.DefaultUnitOfMeasureId = nutrient.DefaultUnitOfMeasureId;
 
         await drContext.SaveChangesAsync().ConfigureAwait(false);
+        return true;
     }
 
     /// <summary>

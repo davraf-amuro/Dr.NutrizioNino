@@ -25,14 +25,14 @@ public partial class DrService
         return await drRepository.CreateNutrientAsync(nutrient);
     }
 
-    public async Task UpdateNutrientAsync(Nutrient nutrient)
+    public async Task<bool> UpdateNutrientAsync(Nutrient nutrient)
     {
-        await drRepository.UpdateNutrientAsync(nutrient);
+        return await drRepository.UpdateNutrientAsync(nutrient).ConfigureAwait(false);
     }
 
-    public async Task DeleteNutrientAsync(Guid id)
+    public async Task<bool> DeleteNutrientAsync(Guid id)
     {
-        await drRepository.DeleteNutrientAsync(id);
+        return await drRepository.DeleteNutrientAsync(id).ConfigureAwait(false);
     }
 
     //public async Task<ApiResponseDto<NutrientsGetForFoodCreatingInfo>> GetNutrientsForFoodCreating()

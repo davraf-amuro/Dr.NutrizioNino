@@ -12,16 +12,17 @@ public partial class DrRepository
         return brand;
     }
 
-    public async Task DeleteBrandAsync(Guid id)
+    public async Task<bool> DeleteBrandAsync(Guid id)
     {
         var record = await drContext.Brands.FindAsync(id).ConfigureAwait(false);
         if (record is null)
         {
-            return;
+            return false;
         }
 
         drContext.Brands.Remove(record);
         await drContext.SaveChangesAsync().ConfigureAwait(false);
+        return true;
     }
 
     public async Task<Brand?> GetBrandAsync(Guid id)
@@ -35,15 +36,16 @@ public partial class DrRepository
     public async Task<IEnumerable<Brand>> GetBrandsAsync() =>
         await drContext.Brands.AsNoTracking().ToListAsync().ConfigureAwait(false);
 
-    public async Task UpdateBrandAsync(Brand brand)
+    public async Task<bool> UpdateBrandAsync(Brand brand)
     {
         var record = await drContext.Brands.FindAsync(brand.Id).ConfigureAwait(false);
         if (record is null)
         {
-            return;
+            return false;
         }
 
         record.Name = brand.Name;
         await drContext.SaveChangesAsync().ConfigureAwait(false);
+        return true;
     }
 }

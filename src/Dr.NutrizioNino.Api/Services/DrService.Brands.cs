@@ -25,14 +25,14 @@ public partial class DrService
         return await drRepository.CreateBrandAsync(brand);
     }
 
-    public async Task UpdateBrandAsync(Brand brand)
+    public async Task<bool> UpdateBrandAsync(Brand brand)
     {
-        await drRepository.UpdateBrandAsync(brand);
+        return await drRepository.UpdateBrandAsync(brand).ConfigureAwait(false);
     }
 
-    public async Task DeleteBrandAsync(Guid id)
+    public async Task<bool> DeleteBrandAsync(Guid id)
     {
-        await drRepository.DeleteBrandAsync(id);
+        return await drRepository.DeleteBrandAsync(id).ConfigureAwait(false);
     }
 
 }

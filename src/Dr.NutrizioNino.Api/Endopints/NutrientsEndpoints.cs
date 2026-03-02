@@ -59,18 +59,64 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .WithSummary("Create nutrient")
                 .WithDescription("Creates a nutrient and returns the created entity.")
                 .Produces<Nutrient>(StatusCodes.Status200OK)
+                .ProducesDefaultProblem(StatusCodes.Status400BadRequest)
                 ;
-            group.MapPut("{id}", async (DrService service, Guid id, Nutrient nutrient) => await service.UpdateNutrientAsync(nutrient))
+            group.MapPut("{id}", async (DrService service, Guid id, Nutrient nutrient) =>
+            {
+                var updated = await service.UpdateNutrientAsync(nutrient);
+                return updated
+                    ? Results.Ok()
+                    : TypedResults.Problem(new ProblemDetails
+                    {
+                        Title = "Data Not Found",
+                        Status = StatusCodes.Status404NotFound,
+                        Detail = "Nutrient not found for update."
+                    });
+            })
+                .AddEndpointFilter(async (context, next) =>
+                {
+                    var routeId = context.GetArgument<Guid>(1);
+                    var nutrient = context.GetArgument<Nutrient>(2);
+                    if (nutrient.Id == Guid.Empty)
+                    {
+                        nutrient.Id = routeId;
+                    }
+
+                    if (nutrient.Id != routeId)
+                    {
+                        return TypedResults.Problem(new ProblemDetails
+                        {
+                            Title = "Invalid Request",
+                            Status = StatusCodes.Status400BadRequest,
+                            Detail = "Nutrient id in route and body must match."
+                        });
+                    }
+
+                    return await next(context);
+                })
                 .WithName("UpdateNutrient")
                 .WithSummary("Update nutrient")
                 .WithDescription("Updates an existing nutrient by identifier.")
                 .Produces(StatusCodes.Status200OK)
+                .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound)
                 ;
-            group.MapDelete("{id}", async (DrService service, Guid id) => await service.DeleteNutrientAsync(id))
+            group.MapDelete("{id}", async (DrService service, Guid id) =>
+            {
+                var deleted = await service.DeleteNutrientAsync(id);
+                return deleted
+                    ? Results.Ok()
+                    : TypedResults.Problem(new ProblemDetails
+                    {
+                        Title = "Data Not Found",
+                        Status = StatusCodes.Status404NotFound,
+                        Detail = "Nutrient not found for delete."
+                    });
+            })
                 .WithName("DeleteNutrient")
                 .WithSummary("Delete nutrient")
                 .WithDescription("Deletes a nutrient by identifier.")
                 .Produces(StatusCodes.Status200OK)
+                .ProducesDefaultProblem(StatusCodes.Status404NotFound)
                 ;
 
             return endpoints;

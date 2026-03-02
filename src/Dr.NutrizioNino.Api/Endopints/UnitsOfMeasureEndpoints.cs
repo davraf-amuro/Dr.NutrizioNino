@@ -57,7 +57,8 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .WithName("CreateUnitOfMeasure")
                 .WithSummary("Create unit of measure")
                 .WithDescription("Creates a unit of measure and returns the created entity.")
-                .Produces<UnitOfMeasure>(StatusCodes.Status200OK);
+                .Produces<UnitOfMeasure>(StatusCodes.Status200OK)
+                .ProducesDefaultProblem(StatusCodes.Status400BadRequest);
 
             group.MapPut("{id}", async (DrService service, Guid id, UnitOfMeasure unitOfMeasure) =>
             {
@@ -71,17 +72,50 @@ namespace Dr.NutrizioNino.Api.Endopints
                         Detail = "Unit of measure not found for update."
                     });
             })
+                .AddEndpointFilter(async (context, next) =>
+                {
+                    var routeId = context.GetArgument<Guid>(1);
+                    var unitOfMeasure = context.GetArgument<UnitOfMeasure>(2);
+                    if (unitOfMeasure.Id == Guid.Empty)
+                    {
+                        unitOfMeasure.Id = routeId;
+                    }
+
+                    if (unitOfMeasure.Id != routeId)
+                    {
+                        return TypedResults.Problem(new ProblemDetails
+                        {
+                            Title = "Invalid Request",
+                            Status = StatusCodes.Status400BadRequest,
+                            Detail = "UnitOfMeasure id in route and body must match."
+                        });
+                    }
+
+                    return await next(context);
+                })
                 .WithName("UpdateUnitOfMeasure")
                 .WithSummary("Update unit of measure")
                 .WithDescription("Updates an existing unit of measure by identifier.")
                 .Produces<UnitOfMeasureDto>(StatusCodes.Status200OK)
-                .ProducesDefaultProblem(StatusCodes.Status404NotFound);
+                .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound);
 
-            group.MapDelete("{id}", async (DrService service, Guid id) => await service.DeleteUnitOfMeasureAsync(id))
+            group.MapDelete("{id}", async (DrService service, Guid id) =>
+            {
+                var deleted = await service.DeleteUnitOfMeasureAsync(id);
+                return deleted
+                    ? Results.Ok()
+                    : TypedResults.Problem(new ProblemDetails
+                    {
+                        Title = "Data Not Found",
+                        Status = StatusCodes.Status404NotFound,
+                        Detail = "Unit of measure not found for delete."
+                    });
+            })
                 .WithName("DeleteUnitOfMeasure")
                 .WithSummary("Delete unit of measure")
                 .WithDescription("Deletes a unit of measure by identifier.")
-                .Produces(StatusCodes.Status200OK);
+                .Produces(StatusCodes.Status200OK)
+                .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 
             return endpoints;
         }

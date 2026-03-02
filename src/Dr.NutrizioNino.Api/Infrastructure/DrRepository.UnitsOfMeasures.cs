@@ -12,16 +12,17 @@ public partial class DrRepository
         return unitOfMeasure;
     }
 
-    public async Task DeleteUnitOfMeasureAsync(Guid id)
+    public async Task<bool> DeleteUnitOfMeasureAsync(Guid id)
     {
         var record = await drContext.UnitsOfMeasures.FindAsync(id).ConfigureAwait(false);
         if (record is null)
         {
-            return;
+            return false;
         }
 
         drContext.UnitsOfMeasures.Remove(record);
         await drContext.SaveChangesAsync().ConfigureAwait(false);
+        return true;
     }
 
     public async Task<UnitOfMeasure?> GetUnitOfMeasureAsync(Guid id)

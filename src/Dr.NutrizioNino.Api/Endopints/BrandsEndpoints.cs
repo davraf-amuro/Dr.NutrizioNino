@@ -58,8 +58,20 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .WithSummary("Create a new brand")
                 .WithDescription("Creates a new brand and returns the created entity.")
                 .Produces<BrandDto>(StatusCodes.Status200OK)
+                .ProducesDefaultProblem(StatusCodes.Status400BadRequest)
                 ;
-            group.MapPut("{id}", async (DrService service, Guid id, Brand brand) => await service.UpdateBrandAsync(brand))
+            group.MapPut("{id}", async (DrService service, Guid id, Brand brand) =>
+            {
+                var updated = await service.UpdateBrandAsync(brand);
+                return updated
+                    ? Results.Ok()
+                    : TypedResults.Problem(new ProblemDetails
+                    {
+                        Title = "Data Not Found",
+                        Status = StatusCodes.Status404NotFound,
+                        Detail = "Brand not found for update."
+                    });
+            })
                 .AddEndpointFilter(async (context, next) =>
                 {
                     var routeId = context.GetArgument<Guid>(1);
@@ -85,12 +97,24 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .WithSummary("Update an existing brand")
                 .WithDescription("Updates an existing brand by identifier.")
                 .Produces(StatusCodes.Status200OK)
-                .ProducesDefaultProblem(StatusCodes.Status400BadRequest);
-            group.MapDelete("{id}", async (DrService service, Guid id) => await service.DeleteBrandAsync(id))
+                .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound);
+            group.MapDelete("{id}", async (DrService service, Guid id) =>
+            {
+                var deleted = await service.DeleteBrandAsync(id);
+                return deleted
+                    ? Results.Ok()
+                    : TypedResults.Problem(new ProblemDetails
+                    {
+                        Title = "Data Not Found",
+                        Status = StatusCodes.Status404NotFound,
+                        Detail = "Brand not found for delete."
+                    });
+            })
                 .WithName("DeleteBrand")
                 .WithSummary("Delete a brand")
                 .WithDescription("Deletes an existing brand by identifier.")
                 .Produces(StatusCodes.Status200OK)
+                .ProducesDefaultProblem(StatusCodes.Status404NotFound)
                 ;
 
             return endpoints;
