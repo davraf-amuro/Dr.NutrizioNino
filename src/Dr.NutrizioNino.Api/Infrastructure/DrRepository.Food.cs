@@ -10,21 +10,26 @@ public partial class DrRepository
 {
     public async Task<Food> CreateFoodAsync(CreateFoodDto newFoodDto)
     {
-        //var newFood = await ModelsFactory.CreateFood(newFoodDto);
-        //drContext.Foods.Add(newFood);
-        //drContext.SaveChanges();
-        //return await Task.FromResult(newFood);
-        return await Task.FromResult(new Food());
-    }
-    public async Task DeleteFoodAsync(Guid id)
-    {
-        throw new Exception("Not implemented yet!");
+        var newFood = await ModelsFactory.CreateFood(newFoodDto).ConfigureAwait(false);
+        drContext.Foods.Add(newFood);
+        await drContext.SaveChangesAsync().ConfigureAwait(false);
+        return newFood;
     }
 
-    public async Task<IEnumerable<Food>> GetFoodsAsync()
+    public async Task DeleteFoodAsync(Guid id)
     {
-        return drContext.Foods;
+        var record = await drContext.Foods.FindAsync(id).ConfigureAwait(false);
+        if (record is null)
+        {
+            return;
+        }
+
+        drContext.Foods.Remove(record);
+        await drContext.SaveChangesAsync().ConfigureAwait(false);
     }
+
+    public async Task<IEnumerable<Food>> GetFoodsAsync() =>
+        await drContext.Foods.AsNoTracking().ToListAsync().ConfigureAwait(false);
 
     internal async Task<Food?> GetFoodAsync(Guid id)
     {
@@ -33,13 +38,24 @@ public partial class DrRepository
 
     public async Task UpdateFoodAsync(Food food)
     {
-        throw new Exception("Not implemented yet!");
+        var record = await drContext.Foods.FindAsync(food.Id).ConfigureAwait(false);
+        if (record is null)
+        {
+            return;
+        }
+
+        record.Name = food.Name;
+        record.Quantity = food.Quantity;
+        record.Barcode = food.Barcode;
+        record.BrandId = food.BrandId;
+        record.Calorie = food.Calorie;
+        record.UnitOfMeasureId = food.UnitOfMeasureId;
+
+        await drContext.SaveChangesAsync().ConfigureAwait(false);
     }
 
-    public async Task<IEnumerable<FoodDashboardInfo>> GetFoodsDashboardAsync()
-    {
-        return drContext.FoodsDashboard;
-    }
+    public async Task<IEnumerable<FoodDashboardInfo>> GetFoodsDashboardAsync() =>
+        await drContext.FoodsDashboard.AsNoTracking().ToListAsync().ConfigureAwait(false);
 
     internal async Task<FoodDashboardInfo?> GetFoodDashboardAsync(Guid id)
     {
@@ -49,7 +65,7 @@ public partial class DrRepository
     internal async Task<Guid> InsertFullFood(Food food)
     {
         drContext.Foods.Add(food);
-        await drContext.SaveChangesAsync();
+        await drContext.SaveChangesAsync().ConfigureAwait(false);
         return food.Id;
     }
 }

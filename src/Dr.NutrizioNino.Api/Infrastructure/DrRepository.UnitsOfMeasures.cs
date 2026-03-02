@@ -8,18 +8,32 @@ public partial class DrRepository
     public async Task<UnitOfMeasure> CreateUnitOfMeasureAsync(UnitOfMeasure unitOfMeasure)
     {
         drContext.UnitsOfMeasures.Add(unitOfMeasure);
-        _ = drContext.SaveChanges();
-        return await Task.FromResult(unitOfMeasure);
+        await drContext.SaveChangesAsync().ConfigureAwait(false);
+        return unitOfMeasure;
     }
+
     public async Task DeleteUnitOfMeasureAsync(Guid id)
     {
-        throw new Exception("Not implemented yet!");
+        var record = await drContext.UnitsOfMeasures.FindAsync(id).ConfigureAwait(false);
+        if (record is null)
+        {
+            return;
+        }
+
+        drContext.UnitsOfMeasures.Remove(record);
+        await drContext.SaveChangesAsync().ConfigureAwait(false);
     }
-    public async Task<UnitOfMeasure> GetUnitOfMeasureAsync(Guid id)
+
+    public async Task<UnitOfMeasure?> GetUnitOfMeasureAsync(Guid id)
     {
-        return await Task.FromResult(new UnitOfMeasure());
+        return await drContext.UnitsOfMeasures
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id)
+            .ConfigureAwait(false);
     }
-    public async Task<IEnumerable<UnitOfMeasure>> GetUnitsOfMeasuresAsync() => drContext.UnitsOfMeasures.AsNoTracking();
+
+    public async Task<IEnumerable<UnitOfMeasure>> GetUnitsOfMeasuresAsync() =>
+        await drContext.UnitsOfMeasures.AsNoTracking().ToListAsync().ConfigureAwait(false);
 
     public async Task<UnitOfMeasure?> UpdateUnitOfMeasureAsync(UnitOfMeasure unitOfMeasure)
     {

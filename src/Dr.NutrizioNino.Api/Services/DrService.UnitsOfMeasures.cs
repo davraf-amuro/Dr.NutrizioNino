@@ -13,7 +13,7 @@ public partial class DrService
         return uom.Select(x => x.AsDto()).ToList();
     }
 
-    public async Task<UnitOfMeasure> GetUnitOfMeasureAsync(Guid id)
+    public async Task<UnitOfMeasure?> GetUnitOfMeasureAsync(Guid id)
     {
         return await drRepository.GetUnitOfMeasureAsync(id).ConfigureAwait(false);
     }

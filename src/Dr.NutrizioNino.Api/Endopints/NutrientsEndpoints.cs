@@ -23,7 +23,11 @@ namespace Dr.NutrizioNino.Api.Endopints
             })
                 .Produces<IList<NutrientInfo>>()
             ;
-            group.MapGet("{id}", async (DrService service, Guid id) => await service.GetNutrientAsync(id))
+            group.MapGet("{id}", async (DrService service, Guid id) =>
+            {
+                var result = await service.GetNutrientAsync(id);
+                return result is not null ? Results.Ok(result) : Results.NotFound();
+            })
                 ;
             group.MapPost("", async (DrService service, CreateNutrientDto newNutrient) => await service.CreateNutrientAsync(newNutrient))
                 ;

@@ -22,7 +22,11 @@ namespace Dr.NutrizioNino.Api.Endopints
             })
                 .Produces<IList<UnitOfMeasureDto>>(StatusCodes.Status200OK);
 
-            group.MapGet("{id}", async (DrService service, Guid id) => await service.GetUnitOfMeasureAsync(id));
+            group.MapGet("{id}", async (DrService service, Guid id) =>
+            {
+                var result = await service.GetUnitOfMeasureAsync(id);
+                return result is not null ? Results.Ok(result) : Results.NotFound();
+            });
 
             group.MapPost("", async (DrService service, CreateUnitOfMeasureDto newUnitOfMeasure) => await service.CreateUnitOfMeasureAsync(newUnitOfMeasure));
 

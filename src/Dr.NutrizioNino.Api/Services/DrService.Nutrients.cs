@@ -14,9 +14,9 @@ public partial class DrService
         return nutrient.OrderBy(x => x.PositionOrder).Select(x => x.AsDto()).ToList();
     }
 
-    public async Task<Nutrient> GetNutrientAsync(Guid id)
+    public async Task<Nutrient?> GetNutrientAsync(Guid id)
     {
-        return await drRepository.GetNutrientAsync(id);
+        return await drRepository.GetNutrientAsync(id).ConfigureAwait(false);
     }
 
     public async Task<Nutrient> CreateNutrientAsync(CreateNutrientDto newNutrientDto)

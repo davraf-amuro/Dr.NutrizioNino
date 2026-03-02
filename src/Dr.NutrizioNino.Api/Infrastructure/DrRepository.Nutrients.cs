@@ -10,26 +10,47 @@ public partial class DrRepository
     public async Task<Nutrient> CreateNutrientAsync(Nutrient nutrient)
     {
         drContext.Nutrients.Add(nutrient);
-        _ = drContext.SaveChanges();
+        await drContext.SaveChangesAsync().ConfigureAwait(false);
         return nutrient;
     }
 
     public async Task DeleteNutrientAsync(Guid id)
     {
-        throw new NotImplementedException();
+        var record = await drContext.Nutrients.FindAsync(id).ConfigureAwait(false);
+        if (record is null)
+        {
+            return;
+        }
+
+        drContext.Nutrients.Remove(record);
+        await drContext.SaveChangesAsync().ConfigureAwait(false);
     }
 
     public async Task<IEnumerable<Nutrient>> GetNutrientsAsync() =>
-        drContext.Nutrients.AsNoTracking();
+        await drContext.Nutrients.AsNoTracking().ToListAsync().ConfigureAwait(false);
 
-    public async Task<Nutrient> GetNutrientAsync(Guid id)
+    public async Task<Nutrient?> GetNutrientAsync(Guid id)
     {
-        return await drContext.Nutrients.FindAsync(id).ConfigureAwait(false);
+        return await drContext.Nutrients
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id)
+            .ConfigureAwait(false);
     }
 
     public async Task UpdateNutrientAsync(Nutrient nutrient)
     {
-        throw new NotImplementedException();
+        var record = await drContext.Nutrients.FindAsync(nutrient.Id).ConfigureAwait(false);
+        if (record is null)
+        {
+            return;
+        }
+
+        record.Name = nutrient.Name;
+        record.PositionOrder = nutrient.PositionOrder;
+        record.DefaultQuantity = nutrient.DefaultQuantity;
+        record.DefaultUnitOfMeasureId = nutrient.DefaultUnitOfMeasureId;
+
+        await drContext.SaveChangesAsync().ConfigureAwait(false);
     }
 
     /// <summary>
