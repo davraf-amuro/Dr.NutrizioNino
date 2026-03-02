@@ -51,12 +51,19 @@ const unitOfMeasureOptions = computed<SelectOption[]>(() =>
 )
 
 watch(
-  () => prop.foodNutrientDto,
-  (foodNutrient) => {
-    selectedUnitOfMeasureId.value = foodNutrient.unitOfMeasureId
-    quantity.value = foodNutrient.quantity
+  () => prop.foodNutrientDto.unitOfMeasureId,
+  (unitOfMeasureId) => {
+    selectedUnitOfMeasureId.value = unitOfMeasureId
   },
-  { deep: true }
+  { immediate: true }
+)
+
+watch(
+  () => prop.foodNutrientDto.quantity,
+  (newQuantity) => {
+    quantity.value = newQuantity
+  },
+  { immediate: true }
 )
 
 watch([selectedUnitOfMeasureId, quantity], () => {

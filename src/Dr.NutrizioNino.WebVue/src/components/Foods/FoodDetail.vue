@@ -137,7 +137,7 @@ watch(
     localFood.value = cloneFood(newFood)
     ensureBrandSelection()
   },
-  { deep: true }
+  { immediate: true }
 )
 
 watch(
@@ -145,7 +145,7 @@ watch(
   () => {
     ensureBrandSelection()
   },
-  { deep: true }
+  { immediate: true }
 )
 
 // Aggiorna il valore originale quando necessario

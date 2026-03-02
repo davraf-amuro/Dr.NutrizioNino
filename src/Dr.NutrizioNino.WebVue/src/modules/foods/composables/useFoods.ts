@@ -3,44 +3,62 @@ import type { Brand } from '@/Interfaces/Brand'
 import type { UnitOfMeasureDto } from '@/Interfaces/UnitOfMeasureDto'
 import type { FoodDashboardDto } from '@/Interfaces/foods/FoodDashboardDto'
 import type { FoodDto } from '@/Interfaces/foods/FoodDto'
+import { useAsyncState } from '@/core/composables/useAsyncState'
 import { getBrands } from '@/modules/brands/api/brands.api'
 import { createFood, getFoodDashboardRow, getFoodsDashboard, getNewFood } from '@/modules/foods/api/foods.api'
 import { getUnitsOfMeasures } from '@/modules/units/api/units.api'
 
+const cacheTtlMs = 60_000
+let dashboardCache: FoodDashboardDto[] | null = null
+let dashboardCacheAt = 0
+let brandsCache: Brand[] | null = null
+let unitsCache: UnitOfMeasureDto[] | null = null
+let lookupsCacheAt = 0
+
 export const useFoods = () => {
+  const { isLoading, errorMessage, run } = useAsyncState()
   const dashboard = ref<FoodDashboardDto[]>([])
   const selectedFood = ref<FoodDto | null>(null)
   const brands = ref<Brand[]>([])
   const unitsOfMeasures = ref<UnitOfMeasureDto[]>([])
   const isCreating = ref(false)
-  const isLoading = ref(false)
-  const errorMessage = ref<string | null>(null)
 
-  const withErrorHandling = async <T>(operation: () => Promise<T>): Promise<T | null> => {
-    isLoading.value = true
-    errorMessage.value = null
-
-    try {
-      return await operation()
-    } catch (error) {
-      errorMessage.value = error instanceof Error ? error.message : 'Errore imprevisto.'
-      return null
-    } finally {
-      isLoading.value = false
-    }
+  const updateDashboardCache = (items: FoodDashboardDto[]) => {
+    dashboardCache = [...items]
+    dashboardCacheAt = Date.now()
   }
 
-  const loadDashboard = async () => {
-    const data = await withErrorHandling(() => getFoodsDashboard())
+  const updateLookupsCache = (newBrands: Brand[], newUnits: UnitOfMeasureDto[]) => {
+    brandsCache = [...newBrands]
+    unitsCache = [...newUnits]
+    lookupsCacheAt = Date.now()
+  }
+
+  const loadDashboard = async (force = false) => {
+    const hasValidCache = !force && dashboardCache && Date.now() - dashboardCacheAt < cacheTtlMs
+    if (hasValidCache && dashboardCache) {
+      dashboard.value = [...dashboardCache]
+      return
+    }
+
+    const data = await run(() => getFoodsDashboard())
     if (data) {
       dashboard.value = data
+      updateDashboardCache(data)
     }
   }
 
-  const loadLookups = async () => {
+  const loadLookups = async (force = false) => {
+    const hasValidCache = !force && brandsCache && unitsCache && Date.now() - lookupsCacheAt < cacheTtlMs
+    if (hasValidCache && brandsCache && unitsCache) {
+      brands.value = [...brandsCache]
+      unitsOfMeasures.value = [...unitsCache]
+      return
+    }
+
     const [brandsData, unitsData] = await Promise.all([
-      withErrorHandling(() => getBrands()),
-      withErrorHandling(() => getUnitsOfMeasures())
+      run(() => getBrands()),
+      run(() => getUnitsOfMeasures())
     ])
 
     if (brandsData) {
@@ -50,10 +68,14 @@ export const useFoods = () => {
     if (unitsData) {
       unitsOfMeasures.value = unitsData
     }
+
+    if (brandsData && unitsData) {
+      updateLookupsCache(brandsData, unitsData)
+    }
   }
 
   const startCreateFood = async () => {
-    const result = await withErrorHandling(async () => {
+    const result = await run(async () => {
       if (!brands.value.length || !unitsOfMeasures.value.length) {
         await loadLookups()
       }
@@ -68,13 +90,14 @@ export const useFoods = () => {
   }
 
   const completeCreateFood = async (updatedFood: FoodDto) => {
-    const result = await withErrorHandling(async () => {
+    const result = await run(async () => {
       const id = await createFood(updatedFood)
       return getFoodDashboardRow(id)
     })
 
     if (result) {
       dashboard.value.push(result)
+      updateDashboardCache(dashboard.value)
       isCreating.value = false
       selectedFood.value = null
     }

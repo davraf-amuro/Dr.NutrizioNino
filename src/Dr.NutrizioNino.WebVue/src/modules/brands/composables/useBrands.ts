@@ -1,35 +1,37 @@
 import { ref } from 'vue'
 import type { Brand } from '@/Interfaces/Brand'
+import { useAsyncState } from '@/core/composables/useAsyncState'
 import { createBrand, deleteBrand, getBrands, updateBrand } from '@/modules/brands/api/brands.api'
 
 type BrandFormMode = 'create' | 'edit'
 
+const cacheTtlMs = 60_000
+let brandsCache: Brand[] | null = null
+let brandsCacheAt = 0
+
 export const useBrands = () => {
+  const { isLoading, errorMessage, run } = useAsyncState()
   const brands = ref<Brand[]>([])
   const isCreating = ref(false)
   const formMode = ref<BrandFormMode>('create')
   const selectedBrand = ref<Brand | null>(null)
-  const isLoading = ref(false)
-  const errorMessage = ref<string | null>(null)
 
-  const withErrorHandling = async <T>(operation: () => Promise<T>): Promise<T | null> => {
-    isLoading.value = true
-    errorMessage.value = null
-
-    try {
-      return await operation()
-    } catch (error) {
-      errorMessage.value = error instanceof Error ? error.message : 'Errore imprevisto.'
-      return null
-    } finally {
-      isLoading.value = false
-    }
+  const updateCache = (items: Brand[]) => {
+    brandsCache = [...items]
+    brandsCacheAt = Date.now()
   }
 
-  const loadBrands = async () => {
-    const result = await withErrorHandling(() => getBrands())
+  const loadBrands = async (force = false) => {
+    const hasValidCache = !force && brandsCache && Date.now() - brandsCacheAt < cacheTtlMs
+    if (hasValidCache && brandsCache) {
+      brands.value = [...brandsCache]
+      return
+    }
+
+    const result = await run(() => getBrands())
     if (result) {
       brands.value = result
+      updateCache(result)
     }
   }
 
@@ -57,7 +59,7 @@ export const useBrands = () => {
         name
       }
 
-      const updated = await withErrorHandling(async () => {
+      const updated = await run(async () => {
         await updateBrand(updatedBrand)
         return updatedBrand
       })
@@ -68,6 +70,8 @@ export const useBrands = () => {
           brands.value[index] = updated
         }
 
+        updateCache(brands.value)
+
         selectedBrand.value = null
         isCreating.value = false
       }
@@ -75,21 +79,23 @@ export const useBrands = () => {
       return
     }
 
-    const created = await withErrorHandling(() => createBrand({ name }))
+    const created = await run(() => createBrand({ name }))
     if (created) {
       brands.value.push(created)
+      updateCache(brands.value)
       isCreating.value = false
     }
   }
 
   const removeBrand = async (brand: Brand) => {
-    const removed = await withErrorHandling(async () => {
+    const removed = await run(async () => {
       await deleteBrand(brand.id)
       return brand.id
     })
 
     if (removed) {
       brands.value = brands.value.filter((item) => item.id !== removed)
+      updateCache(brands.value)
     }
   }
 
