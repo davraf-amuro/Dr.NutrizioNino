@@ -29,6 +29,9 @@ namespace Dr.NutrizioNino.Api.Endopints
                         Detail = "No units of measure found."
                     });
             })
+                .WithName("GetUnitsOfMeasure")
+                .WithSummary("Get all units of measure")
+                .WithDescription("Returns all available units of measure.")
                 .Produces<IList<UnitOfMeasureDto>>(StatusCodes.Status200OK)
                 .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 
@@ -44,9 +47,17 @@ namespace Dr.NutrizioNino.Api.Endopints
                         Detail = "Unit of measure not found."
                     });
             })
+                .WithName("GetUnitOfMeasureById")
+                .WithSummary("Get unit of measure by id")
+                .WithDescription("Returns a unit of measure for the specified identifier.")
+                .Produces<UnitOfMeasure>(StatusCodes.Status200OK)
                 .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 
-            group.MapPost("", async (DrService service, CreateUnitOfMeasureDto newUnitOfMeasure) => await service.CreateUnitOfMeasureAsync(newUnitOfMeasure));
+            group.MapPost("", async (DrService service, CreateUnitOfMeasureDto newUnitOfMeasure) => await service.CreateUnitOfMeasureAsync(newUnitOfMeasure))
+                .WithName("CreateUnitOfMeasure")
+                .WithSummary("Create unit of measure")
+                .WithDescription("Creates a unit of measure and returns the created entity.")
+                .Produces<UnitOfMeasure>(StatusCodes.Status200OK);
 
             group.MapPut("{id}", async (DrService service, Guid id, UnitOfMeasure unitOfMeasure) =>
             {
@@ -60,9 +71,17 @@ namespace Dr.NutrizioNino.Api.Endopints
                         Detail = "Unit of measure not found for update."
                     });
             })
+                .WithName("UpdateUnitOfMeasure")
+                .WithSummary("Update unit of measure")
+                .WithDescription("Updates an existing unit of measure by identifier.")
+                .Produces<UnitOfMeasureDto>(StatusCodes.Status200OK)
                 .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 
-            group.MapDelete("{id}", async (DrService service, Guid id) => await service.DeleteUnitOfMeasureAsync(id));
+            group.MapDelete("{id}", async (DrService service, Guid id) => await service.DeleteUnitOfMeasureAsync(id))
+                .WithName("DeleteUnitOfMeasure")
+                .WithSummary("Delete unit of measure")
+                .WithDescription("Deletes a unit of measure by identifier.")
+                .Produces(StatusCodes.Status200OK);
 
             return endpoints;
         }

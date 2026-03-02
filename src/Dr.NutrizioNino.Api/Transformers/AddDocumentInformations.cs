@@ -5,16 +5,18 @@ namespace Dr.NutrizioNino.Api.Transformers;
 
 public class AddDocumentInformations : IOpenApiDocumentTransformer
 {
-    public async Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context, CancellationToken cancellationToken)
+    public Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context, CancellationToken cancellationToken)
     {
-        document.Info.Title = "Example API";
-        document.Info.Description = "template net9 mminimal api";
+        document.Info.Title = "Dr.NutrizioNino API";
+        document.Info.Description = "Minimal API per gestione alimenti, nutrienti, brand e unita di misura.";
         document.Info.Version = "v1";
         document.Info.Contact = new OpenApiContact
         {
-            Name = "davide 'davraf' raffagli",
+            Name = "Dr.NutrizioNino Team",
             Url = new Uri("https://github.com/davraf-amuro"),
             Email = "d.raffagli@gmail.com"
         };
+
+        return Task.CompletedTask;
     }
 }

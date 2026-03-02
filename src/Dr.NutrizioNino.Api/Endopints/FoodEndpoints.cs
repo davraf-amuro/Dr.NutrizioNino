@@ -28,6 +28,9 @@ namespace Dr.NutrizioNino.Api.Endopints
                         Detail = "Food not found."
                     });
             })
+                .WithName("GetFoodById")
+                .WithSummary("Get food details")
+                .WithDescription("Returns complete food details for the specified identifier.")
                 .Produces<FoodInfo>(StatusCodes.Status200OK)
                 .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 
@@ -43,7 +46,9 @@ namespace Dr.NutrizioNino.Api.Endopints
                         Detail = "No dashboard data found."
                     });
             })
-                .WithName("dashboard")
+                .WithName("GetFoodsDashboard")
+                .WithSummary("Get foods dashboard")
+                .WithDescription("Returns the dashboard list for foods.")
                 .Produces<IList<FoodDashboardInfo>>(StatusCodes.Status200OK)
                 .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 
@@ -59,14 +64,22 @@ namespace Dr.NutrizioNino.Api.Endopints
                         Detail = "Dashboard item not found."
                     });
             })
-                .WithName("dashboardrow")
+                .WithName("GetFoodDashboardById")
+                .WithSummary("Get food dashboard item")
+                .WithDescription("Returns a dashboard item for the specified food identifier.")
                 .Produces<FoodDashboardInfo>(StatusCodes.Status200OK)
                 .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 
-            group.MapGet("newgui", () => Guid.NewGuid().ToString()).WithName("newgui");
+            group.MapGet("newgui", () => Guid.NewGuid().ToString())
+                .WithName("GetNewGuiToken")
+                .WithSummary("Generate new gui token")
+                .WithDescription("Returns a new guid string for GUI initialization.")
+                .Produces<string>(StatusCodes.Status200OK);
 
             group.MapGet("getnewfood", async (DrService service) => await service.GetFullFood(null))
-                .WithName("getnewfood")
+                .WithName("GetNewFoodTemplate")
+                .WithSummary("Get new food template")
+                .WithDescription("Returns a template for creating a new food.")
                 .Produces<FoodInfo>(StatusCodes.Status200OK);
 
             group.MapPost("Create", async (DrService service, FoodInfo foodInfo) =>
@@ -74,6 +87,10 @@ namespace Dr.NutrizioNino.Api.Endopints
                 var newFoodId = await service.InsertFullFood(foodInfo);
                 return Results.Ok(newFoodId);
             })
+                .WithName("CreateFood")
+                .WithSummary("Create a food")
+                .WithDescription("Creates a food with related nutrients and returns its identifier.")
+                .Produces<Guid>(StatusCodes.Status200OK)
                 ;
 
             return endpoints;
