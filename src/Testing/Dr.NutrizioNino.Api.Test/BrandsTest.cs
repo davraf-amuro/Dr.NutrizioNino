@@ -13,7 +13,7 @@ public class BrandsEndpointTests : IClassFixture<WebApplicationFactory<Program>>
     [Fact]
     public async Task Get_All()
     {
-        var response = await _client.GetAsync("https://localhost:44360/brands");
+        var response = await _client.GetAsync("/api/v1/brands");
         response.EnsureSuccessStatusCode();
         var payload = await response.Content.ReadAsStringAsync();
         var apiResponse = JsonSerializer.Deserialize<List<BrandDto>>(payload);

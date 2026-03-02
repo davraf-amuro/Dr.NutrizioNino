@@ -1,3 +1,5 @@
+using Asp.Versioning;
+using Asp.Versioning.Builder;
 using Dr.NutrizioNino.Api.Models;
 using Dr.NutrizioNino.Api.Services;
 using Dr.NutrizioNino.Models.Dto;
@@ -6,10 +8,12 @@ namespace Dr.NutrizioNino.Api.Endopints
 {
     public static class UnitsOfMeasureEndpoints
     {
-        public static void MapUnitsOfMeasureEndpoints(this IEndpointRouteBuilder endpoints)
+        public static IEndpointRouteBuilder MapUnitsOfMeasureEndpoints(this IEndpointRouteBuilder endpoints, ApiVersionSet versionSet)
         {
-            var group = endpoints.MapGroup("unitsOfMeasures")
-                .WithTags("Units Of Measures");
+            var group = endpoints.MapGroup("api/v{version:apiVersion}/unitsOfMeasures")
+                .WithTags("Units Of Measures")
+                .WithApiVersionSet(versionSet)
+                .MapToApiVersion(ApiVersionFactory.Version1);
 
             group.MapGet("", async (DrService service) =>
             {
@@ -30,6 +34,7 @@ namespace Dr.NutrizioNino.Api.Endopints
 
             group.MapDelete("{id}", async (DrService service, Guid id) => await service.DeleteUnitOfMeasureAsync(id));
 
+            return endpoints;
         }
     }
 }

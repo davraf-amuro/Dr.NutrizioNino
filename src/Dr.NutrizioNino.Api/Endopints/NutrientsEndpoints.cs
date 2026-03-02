@@ -1,3 +1,5 @@
+using Asp.Versioning;
+using Asp.Versioning.Builder;
 using Dr.NutrizioNino.Api.Infrastructure.Models;
 using Dr.NutrizioNino.Api.Models;
 using Dr.NutrizioNino.Api.Services;
@@ -7,9 +9,12 @@ namespace Dr.NutrizioNino.Api.Endopints
 {
     public static class NutrientsEndpoints
     {
-        public static void MapsNutrientsEndpoints(this IEndpointRouteBuilder endpoints)
+        public static IEndpointRouteBuilder MapsNutrientsEndpoints(this IEndpointRouteBuilder endpoints, ApiVersionSet versionSet)
         {
-            var group = endpoints.MapGroup("nutrients").WithTags("Nutrients");
+            var group = endpoints.MapGroup("api/v{version:apiVersion}/nutrients")
+                .WithTags("Nutrients")
+                .WithApiVersionSet(versionSet)
+                .MapToApiVersion(ApiVersionFactory.Version1);
 
             group.MapGet("", async (DrService service) =>
             {
@@ -27,6 +32,7 @@ namespace Dr.NutrizioNino.Api.Endopints
             group.MapDelete("{id}", async (DrService service, Guid id) => await service.DeleteNutrientAsync(id))
                 ;
 
+            return endpoints;
         }
     }
 }

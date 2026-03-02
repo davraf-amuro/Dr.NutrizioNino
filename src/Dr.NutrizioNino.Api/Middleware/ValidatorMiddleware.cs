@@ -30,7 +30,7 @@ public class ValidatorMiddleware
 
         //permetti di passare a chi non punta alle api "/api/"
         //ad esempio concedi swagger
-        if (!context.Request.Path.Value.Contains("/api/"))
+        if (!context.Request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase))
         {
             _logger.LogWarning($"not callinga api! /api/");
             await _next(context);

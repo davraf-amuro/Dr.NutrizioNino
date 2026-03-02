@@ -69,7 +69,7 @@ try
             {
                 policy.AllowAnyOrigin();
                 policy.AllowAnyHeader();
-                policy.WithMethods("GET", "POST");
+                policy.WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS");
             });
     });
 
@@ -99,10 +99,10 @@ try
     app.UseStaticFiles();
 
     //aggiungi gli endpoint 
-    app.MapsFoodsEndpoints();
-    app.MapsBrandsEndpoints();
-    app.MapsNutrientsEndpoints();
-    app.MapUnitsOfMeasureEndpoints();
+    app.MapsFoodsEndpoints(versionSet);
+    app.MapsBrandsEndpoints(versionSet);
+    app.MapsNutrientsEndpoints(versionSet);
+    app.MapUnitsOfMeasureEndpoints(versionSet);
 
     //carica i middleware
     app.UseMiddleware<HttpContextLogger>();

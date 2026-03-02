@@ -1,3 +1,5 @@
+using Asp.Versioning;
+using Asp.Versioning.Builder;
 using Dr.NutrizioNino.Api.Infrastructure.Models;
 using Dr.NutrizioNino.Api.Services;
 
@@ -5,10 +7,12 @@ namespace Dr.NutrizioNino.Api.Endopints
 {
     public static class FoodEndpoints
     {
-        public static void MapsFoodsEndpoints(this IEndpointRouteBuilder endpoints)
+        public static IEndpointRouteBuilder MapsFoodsEndpoints(this IEndpointRouteBuilder endpoints, ApiVersionSet versionSet)
         {
-            var group = endpoints.MapGroup("foods")
-                .WithTags("Foods");
+            var group = endpoints.MapGroup("api/v{version:apiVersion}/foods")
+                .WithTags("Foods")
+                .WithApiVersionSet(versionSet)
+                .MapToApiVersion(ApiVersionFactory.Version1);
 
             group.MapGet("{id}", async (DrService service, Guid id) =>
             {
@@ -46,6 +50,8 @@ namespace Dr.NutrizioNino.Api.Endopints
                 return Results.Ok(newFoodId);
             })
                 ;
+
+            return endpoints;
         }
     }
 }
