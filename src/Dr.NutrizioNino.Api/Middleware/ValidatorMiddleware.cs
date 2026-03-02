@@ -18,86 +18,110 @@ public class ValidatorMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        var message = string.Empty;
-
-        // Ottieni l'header Referer o Origin
         var referer = context.Request.Headers["Referer"].ToString();
         var origin = context.Request.Headers["Origin"].ToString();
-        var caller = !string.IsNullOrEmpty(referer) ? referer : origin;
+        var caller = !string.IsNullOrWhiteSpace(origin) ? origin : referer;
 
-        _logger.LogInformation($"_authorizationTokens.UseOrigins:{_authorizationTokens.UseOrigins}");
-        _logger.LogInformation($"_authorizationTokens.UseTokens:{_authorizationTokens.UseTokens}");
+        _logger.LogDebug(
+            "Authorization checks - UseOrigins: {UseOrigins}; UseTokens: {UseTokens}",
+            _authorizationTokens.UseOrigins,
+            _authorizationTokens.UseTokens);
 
         //permetti di passare a chi non punta alle api "/api/"
         //ad esempio concedi swagger
         if (!context.Request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase))
         {
-            _logger.LogWarning($"not callinga api! /api/");
+            _logger.LogDebug("Skipping validator for non API path {Path}", context.Request.Path);
             await _next(context);
             return;
         }
 
-        //prima valida l'origine
         if (_authorizationTokens.UseOrigins && _authorizationTokens.OriginsAllowed?.Count > 0)
         {
-            var clearOrigin = caller.Replace("http://", "").Replace("https://", "");
-            if (!_authorizationTokens.OriginsAllowed.Any(o => clearOrigin.StartsWith(o)))
+            var normalizedCaller = GetNormalizedOrigin(caller);
+            if (string.IsNullOrWhiteSpace(normalizedCaller))
             {
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                message = "Invalid origin: you shall not pass!";
-                _logger.LogError(message);
-                await context.Response.WriteAsync(message);
+                await WriteUnauthorizedAsync(context, "Invalid origin: you shall not pass!");
+                _logger.LogWarning("Origin validation failed: caller origin missing for {Path}", context.Request.Path);
                 return;
             }
-            else
+
+            var allowedOrigin = _authorizationTokens.OriginsAllowed.Any(allowed =>
+                normalizedCaller.StartsWith(allowed, StringComparison.OrdinalIgnoreCase));
+
+            if (!allowedOrigin)
             {
-                _logger.LogTrace($"passed with origin {caller}");
+                await WriteUnauthorizedAsync(context, "Invalid origin: you shall not pass!");
+                _logger.LogWarning(
+                    "Origin validation failed for {Path}. Caller: {CallerOrigin}",
+                    context.Request.Path,
+                    normalizedCaller);
+                return;
             }
+
+            _logger.LogTrace("Origin validation passed for {Path}", context.Request.Path);
         }
         else
         {
-            _logger.LogTrace($"AllowedOrigin non abilitato");
+            _logger.LogTrace("Origin validation disabled");
         }
 
-        //poi controlla il token
         if (_authorizationTokens.UseTokens && _authorizationTokens.TokensAllowed?.Count > 0)
         {
             if (!context.Request.Headers.ContainsKey(authorizationKey))
             {
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                message = "Authorization token is missing: you shall not pass!";
-                _logger.LogError(message);
-                await context.Response.WriteAsync(message);
+                await WriteUnauthorizedAsync(context, "Authorization token is missing: you shall not pass!");
+                _logger.LogWarning("Token validation failed: header {HeaderName} missing", authorizationKey);
                 return;
             }
 
             var token = context.Request.Headers[authorizationKey].ToString();
-            if (string.IsNullOrEmpty(token))
+            if (string.IsNullOrWhiteSpace(token))
             {
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                message = "Authorization token is empty: you shall not pass!";
-                _logger.LogError(message);
-                await context.Response.WriteAsync(message);
+                await WriteUnauthorizedAsync(context, "Authorization token is empty: you shall not pass!");
+                _logger.LogWarning("Token validation failed: header {HeaderName} empty", authorizationKey);
                 return;
             }
 
             if (!_authorizationTokens.TokensAllowed.Contains(token))
             {
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                message = "Invalid authorization token: you shall not pass!";
-                _logger.LogError(message);
-                await context.Response.WriteAsync(message);
+                await WriteUnauthorizedAsync(context, "Invalid authorization token: you shall not pass!");
+                _logger.LogWarning("Token validation failed for path {Path}", context.Request.Path);
                 return;
             }
 
-            _logger.LogTrace($"è passato con token {token}");
+            _logger.LogTrace("Token validation passed for {Path}", context.Request.Path);
         }
         else
         {
-            _logger.LogTrace($"AllowedToken non abilitato");
+            _logger.LogTrace("Token validation disabled");
         }
 
         await _next(context);
+    }
+
+    private static async Task WriteUnauthorizedAsync(HttpContext context, string message)
+    {
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        await context.Response.WriteAsync(message);
+    }
+
+    private static string GetNormalizedOrigin(string caller)
+    {
+        if (string.IsNullOrWhiteSpace(caller))
+        {
+            return string.Empty;
+        }
+
+        if (Uri.TryCreate(caller, UriKind.Absolute, out var uri))
+        {
+            return uri.Authority;
+        }
+
+        return caller
+            .Replace("http://", string.Empty, StringComparison.OrdinalIgnoreCase)
+            .Replace("https://", string.Empty, StringComparison.OrdinalIgnoreCase)
+            .Trim();
     }
 
 }
