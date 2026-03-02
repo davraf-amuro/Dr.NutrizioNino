@@ -9,6 +9,8 @@ using Dr.NutrizioNino.Api.Transformers;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using Serilog;
+using TinyHelpers.AspNetCore.Extensions;
+using TinyHelpers.AspNetCore.OpenApi;
 
 try
 {
@@ -48,7 +50,11 @@ try
         //avviso Openapi che deve tener conto degli headers di sicurezza (per la UI)
         options.AddOperationTransformer<AddHeaders>();
         options.AddOperationTransformer<AddGenericsInformations>();
+        options.AddDefaultProblemDetailsResponse();
     });
+
+    builder.Services.AddDefaultProblemDetails();
+    builder.Services.AddDefaultExceptionHandler();
 
 
     //aggiungi i servizi
@@ -97,6 +103,8 @@ try
     app.UseCors(permitGetPost);
     app.UseHttpsRedirection();
     app.UseStaticFiles();
+    app.UseExceptionHandler();
+    app.UseStatusCodePages();
 
     //aggiungi gli endpoint 
     app.MapsFoodsEndpoints(versionSet);

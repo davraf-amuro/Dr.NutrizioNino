@@ -1,8 +1,10 @@
 using Asp.Versioning;
 using Asp.Versioning.Builder;
+using Microsoft.AspNetCore.Mvc;
 using Dr.NutrizioNino.Api.Models;
 using Dr.NutrizioNino.Api.Services;
 using Dr.NutrizioNino.Models.Dto;
+using TinyHelpers.AspNetCore.Extensions;
 
 namespace Dr.NutrizioNino.Api.Endopints
 {
@@ -18,9 +20,17 @@ namespace Dr.NutrizioNino.Api.Endopints
             group.MapGet("", async (DrService service) =>
             {
                 var result = await service.GetBrandsAsync();
-                return result.Count > 0 ? Results.Ok(result) : Results.NotFound();
+                return result.Count > 0
+                    ? Results.Ok(result)
+                    : TypedResults.Problem(new ProblemDetails
+                    {
+                        Title = "Data Not Found",
+                        Status = StatusCodes.Status404NotFound,
+                        Detail = "No brands found."
+                    });
             })
                 .Produces<IList<BrandDto>>()
+                .ProducesDefaultProblem(StatusCodes.Status404NotFound)
             ;
             group.MapGet("{id}", async (DrService service, Guid id) => await service.GetBrandAsync(id))
                 ;
@@ -38,7 +48,12 @@ namespace Dr.NutrizioNino.Api.Endopints
 
                     if (brand.Id != routeId)
                     {
-                        return Results.BadRequest("Brand id in route and body must match.");
+                        return TypedResults.Problem(new ProblemDetails
+                        {
+                            Title = "Invalid Request",
+                            Status = StatusCodes.Status400BadRequest,
+                            Detail = "Brand id in route and body must match."
+                        });
                     }
 
                     return await next(context);

@@ -1,6 +1,9 @@
 using Dr.NutrizioNino.Api.Interfaces;
 using Dr.NutrizioNino.Api.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using System.Diagnostics;
+using System.Text.Json;
 
 public class ValidatorMiddleware
 {
@@ -103,7 +106,18 @@ public class ValidatorMiddleware
     private static async Task WriteUnauthorizedAsync(HttpContext context, string message)
     {
         context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-        await context.Response.WriteAsync(message);
+
+        var problem = new ProblemDetails
+        {
+            Title = "Unauthorized",
+            Status = StatusCodes.Status401Unauthorized,
+            Detail = message,
+            Instance = context.Request.Path
+        };
+        problem.Extensions["traceId"] = Activity.Current?.Id ?? context.TraceIdentifier;
+
+        context.Response.ContentType = "application/problem+json";
+        await context.Response.WriteAsync(JsonSerializer.Serialize(problem));
     }
 
     private static string GetNormalizedOrigin(string caller)
