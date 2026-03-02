@@ -18,6 +18,6 @@ export const getNewFood = async (): Promise<FoodDto> => {
 }
 
 export const createFood = async (food: FoodDto): Promise<string> => {
-  const response = await apiClient.post<string>('/foods/create', food)
+  const response = await apiClient.post<string>('/foods/Create', food)
   return response.data
 }
