@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { NAlert, NButton, NCard, NSpace } from 'naive-ui'
+import { NAlert, NButton, NCard, NSpace, useDialog, useMessage } from 'naive-ui'
 import list from '../components/Brands/BrandsList.vue'
 import detail from '../components/Brands/BrandDetail.vue'
 import { useBrands } from '@/modules/brands/composables/useBrands'
+import { isBrandInUse } from '@/modules/brands/api/brands.api'
+import type { Brand } from '@/Interfaces/Brand'
 
 const {
   brands,
@@ -19,6 +21,25 @@ const {
   submitCreateBrand,
   removeBrand
 } = useBrands()
+
+const message = useMessage()
+const dialog = useDialog()
+
+const handleDeleteBrand = async (brand: Brand) => {
+  const inUse = await isBrandInUse(brand.id)
+  if (inUse) {
+    message.warning(`La marca "${brand.name}" è in uso da uno o più alimenti e non può essere eliminata.`)
+    return
+  }
+
+  dialog.warning({
+    title: 'Conferma eliminazione',
+    content: `Eliminare la marca "${brand.name}"?`,
+    positiveText: 'Elimina',
+    negativeText: 'Annulla',
+    onPositiveClick: () => removeBrand(brand)
+  })
+}
 
 onMounted(async () => {
   await loadBrands()
@@ -48,7 +69,7 @@ onMounted(async () => {
           v-if="!isCreating"
           :brands="brands"
           @edit="startEditBrand"
-          @delete="removeBrand"
+          @delete="handleDeleteBrand"
         />
 
         <detail

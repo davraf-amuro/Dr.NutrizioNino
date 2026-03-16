@@ -30,3 +30,7 @@ export const createFood = async (food: FoodDto): Promise<string> => {
 export const updateFood = async (food: FoodDto): Promise<void> => {
   await apiClient.put(`/foods/${food.id}`, food)
 }
+
+export const deleteFood = async (id: string): Promise<void> => {
+  await apiClient.delete(`/foods/${id}`)
+}

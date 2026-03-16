@@ -18,6 +18,33 @@ namespace Dr.NutrizioNino.Api.Services
             return await drRepository.UpdateFoodAsync(food).ConfigureAwait(false);
         }
 
+        public async Task<bool> UpdateFullFoodAsync(FoodInfo foodInfo)
+        {
+            var food = new Food
+            {
+                Id = foodInfo.Id,
+                Name = foodInfo.Name,
+                Quantity = foodInfo.Quantity,
+                Barcode = foodInfo.Barcode,
+                BrandId = foodInfo.BrandId,
+                Calorie = foodInfo.Calorie,
+                UnitOfMeasureId = foodInfo.UnitOfMeasureId
+            };
+
+            foreach (var nutrient in foodInfo.Nutrients)
+            {
+                food.FoodsNutrients.Add(new FoodNutrient
+                {
+                    FoodId = food.Id,
+                    NutrientId = nutrient.NutrientId,
+                    UnitOfMeasureId = nutrient.UnitOfMeasureId,
+                    Quantity = nutrient.Quantity
+                });
+            }
+
+            return await drRepository.UpdateFullFoodAsync(food).ConfigureAwait(false);
+        }
+
         public async Task DeleteFoodAsync(Guid id)
         {
             await drRepository.DeleteFoodAsync(id);

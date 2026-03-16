@@ -7,6 +7,7 @@ import { useAsyncState } from '@/core/composables/useAsyncState'
 import { getBrands } from '@/modules/brands/api/brands.api'
 import {
   createFood,
+  deleteFood,
   getFoodById,
   getFoodDashboardRow,
   getFoodsDashboard,
@@ -156,6 +157,18 @@ export const useFoods = () => {
     selectedFood.value = null
   }
 
+  const removeFood = async (food: FoodDashboardDto) => {
+    const removed = await run(async () => {
+      await deleteFood(food.id)
+      return food.id
+    })
+
+    if (removed) {
+      dashboard.value = dashboard.value.filter((item) => item.id !== removed)
+      updateDashboardCache(dashboard.value)
+    }
+  }
+
   return {
     dashboard,
     selectedFood,
@@ -170,6 +183,7 @@ export const useFoods = () => {
     startCreateFood,
     startEditFood,
     completeCreateFood,
-    cancelCreateFood
+    cancelCreateFood,
+    removeFood
   }
 }

@@ -69,4 +69,30 @@ public partial class DrRepository
         await drContext.SaveChangesAsync().ConfigureAwait(false);
         return food.Id;
     }
+
+    public async Task<bool> UpdateFullFoodAsync(Food food)
+    {
+        var record = await drContext.Foods
+            .Include(f => f.FoodsNutrients)
+            .FirstOrDefaultAsync(f => f.Id == food.Id)
+            .ConfigureAwait(false);
+
+        if (record is null)
+        {
+            return false;
+        }
+
+        record.Name = food.Name;
+        record.Quantity = food.Quantity;
+        record.Barcode = food.Barcode;
+        record.BrandId = food.BrandId;
+        record.Calorie = food.Calorie;
+        record.UnitOfMeasureId = food.UnitOfMeasureId;
+
+        drContext.FoodsNutrients.RemoveRange(record.FoodsNutrients);
+        drContext.FoodsNutrients.AddRange(food.FoodsNutrients);
+
+        await drContext.SaveChangesAsync().ConfigureAwait(false);
+        return true;
+    }
 }

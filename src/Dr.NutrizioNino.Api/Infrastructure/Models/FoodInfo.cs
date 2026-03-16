@@ -16,7 +16,7 @@ public record FoodInfo(
     , decimal Quantity
     , string? Barcode
     , Guid? BrandId
-    , int Calorie
+    , decimal Calorie
     , Guid UnitOfMeasureId
     , IList<NutrientsGetForFoodCreatingInfo> Nutrients
     )

@@ -1,15 +1,12 @@
 <template>
-  <n-space vertical size="small" class="brands-table">
-    <n-data-table
-      :columns="columns"
-      :data="brands"
-      :row-key="(row: Brand) => row.id"
-      :single-line="false"
-      :bordered="true"
-      :pagination="false"
-      :scroll-x="980"
-    />
-  </n-space>
+  <n-data-table
+    :columns="columns"
+    :data="brands"
+    :row-key="(row: Brand) => row.id"
+    :single-line="false"
+    :bordered="true"
+    :pagination="false"
+  />
 </template>
 
 <script setup lang="ts">
@@ -26,57 +23,20 @@ const emit = defineEmits<{
   delete: [brand: Brand]
 }>()
 
-function updateBrand(brand: Brand) {
-  emit('edit', brand)
-}
-
-function deleteBrand(brand: Brand) {
-  emit('delete', brand)
-}
-
 const columns: DataTableColumns<Brand> = [
   {
-    title: 'Guid',
-    key: 'id',
-    width: 420
-  },
-  {
     title: 'Nome',
-    key: 'name',
-    width: 300
+    key: 'name'
   },
   {
     title: 'Azioni',
     key: 'actions',
-    width: 220,
+    width: 180,
     render: (row) =>
       h(NSpace, { size: 'small' }, () => [
-        h(
-          NButton,
-          {
-            size: 'small',
-            type: 'primary',
-            onClick: () => updateBrand(row)
-          },
-          { default: () => 'Modifica' }
-        ),
-        h(
-          NButton,
-          {
-            size: 'small',
-            type: 'error',
-            tertiary: true,
-            onClick: () => deleteBrand(row)
-          },
-          { default: () => 'Elimina' }
-        )
+        h(NButton, { size: 'small', type: 'primary', onClick: () => emit('edit', row) }, { default: () => 'Modifica' }),
+        h(NButton, { size: 'small', type: 'error', tertiary: true, onClick: () => emit('delete', row) }, { default: () => 'Elimina' })
       ])
   }
 ]
 </script>
-
-<style scoped>
-.brands-table {
-  width: 100%;
-}
-</style>

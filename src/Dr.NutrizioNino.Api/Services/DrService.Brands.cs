@@ -35,4 +35,9 @@ public partial class DrService
         return await drRepository.DeleteBrandAsync(id).ConfigureAwait(false);
     }
 
+    public async Task<bool> IsBrandInUseAsync(Guid id)
+    {
+        return await drRepository.IsBrandInUseAsync(id).ConfigureAwait(false);
+    }
+
 }

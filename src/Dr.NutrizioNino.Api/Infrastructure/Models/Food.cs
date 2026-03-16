@@ -17,7 +17,7 @@ public partial class Food
 
     public Guid? BrandId { get; set; }
 
-    public int Calorie { get; set; }
+    public decimal Calorie { get; set; }
     public Guid UnitOfMeasureId { get; set; }
 
     public virtual Brand Brand { get; set; }

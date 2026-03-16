@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { NAlert, NButton, NCard, NSpace } from 'naive-ui'
+import { NAlert, NButton, NCard, NSpace, useDialog } from 'naive-ui'
 import foodList from '../components/Foods/FoodsList.vue'
 import foodDetail from '../components/Foods/FoodDetail.vue'
 import { useFoods } from '@/modules/foods/composables/useFoods'
+import type { FoodDashboardDto } from '@/Interfaces/foods/FoodDashboardDto'
 
 const {
   dashboard,
@@ -19,8 +20,21 @@ const {
   startCreateFood,
   startEditFood,
   completeCreateFood,
-  cancelCreateFood
+  cancelCreateFood,
+  removeFood
 } = useFoods()
+
+const dialog = useDialog()
+
+const handleDeleteFood = (food: FoodDashboardDto) => {
+  dialog.warning({
+    title: 'Conferma eliminazione',
+    content: `Eliminare l'alimento "${food.name}"?`,
+    positiveText: 'Elimina',
+    negativeText: 'Annulla',
+    onPositiveClick: () => removeFood(food)
+  })
+}
 
 onMounted(async () => {
   await Promise.all([loadDashboard(), loadLookups()])
@@ -46,7 +60,12 @@ onMounted(async () => {
           {{ errorMessage }}
         </n-alert>
 
-        <foodList v-if="!isCreating" :foods="dashboard" @edit="(food) => startEditFood(food.id)" />
+        <foodList
+          v-if="!isCreating"
+          :foods="dashboard"
+          @edit="(food) => startEditFood(food.id)"
+          @delete="handleDeleteFood"
+        />
 
         <foodDetail
           v-if="isCreating && selectedFood"

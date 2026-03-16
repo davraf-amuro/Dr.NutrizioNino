@@ -22,3 +22,8 @@ export const updateBrand = async (brand: Brand): Promise<void> => {
 export const deleteBrand = async (id: string): Promise<void> => {
   await apiClient.delete(`/brands/${id}`)
 }
+
+export const isBrandInUse = async (id: string): Promise<boolean> => {
+  const response = await apiClient.get<boolean>(`/brands/${id}/is-in-use`)
+  return response.data
+}

@@ -1,37 +1,36 @@
 <template>
-  <div class="container">
-    <div class="column-1-4">
-      {{ prop.foodNutrientDto?.name }}
-    </div>
-    <div class="column-2-4">
+  <n-grid :cols="4" :x-gap="8" :y-gap="0" align-items="center">
+    <n-gi :span="2">
+      <n-text>{{ props.foodNutrientDto.name }}</n-text>
+    </n-gi>
+    <n-gi>
       <n-select
         v-model:value="selectedUnitOfMeasureId"
         :options="unitOfMeasureOptions"
-        size="tiny"
-      ></n-select>
-    </div>
-    <div class="column-1-4">
+        size="small"
+      />
+    </n-gi>
+    <n-gi>
       <n-input-number
         v-model:value="quantity"
         :min="0"
         :max="9999"
-        :parse="parseFloat"
+        :precision="2"
         :show-button="false"
-        :default-value="0.0"
-        size="tiny"
-      ></n-input-number>
-    </div>
-  </div>
+        size="small"
+        style="width: 100%"
+      />
+    </n-gi>
+  </n-grid>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { NSelect, NInputNumber } from 'naive-ui'
-import type { SelectOption } from 'naive-ui'
+import { NGi, NGrid, NInputNumber, NSelect, NText, type SelectOption } from 'naive-ui'
 import type { FoodNutrientDto } from '@/Interfaces/foods/FoodNutrientDto'
 import type { UnitOfMeasureDto } from '@/Interfaces/UnitOfMeasureDto'
 
-const prop = defineProps<{
+const props = defineProps<{
   foodNutrientDto: FoodNutrientDto
   unitsOfMeasures: UnitOfMeasureDto[]
 }>()
@@ -40,39 +39,21 @@ const emit = defineEmits<{
   update: [foodNutrient: FoodNutrientDto]
 }>()
 
-const selectedUnitOfMeasureId = ref<string>(prop.foodNutrientDto.unitOfMeasureId)
-const quantity = ref<number>(prop.foodNutrientDto.quantity)
+const selectedUnitOfMeasureId = ref<string>(props.foodNutrientDto.unitOfMeasureId)
+const quantity = ref<number>(props.foodNutrientDto.quantity)
 
 const unitOfMeasureOptions = computed<SelectOption[]>(() =>
-  prop.unitsOfMeasures.map((unit) => ({
-    label: unit.name,
-    value: unit.id
-  }))
+  props.unitsOfMeasures.map((unit) => ({ label: unit.name, value: unit.id }))
 )
 
-watch(
-  () => prop.foodNutrientDto.unitOfMeasureId,
-  (unitOfMeasureId) => {
-    selectedUnitOfMeasureId.value = unitOfMeasureId
-  },
-  { immediate: true }
-)
-
-watch(
-  () => prop.foodNutrientDto.quantity,
-  (newQuantity) => {
-    quantity.value = newQuantity
-  },
-  { immediate: true }
-)
+watch(() => props.foodNutrientDto.unitOfMeasureId, (v) => { selectedUnitOfMeasureId.value = v }, { immediate: true })
+watch(() => props.foodNutrientDto.quantity, (v) => { quantity.value = v }, { immediate: true })
 
 watch([selectedUnitOfMeasureId, quantity], () => {
   emit('update', {
-    ...prop.foodNutrientDto,
+    ...props.foodNutrientDto,
     unitOfMeasureId: selectedUnitOfMeasureId.value,
     quantity: quantity.value
   })
 })
 </script>
-
-<style scoped></style>

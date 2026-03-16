@@ -1,83 +1,106 @@
 <template>
-  <div>
-    <h3 style="margin: 0 0 12px 0">{{ isEditMode ? 'Modifica alimento' : 'Nuovo alimento' }}</h3>
-    <span v-if="isSubmitting">caricamento...</span>
-    <div class="container">
-      <div class="column-1-4">
-        <b>Nome:</b>
-      </div>
-      <div class="column-3-4">
-        <n-input
-          v-model:value="localFood.name"
-          :minlength="3"
-          :maxlength="50"
-          size="tiny"
-        ></n-input>
-      </div>
-    </div>
+  <n-space vertical size="medium">
+    <n-h3 style="margin: 0">{{ isEditMode ? 'Modifica alimento' : 'Nuovo alimento' }}</n-h3>
 
-    <div class="container">
-      <div class="column-1-4">
-        <b>Marca:</b>
-      </div>
-      <div class="column-3-4">
-        <n-select
-          v-model:value="localFood.brandId"
-          :options="brandOptions"
-          placeholder="-seleziona-"
-          size="tiny"
-        ></n-select>
-      </div>
-    </div>
-    <!-- {{ food.brandId } -->
-    <div class="container">
-      <div class="column-1-4">
-        <b>Unità di misura</b>
-      </div>
-      <div class="column-2-4">
-        <n-select
-          v-model:value="localFood.unitOfMeasureId"
-          :options="unitOptions"
-          size="tiny"
-        ></n-select>
-      </div>
-      <div class="column-1-4">
-        <n-input-number
-          :min="0"
-          :max="9999"
-          :parse="parseFloat"
-          :show-button="false"
-          v-model:value="localFood.quantity"
-          size="tiny"
-        ></n-input-number>
-      </div>
-    </div>
-    <br />
+    <n-spin :show="isSubmitting">
+      <n-form ref="formRef" :model="localFood" :rules="rules" label-placement="left" label-width="140">
+        <n-form-item label="Nome" path="name">
+          <n-input v-model:value="localFood.name" :maxlength="50" :disabled="isSubmitting" />
+        </n-form-item>
 
-    <h3>Nutrienti:</h3>
-    <div v-for="fnu in localFood.nutrients" :key="fnu.nutrientId">
-      <foodnutrientinput
-        :foodNutrientDto="fnu"
-        :unitsOfMeasures="unitsOfMeasures"
-        @update="updateNutrient"
-      ></foodnutrientinput>
-    </div>
-  </div>
-  <br />
+        <n-form-item label="Marca" path="brandId">
+          <n-select
+            v-model:value="localFood.brandId"
+            :options="brandOptions"
+            placeholder="-seleziona-"
+            clearable
+            :disabled="isSubmitting"
+          />
+        </n-form-item>
 
-  <n-flex justify="space-between">
-    <n-button type="error" @click="cancelHandler">Annulla</n-button>
-    <n-button type="primary" @click="completeHandler">{{ isEditMode ? 'Aggiorna' : 'Salva' }}</n-button>
-  </n-flex>
+        <n-grid :cols="2" :x-gap="12">
+          <n-gi>
+            <n-form-item label="Unità di misura" path="unitOfMeasureId">
+              <n-select
+                v-model:value="localFood.unitOfMeasureId"
+                :options="unitOptions"
+                :disabled="isSubmitting"
+              />
+            </n-form-item>
+          </n-gi>
+          <n-gi>
+            <n-form-item label="Quantità" path="quantity">
+              <n-input-number
+                v-model:value="localFood.quantity"
+                :min="0"
+                :max="9999"
+                :precision="1"
+                :show-button="false"
+                :disabled="isSubmitting"
+                style="width: 100%"
+              />
+            </n-form-item>
+          </n-gi>
+        </n-grid>
+
+        <n-form-item label="Calorie (kcal)" path="calorie">
+          <n-input-number
+            v-model:value="localFood.calorie"
+            :min="0"
+            :max="99999"
+            :precision="1"
+            :show-button="false"
+            :disabled="isSubmitting"
+            style="width: 100%"
+          />
+        </n-form-item>
+      </n-form>
+
+      <n-divider title-placement="left">Nutrienti</n-divider>
+
+      <n-space vertical size="small">
+        <FoodNutrientInput
+          v-for="fnu in localFood.nutrients"
+          :key="fnu.nutrientId"
+          :food-nutrient-dto="fnu"
+          :units-of-measures="unitsOfMeasures"
+          @update="updateNutrient"
+        />
+      </n-space>
+    </n-spin>
+
+    <n-space justify="space-between">
+      <n-button type="error" @click="cancelHandler" :disabled="isSubmitting">Annulla</n-button>
+      <n-button type="primary" @click="completeHandler" :loading="isSubmitting" :disabled="!localFood.name.trim()">
+        {{ isEditMode ? 'Aggiorna' : 'Salva' }}
+      </n-button>
+    </n-space>
+  </n-space>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { NSelect, NInput, NInputNumber, NFlex, NButton, type SelectOption } from 'naive-ui'
+import {
+  NButton,
+  NDivider,
+  NForm,
+  NFormItem,
+  NGi,
+  NGrid,
+  NH3,
+  NInput,
+  NInputNumber,
+  NSelect,
+  NSpace,
+  NSpin,
+  type FormInst,
+  type FormRules,
+  type SelectOption
+} from 'naive-ui'
 import type { FoodDto } from '@/Interfaces/foods/FoodDto'
 import type { UnitOfMeasureDto } from '@/Interfaces/UnitOfMeasureDto'
 import type { Brand } from '@/Interfaces/Brand'
-import foodnutrientinput from '../Foods/FoodNutrientInput.vue'
+import FoodNutrientInput from './FoodNutrientInput.vue'
 
 const props = defineProps<{
   food: FoodDto
@@ -86,28 +109,29 @@ const props = defineProps<{
   unitsOfMeasures: UnitOfMeasureDto[]
   isSubmitting?: boolean
 }>()
-const emptyGuid = '00000000-0000-0000-0000-000000000000'
 
 const emit = defineEmits<{
   cancel: []
   complete: [food: FoodDto]
 }>()
 
+const formRef = ref<FormInst | null>(null)
+const emptyGuid = '00000000-0000-0000-0000-000000000000'
+
 const isSubmitting = computed(() => props.isSubmitting ?? false)
 const isEditMode = computed(() => props.mode === 'edit')
 
+const rules: FormRules = {
+  name: [{ required: true, message: 'Il nome è obbligatorio', min: 3, trigger: 'blur' }],
+  unitOfMeasureId: [{ required: true, message: "L'unità di misura è obbligatoria", trigger: 'change' }]
+}
+
 const brandOptions = computed<SelectOption[]>(() =>
-  props.brands.map((brand) => ({
-    label: brand.name,
-    value: brand.id
-  }))
+  props.brands.map((brand) => ({ label: brand.name, value: brand.id }))
 )
 
 const unitOptions = computed<SelectOption[]>(() =>
-  props.unitsOfMeasures.map((unit) => ({
-    label: unit.name,
-    value: unit.id
-  }))
+  props.unitsOfMeasures.map((unit) => ({ label: unit.name, value: unit.id }))
 )
 
 const cloneFood = (food: FoodDto): FoodDto => ({
@@ -116,58 +140,31 @@ const cloneFood = (food: FoodDto): FoodDto => ({
 })
 
 const ensureBrandSelection = () => {
-  if (!props.brands.length) {
-    return
-  }
-
+  if (!props.brands.length) return
   const brandId = localFood.value.brandId
-  const hasValidBrand =
-    !!brandId && brandId !== emptyGuid && props.brands.some((brand) => brand.id === brandId)
-
-  if (hasValidBrand) {
-    return
-  }
-
-  localFood.value.brandId = null
+  const hasValidBrand = !!brandId && brandId !== emptyGuid && props.brands.some((b) => b.id === brandId)
+  if (!hasValidBrand) localFood.value.brandId = null
 }
 
 const localFood = ref(cloneFood(props.food))
 
-// Sincronizza localFood quando la prop food cambia
-watch(
-  () => props.food,
-  (newFood) => {
-    localFood.value = cloneFood(newFood)
-    ensureBrandSelection()
-  },
-  { immediate: true }
-)
+watch(() => props.food, (newFood) => {
+  localFood.value = cloneFood(newFood)
+  ensureBrandSelection()
+}, { immediate: true })
 
-watch(
-  () => props.brands,
-  () => {
-    ensureBrandSelection()
-  },
-  { immediate: true }
-)
+watch(() => props.brands, () => ensureBrandSelection(), { immediate: true })
 
-// Aggiorna il valore originale quando necessario
-const cancelHandler = () => {
-  emit('cancel')
-}
+const cancelHandler = () => emit('cancel')
+
 const completeHandler = () => {
-  emit('complete', cloneFood(localFood.value))
+  formRef.value?.validate((errors) => {
+    if (!errors) emit('complete', cloneFood(localFood.value))
+  })
 }
 
 const updateNutrient = (updatedNutrient: FoodDto['nutrients'][number]) => {
-  const nutrientIndex = localFood.value.nutrients.findIndex(
-    (nutrient) => nutrient.nutrientId === updatedNutrient.nutrientId
-  )
-
-  if (nutrientIndex >= 0) {
-    localFood.value.nutrients[nutrientIndex] = { ...updatedNutrient }
-  }
+  const idx = localFood.value.nutrients.findIndex((n) => n.nutrientId === updatedNutrient.nutrientId)
+  if (idx >= 0) localFood.value.nutrients[idx] = { ...updatedNutrient }
 }
 </script>
-
-<style scoped></style>

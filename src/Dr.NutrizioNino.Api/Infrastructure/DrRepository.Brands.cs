@@ -48,4 +48,7 @@ public partial class DrRepository
         await drContext.SaveChangesAsync().ConfigureAwait(false);
         return true;
     }
+
+    public async Task<bool> IsBrandInUseAsync(Guid id) =>
+        await drContext.Foods.AnyAsync(f => f.BrandId == id).ConfigureAwait(false);
 }

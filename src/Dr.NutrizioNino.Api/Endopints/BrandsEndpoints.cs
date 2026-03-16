@@ -98,6 +98,16 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .WithDescription("Updates an existing brand by identifier.")
                 .Produces(StatusCodes.Status200OK)
                 .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound);
+            group.MapGet("{id}/is-in-use", async (DrService service, Guid id) =>
+            {
+                var inUse = await service.IsBrandInUseAsync(id);
+                return Results.Ok(inUse);
+            })
+                .WithName("IsBrandInUse")
+                .WithSummary("Check if brand is in use")
+                .WithDescription("Returns true if the brand is referenced by one or more foods.")
+                .Produces<bool>(StatusCodes.Status200OK);
+
             group.MapDelete("{id}", async (DrService service, Guid id) =>
             {
                 var deleted = await service.DeleteBrandAsync(id);

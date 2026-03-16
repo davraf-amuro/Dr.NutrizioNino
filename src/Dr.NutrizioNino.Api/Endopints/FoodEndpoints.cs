@@ -95,9 +95,9 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .ProducesDefaultProblem(StatusCodes.Status400BadRequest)
                 ;
 
-            group.MapPut("{id}", async (DrService service, Guid id, Food food) =>
+            group.MapPut("{id}", async (DrService service, Guid id, FoodInfo foodInfo) =>
             {
-                var updated = await service.UpdateFoodAsync(food);
+                var updated = await service.UpdateFullFoodAsync(foodInfo);
                 return updated
                     ? Results.Ok()
                     : TypedResults.Problem(new ProblemDetails
@@ -110,13 +110,9 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .AddEndpointFilter(async (context, next) =>
                 {
                     var routeId = context.GetArgument<Guid>(1);
-                    var food = context.GetArgument<Food>(2);
-                    if (food.Id == Guid.Empty)
-                    {
-                        food.Id = routeId;
-                    }
+                    var foodInfo = context.GetArgument<FoodInfo>(2);
 
-                    if (food.Id != routeId)
+                    if (foodInfo.Id != routeId)
                     {
                         return TypedResults.Problem(new ProblemDetails
                         {
@@ -130,9 +126,19 @@ namespace Dr.NutrizioNino.Api.Endopints
                 })
                 .WithName("UpdateFood")
                 .WithSummary("Update a food")
-                .WithDescription("Updates an existing food by identifier.")
+                .WithDescription("Updates an existing food with all related nutrients by identifier.")
                 .Produces(StatusCodes.Status200OK)
                 .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound);
+
+            group.MapDelete("{id}", async (DrService service, Guid id) =>
+            {
+                await service.DeleteFoodAsync(id);
+                return Results.Ok();
+            })
+                .WithName("DeleteFood")
+                .WithSummary("Delete a food")
+                .WithDescription("Deletes an existing food and its related nutrients by identifier.")
+                .Produces(StatusCodes.Status200OK);
 
             return endpoints;
         }
