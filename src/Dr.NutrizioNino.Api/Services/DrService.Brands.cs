@@ -40,4 +40,9 @@ public partial class DrService
         return await drRepository.IsBrandInUseAsync(id).ConfigureAwait(false);
     }
 
+    public async Task<bool> IsBrandNameTakenAsync(string name, Guid? excludeId = null)
+    {
+        return await drRepository.IsBrandNameTakenAsync(name, excludeId).ConfigureAwait(false);
+    }
+
 }

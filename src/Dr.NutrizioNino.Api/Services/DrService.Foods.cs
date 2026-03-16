@@ -8,6 +8,11 @@ namespace Dr.NutrizioNino.Api.Services
     public partial class DrService
     {
 
+        public async Task<bool> IsFoodNameTakenAsync(string name, Guid? excludeId = null)
+        {
+            return await drRepository.IsFoodNameTakenAsync(name, excludeId).ConfigureAwait(false);
+        }
+
         public async Task<Food> CreateFoodAsync(CreateFoodDto newFoodDto)
         {
             return await drRepository.CreateFoodAsync(newFoodDto);

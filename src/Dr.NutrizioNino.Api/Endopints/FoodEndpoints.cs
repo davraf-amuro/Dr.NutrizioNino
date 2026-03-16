@@ -85,6 +85,16 @@ namespace Dr.NutrizioNino.Api.Endopints
 
             group.MapPost("Create", async (DrService service, FoodInfo foodInfo) =>
             {
+                if (await service.IsFoodNameTakenAsync(foodInfo.Name))
+                {
+                    return TypedResults.Problem(new ProblemDetails
+                    {
+                        Title = "Nome duplicato",
+                        Status = StatusCodes.Status409Conflict,
+                        Detail = $"Esiste già un alimento con il nome \"{foodInfo.Name}\"."
+                    });
+                }
+
                 var newFoodId = await service.InsertFullFood(foodInfo);
                 return Results.Ok(newFoodId);
             })
@@ -97,6 +107,16 @@ namespace Dr.NutrizioNino.Api.Endopints
 
             group.MapPut("{id}", async (DrService service, Guid id, FoodInfo foodInfo) =>
             {
+                if (await service.IsFoodNameTakenAsync(foodInfo.Name, excludeId: foodInfo.Id))
+                {
+                    return TypedResults.Problem(new ProblemDetails
+                    {
+                        Title = "Nome duplicato",
+                        Status = StatusCodes.Status409Conflict,
+                        Detail = $"Esiste già un alimento con il nome \"{foodInfo.Name}\"."
+                    });
+                }
+
                 var updated = await service.UpdateFullFoodAsync(foodInfo);
                 return updated
                     ? Results.Ok()

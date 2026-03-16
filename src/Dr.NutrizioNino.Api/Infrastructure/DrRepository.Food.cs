@@ -70,6 +70,11 @@ public partial class DrRepository
         return food.Id;
     }
 
+    public async Task<bool> IsFoodNameTakenAsync(string name, Guid? excludeId = null) =>
+        await drContext.Foods
+            .AnyAsync(f => f.Name.ToLower() == name.ToLower() && (!excludeId.HasValue || f.Id != excludeId.Value))
+            .ConfigureAwait(false);
+
     public async Task<bool> UpdateFullFoodAsync(Food food)
     {
         var record = await drContext.Foods

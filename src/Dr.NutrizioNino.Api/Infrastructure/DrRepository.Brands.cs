@@ -51,4 +51,9 @@ public partial class DrRepository
 
     public async Task<bool> IsBrandInUseAsync(Guid id) =>
         await drContext.Foods.AnyAsync(f => f.BrandId == id).ConfigureAwait(false);
+
+    public async Task<bool> IsBrandNameTakenAsync(string name, Guid? excludeId = null) =>
+        await drContext.Brands
+            .AnyAsync(b => b.Name.ToLower() == name.ToLower() && (!excludeId.HasValue || b.Id != excludeId.Value))
+            .ConfigureAwait(false);
 }

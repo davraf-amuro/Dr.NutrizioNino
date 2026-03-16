@@ -53,15 +53,39 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .Produces<BrandDto>(StatusCodes.Status200OK)
                 .ProducesDefaultProblem(StatusCodes.Status404NotFound)
                 ;
-            group.MapPost("", async (DrService service, CreateBrandDto newBrand) => await service.CreateBrandAsync(newBrand))
+            group.MapPost("", async (DrService service, CreateBrandDto newBrand) =>
+            {
+                if (await service.IsBrandNameTakenAsync(newBrand.Name))
+                {
+                    return TypedResults.Problem(new ProblemDetails
+                    {
+                        Title = "Nome duplicato",
+                        Status = StatusCodes.Status409Conflict,
+                        Detail = $"Esiste già una marca con il nome \"{newBrand.Name}\"."
+                    });
+                }
+
+                var result = await service.CreateBrandAsync(newBrand);
+                return Results.Ok(result);
+            })
                 .WithName("CreateBrand")
                 .WithSummary("Create a new brand")
                 .WithDescription("Creates a new brand and returns the created entity.")
                 .Produces<BrandDto>(StatusCodes.Status200OK)
-                .ProducesDefaultProblem(StatusCodes.Status400BadRequest)
+                .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict)
                 ;
             group.MapPut("{id}", async (DrService service, Guid id, Brand brand) =>
             {
+                if (await service.IsBrandNameTakenAsync(brand.Name, excludeId: brand.Id))
+                {
+                    return TypedResults.Problem(new ProblemDetails
+                    {
+                        Title = "Nome duplicato",
+                        Status = StatusCodes.Status409Conflict,
+                        Detail = $"Esiste già una marca con il nome \"{brand.Name}\"."
+                    });
+                }
+
                 var updated = await service.UpdateBrandAsync(brand);
                 return updated
                     ? Results.Ok()
