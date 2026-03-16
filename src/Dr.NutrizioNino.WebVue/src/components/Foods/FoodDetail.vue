@@ -3,7 +3,7 @@
     <n-h3 style="margin: 0">{{ isEditMode ? 'Modifica alimento' : 'Nuovo alimento' }}</n-h3>
 
     <n-spin :show="isSubmitting">
-      <n-form ref="formRef" :model="localFood" :rules="rules" label-placement="left" label-width="140">
+      <n-form ref="formRef" :model="localFood" :rules="rules" label-placement="left" label-width="140" label-align="right">
         <n-form-item label="Nome" path="name">
           <n-input v-model:value="localFood.name" :maxlength="50" :disabled="isSubmitting" />
         </n-form-item>

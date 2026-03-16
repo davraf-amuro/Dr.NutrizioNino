@@ -1,32 +1,27 @@
 <template>
-  <n-grid :cols="4" :x-gap="8" :y-gap="0" align-items="center">
-    <n-gi :span="2">
-      <n-text>{{ props.foodNutrientDto.name }}</n-text>
-    </n-gi>
-    <n-gi>
-      <n-select
-        v-model:value="selectedUnitOfMeasureId"
-        :options="unitOfMeasureOptions"
-        size="small"
-      />
-    </n-gi>
-    <n-gi>
-      <n-input-number
-        v-model:value="quantity"
-        :min="0"
-        :max="9999"
-        :precision="2"
-        :show-button="false"
-        size="small"
-        style="width: 100%"
-      />
-    </n-gi>
-  </n-grid>
+  <div class="nutrient-row">
+    <n-text class="nutrient-label">{{ props.foodNutrientDto.name }}</n-text>
+    <n-select
+      v-model:value="selectedUnitOfMeasureId"
+      :options="unitOfMeasureOptions"
+      size="small"
+      class="nutrient-uom"
+    />
+    <n-input-number
+      v-model:value="quantity"
+      :min="0"
+      :max="9999"
+      :precision="2"
+      :show-button="false"
+      size="small"
+      class="nutrient-qty"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { NGi, NGrid, NInputNumber, NSelect, NText, type SelectOption } from 'naive-ui'
+import { NInputNumber, NSelect, NText, type SelectOption } from 'naive-ui'
 import type { FoodNutrientDto } from '@/Interfaces/foods/FoodNutrientDto'
 import type { UnitOfMeasureDto } from '@/Interfaces/UnitOfMeasureDto'
 
@@ -57,3 +52,29 @@ watch([selectedUnitOfMeasureId, quantity], () => {
   })
 })
 </script>
+
+<style scoped>
+.nutrient-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.nutrient-label {
+  width: 140px;
+  min-width: 140px;
+  text-align: right;
+  font-size: 14px;
+}
+
+.nutrient-uom {
+  width: 160px;
+  min-width: 160px;
+}
+
+.nutrient-qty {
+  width: 100px;
+  min-width: 100px;
+}
+</style>
