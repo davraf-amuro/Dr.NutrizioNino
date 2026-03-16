@@ -1,49 +1,82 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { RouterView, useRoute } from 'vue-router'
-import { NButton, NDialogProvider, NMessageProvider, NSpace } from 'naive-ui'
-import { useRouter } from 'vue-router'
+import { RouterView, useRoute, useRouter } from 'vue-router'
+import {
+  NDialogProvider,
+  NLayout,
+  NLayoutContent,
+  NLayoutHeader,
+  NMenu,
+  NMessageProvider,
+  NText,
+  type MenuOption
+} from 'naive-ui'
 
 const route = useRoute()
 const router = useRouter()
 
-const isActive = (path: string) => computed(() => route.path.startsWith(path))
+const menuOptions: MenuOption[] = [
+  { label: 'Alimenti', key: '/foods' },
+  { label: 'Marche', key: '/brands' }
+]
+
+const activeKey = computed(() => {
+  if (route.path.startsWith('/brands')) return '/brands'
+  return '/foods'
+})
 </script>
 
 <template>
   <n-message-provider>
     <n-dialog-provider>
-      <header class="app-header">
-        <n-space justify="center" size="small">
-          <n-button
-            :type="isActive('/foods').value ? 'primary' : 'default'"
-            @click="router.push('/foods')"
-          >
-            Alimenti
-          </n-button>
-          <n-button
-            :type="isActive('/brands').value ? 'primary' : 'default'"
-            @click="router.push('/brands')"
-          >
-            Marche
-          </n-button>
-        </n-space>
-      </header>
+      <n-layout class="app-shell">
+        <n-layout-header bordered class="app-header">
+          <n-text class="app-title">Dr. NutrizioNino</n-text>
+          <n-menu
+            mode="horizontal"
+            :options="menuOptions"
+            :value="activeKey"
+            @update:value="(key) => router.push(key)"
+            class="app-nav"
+          />
+        </n-layout-header>
 
-      <main class="app-content">
-        <RouterView />
-      </main>
+        <n-layout-content class="app-content">
+          <RouterView />
+        </n-layout-content>
+      </n-layout>
     </n-dialog-provider>
   </n-message-provider>
 </template>
 
 <style scoped>
+.app-shell {
+  min-height: 100vh;
+}
+
 .app-header {
-  line-height: 1.5;
-  margin-bottom: 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  padding: 0 32px;
+  height: 60px;
+  gap: 32px;
+}
+
+.app-title {
+  font-size: 18px;
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: -0.3px;
+}
+
+.app-nav {
+  flex: 1;
 }
 
 .app-content {
-  width: 100%;
+  padding: 28px 32px;
 }
 </style>
