@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "db-schema": {
+    "dr-mcp-dbschema": {
       "type": "stdio",
       "command": "dotnet",
       "args": ["run", "--project", "tools/mcp-db-schema/mcp-db-schema.csproj", "--"],

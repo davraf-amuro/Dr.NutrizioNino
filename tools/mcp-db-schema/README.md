@@ -29,7 +29,7 @@ Aggiungere al file `.mcp.json` nella root del progetto:
 ```json
 {
   "mcpServers": {
-    "db-schema": {
+    "dr-mcp-dbschema": {
       "type": "stdio",
       "command": "dotnet",
       "args": ["run", "--project", "tools/mcp-db-schema/mcp-db-schema.csproj", "--"],
