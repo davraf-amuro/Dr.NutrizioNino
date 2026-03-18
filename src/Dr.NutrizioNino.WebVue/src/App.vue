@@ -17,11 +17,15 @@ const router = useRouter()
 
 const menuOptions: MenuOption[] = [
   { label: 'Alimenti', key: '/foods' },
-  { label: 'Marche', key: '/brands' }
+  { label: 'Nutrienti', key: '/nutrients' },
+  { label: 'Marche', key: '/brands' },
+  { label: 'Unità di misura', key: '/units' }
 ]
 
 const activeKey = computed(() => {
   if (route.path.startsWith('/brands')) return '/brands'
+  if (route.path.startsWith('/nutrients')) return '/nutrients'
+  if (route.path.startsWith('/units')) return '/units'
   return '/foods'
 })
 </script>

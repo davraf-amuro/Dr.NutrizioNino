@@ -5,6 +5,8 @@ using Dr.NutrizioNino.Models.Dto;
 
 namespace Dr.NutrizioNino.Api.Services;
 
+public enum UomOperationResult { Success, NotFound, DuplicateName, DuplicateAbbreviation, InUse }
+
 public partial class DrService
 {
     public async Task<IList<UnitOfMeasureDto>> GetUnitsOfMeasuresAsync()
@@ -18,20 +20,35 @@ public partial class DrService
         return await drRepository.GetUnitOfMeasureAsync(id).ConfigureAwait(false);
     }
 
-    public async Task<UnitOfMeasure> CreateUnitOfMeasureAsync(CreateUnitOfMeasureDto newUnitOfMeasure)
+    public async Task<(UomOperationResult Result, UnitOfMeasure? Entity)> CreateUnitOfMeasureAsync(CreateUnitOfMeasureDto newUnitOfMeasure)
     {
+        if (await drRepository.UomNameExistsAsync(newUnitOfMeasure.Name).ConfigureAwait(false))
+            return (UomOperationResult.DuplicateName, null);
+        if (await drRepository.UomAbbreviationExistsAsync(newUnitOfMeasure.Abbreviation).ConfigureAwait(false))
+            return (UomOperationResult.DuplicateAbbreviation, null);
+
         var unitOfMeasure = await ModelsFactory.CreateUnitOfMeasure(newUnitOfMeasure).ConfigureAwait(false);
-        return await drRepository.CreateUnitOfMeasureAsync(unitOfMeasure).ConfigureAwait(false);
+        var entity = await drRepository.CreateUnitOfMeasureAsync(unitOfMeasure).ConfigureAwait(false);
+        return (UomOperationResult.Success, entity);
     }
 
-    public async Task<UnitOfMeasureDto?> UpdateUnitOfMeasureAsync(UnitOfMeasure unitOfMeasure)
+    public async Task<UomOperationResult> UpdateUnitOfMeasureAsync(UnitOfMeasure unitOfMeasure)
     {
+        if (await drRepository.UomNameExistsAsync(unitOfMeasure.Name, unitOfMeasure.Id).ConfigureAwait(false))
+            return UomOperationResult.DuplicateName;
+        if (await drRepository.UomAbbreviationExistsAsync(unitOfMeasure.Abbreviation, unitOfMeasure.Id).ConfigureAwait(false))
+            return UomOperationResult.DuplicateAbbreviation;
+
         var result = await drRepository.UpdateUnitOfMeasureAsync(unitOfMeasure).ConfigureAwait(false);
-        return result?.AsDto();
+        return result is not null ? UomOperationResult.Success : UomOperationResult.NotFound;
     }
 
-    public async Task<bool> DeleteUnitOfMeasureAsync(Guid id)
+    public async Task<UomOperationResult> DeleteUnitOfMeasureAsync(Guid id)
     {
-        return await drRepository.DeleteUnitOfMeasureAsync(id).ConfigureAwait(false);
+        if (await drRepository.IsUomInUseAsync(id).ConfigureAwait(false))
+            return UomOperationResult.InUse;
+
+        var deleted = await drRepository.DeleteUnitOfMeasureAsync(id).ConfigureAwait(false);
+        return deleted ? UomOperationResult.Success : UomOperationResult.NotFound;
     }
 }

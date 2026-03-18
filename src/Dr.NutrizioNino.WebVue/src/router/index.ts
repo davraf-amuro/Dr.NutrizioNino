@@ -17,6 +17,16 @@ const router = createRouter({
       path: '/foods',
       name: 'foods',
       component: () => import('../views/FoodsView.vue')
+    },
+    {
+      path: '/nutrients',
+      name: 'nutrients',
+      component: () => import('../views/NutrientsView.vue')
+    },
+    {
+      path: '/units',
+      name: 'units',
+      component: () => import('../views/UnitsView.vue')
     }
   ]
 })

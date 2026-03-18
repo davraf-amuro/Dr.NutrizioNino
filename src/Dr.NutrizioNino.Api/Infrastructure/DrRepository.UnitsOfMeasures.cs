@@ -51,4 +51,19 @@ public partial class DrRepository
 
         return response;
     }
+
+    public async Task<bool> UomNameExistsAsync(string name, Guid? excludeId = null) =>
+        await drContext.UnitsOfMeasures
+            .AnyAsync(u => u.Name == name && (excludeId == null || u.Id != excludeId))
+            .ConfigureAwait(false);
+
+    public async Task<bool> UomAbbreviationExistsAsync(string abbreviation, Guid? excludeId = null) =>
+        await drContext.UnitsOfMeasures
+            .AnyAsync(u => u.Abbreviation == abbreviation && (excludeId == null || u.Id != excludeId))
+            .ConfigureAwait(false);
+
+    public async Task<bool> IsUomInUseAsync(Guid id) =>
+        await drContext.Foods.AnyAsync(f => f.UnitOfMeasureId == id).ConfigureAwait(false)
+        || await drContext.FoodsNutrients.AnyAsync(fn => fn.UnitOfMeasureId == id).ConfigureAwait(false)
+        || await drContext.Nutrients.AnyAsync(n => n.DefaultUnitOfMeasureId == id).ConfigureAwait(false);
 }

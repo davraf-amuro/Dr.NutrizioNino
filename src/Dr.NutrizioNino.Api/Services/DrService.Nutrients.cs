@@ -6,12 +6,14 @@ using Dr.NutrizioNino.Models.Dto;
 
 namespace Dr.NutrizioNino.Api.Services;
 
+public enum NutrientOperationResult { Success, NotFound, Conflict }
+
 public partial class DrService
 {
     public async Task<IList<NutrientInfo>> GetNutrientsAsync()
     {
         var nutrient = await drRepository.GetNutrientsAsync().ConfigureAwait(false);
-        return nutrient.OrderBy(x => x.PositionOrder).Select(x => x.AsDto()).ToList();
+        return nutrient.OrderBy(x => x.Name).Select(x => x.AsDto()).ToList();
     }
 
     public async Task<Nutrient?> GetNutrientAsync(Guid id)
@@ -19,20 +21,31 @@ public partial class DrService
         return await drRepository.GetNutrientAsync(id).ConfigureAwait(false);
     }
 
-    public async Task<Nutrient> CreateNutrientAsync(CreateNutrientDto newNutrientDto)
+    public async Task<Nutrient?> CreateNutrientAsync(CreateNutrientDto newNutrientDto)
     {
+        var exists = await drRepository.NutrientNameExistsAsync(newNutrientDto.Name).ConfigureAwait(false);
+        if (exists) return null;
+
         var nutrient = await ModelsFactory.CreateNutrient(newNutrientDto);
         return await drRepository.CreateNutrientAsync(nutrient);
     }
 
-    public async Task<bool> UpdateNutrientAsync(Nutrient nutrient)
+    public async Task<NutrientOperationResult> UpdateNutrientAsync(Nutrient nutrient)
     {
-        return await drRepository.UpdateNutrientAsync(nutrient).ConfigureAwait(false);
+        var duplicate = await drRepository.NutrientNameExistsAsync(nutrient.Name, nutrient.Id).ConfigureAwait(false);
+        if (duplicate) return NutrientOperationResult.Conflict;
+
+        var updated = await drRepository.UpdateNutrientAsync(nutrient).ConfigureAwait(false);
+        return updated ? NutrientOperationResult.Success : NutrientOperationResult.NotFound;
     }
 
-    public async Task<bool> DeleteNutrientAsync(Guid id)
+    public async Task<NutrientOperationResult> DeleteNutrientAsync(Guid id)
     {
-        return await drRepository.DeleteNutrientAsync(id).ConfigureAwait(false);
+        var inUse = await drRepository.IsNutrientInUseAsync(id).ConfigureAwait(false);
+        if (inUse) return NutrientOperationResult.Conflict;
+
+        var deleted = await drRepository.DeleteNutrientAsync(id).ConfigureAwait(false);
+        return deleted ? NutrientOperationResult.Success : NutrientOperationResult.NotFound;
     }
 
     //public async Task<ApiResponseDto<NutrientsGetForFoodCreatingInfo>> GetNutrientsForFoodCreating()

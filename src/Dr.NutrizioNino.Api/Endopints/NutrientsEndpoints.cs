@@ -54,24 +54,43 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .Produces<Nutrient>(StatusCodes.Status200OK)
                 .ProducesDefaultProblem(StatusCodes.Status404NotFound)
                 ;
-            group.MapPost("", async (DrService service, CreateNutrientDto newNutrient) => await service.CreateNutrientAsync(newNutrient))
+            group.MapPost("", async (DrService service, CreateNutrientDto newNutrient) =>
+            {
+                var result = await service.CreateNutrientAsync(newNutrient);
+                return result is not null
+                    ? Results.Ok(result)
+                    : TypedResults.Problem(new ProblemDetails
+                    {
+                        Title = "Conflict",
+                        Status = StatusCodes.Status409Conflict,
+                        Detail = "Esiste già un nutriente con questo nome."
+                    });
+            })
                 .WithName("CreateNutrient")
                 .WithSummary("Create nutrient")
                 .WithDescription("Creates a nutrient and returns the created entity.")
                 .Produces<Nutrient>(StatusCodes.Status200OK)
-                .ProducesDefaultProblem(StatusCodes.Status400BadRequest)
+                .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict)
                 ;
             group.MapPut("{id}", async (DrService service, Guid id, Nutrient nutrient) =>
             {
-                var updated = await service.UpdateNutrientAsync(nutrient);
-                return updated
-                    ? Results.Ok()
-                    : TypedResults.Problem(new ProblemDetails
+                var result = await service.UpdateNutrientAsync(nutrient);
+                return result switch
+                {
+                    NutrientOperationResult.Success => Results.Ok(),
+                    NutrientOperationResult.Conflict => TypedResults.Problem(new ProblemDetails
+                    {
+                        Title = "Conflict",
+                        Status = StatusCodes.Status409Conflict,
+                        Detail = "Esiste già un nutriente con questo nome."
+                    }),
+                    _ => TypedResults.Problem(new ProblemDetails
                     {
                         Title = "Data Not Found",
                         Status = StatusCodes.Status404NotFound,
                         Detail = "Nutrient not found for update."
-                    });
+                    })
+                };
             })
                 .AddEndpointFilter(async (context, next) =>
                 {
@@ -98,25 +117,33 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .WithSummary("Update nutrient")
                 .WithDescription("Updates an existing nutrient by identifier.")
                 .Produces(StatusCodes.Status200OK)
-                .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound)
+                .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound, StatusCodes.Status409Conflict)
                 ;
             group.MapDelete("{id}", async (DrService service, Guid id) =>
             {
-                var deleted = await service.DeleteNutrientAsync(id);
-                return deleted
-                    ? Results.Ok()
-                    : TypedResults.Problem(new ProblemDetails
+                var result = await service.DeleteNutrientAsync(id);
+                return result switch
+                {
+                    NutrientOperationResult.Success => Results.Ok(),
+                    NutrientOperationResult.Conflict => TypedResults.Problem(new ProblemDetails
+                    {
+                        Title = "Conflict",
+                        Status = StatusCodes.Status409Conflict,
+                        Detail = "Il nutriente è in uso e non può essere eliminato."
+                    }),
+                    _ => TypedResults.Problem(new ProblemDetails
                     {
                         Title = "Data Not Found",
                         Status = StatusCodes.Status404NotFound,
                         Detail = "Nutrient not found for delete."
-                    });
+                    })
+                };
             })
                 .WithName("DeleteNutrient")
                 .WithSummary("Delete nutrient")
                 .WithDescription("Deletes a nutrient by identifier.")
                 .Produces(StatusCodes.Status200OK)
-                .ProducesDefaultProblem(StatusCodes.Status404NotFound)
+                .ProducesDefaultProblem(StatusCodes.Status404NotFound, StatusCodes.Status409Conflict)
                 ;
 
             return endpoints;
