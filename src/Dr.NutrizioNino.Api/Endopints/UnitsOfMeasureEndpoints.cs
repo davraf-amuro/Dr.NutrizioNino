@@ -53,24 +53,57 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .Produces<UnitOfMeasure>(StatusCodes.Status200OK)
                 .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 
-            group.MapPost("", async (DrService service, CreateUnitOfMeasureDto newUnitOfMeasure) => await service.CreateUnitOfMeasureAsync(newUnitOfMeasure))
+            group.MapPost("", async (DrService service, CreateUnitOfMeasureDto newUnitOfMeasure) =>
+            {
+                var (result, entity) = await service.CreateUnitOfMeasureAsync(newUnitOfMeasure);
+                return result switch
+                {
+                    UomOperationResult.Success => Results.Ok(entity),
+                    UomOperationResult.DuplicateName => TypedResults.Problem(new ProblemDetails
+                    {
+                        Title = "Conflict",
+                        Status = StatusCodes.Status409Conflict,
+                        Detail = "Esiste già un'unità di misura con questo nome."
+                    }),
+                    _ => TypedResults.Problem(new ProblemDetails
+                    {
+                        Title = "Conflict",
+                        Status = StatusCodes.Status409Conflict,
+                        Detail = "Esiste già un'unità di misura con questa abbreviazione."
+                    })
+                };
+            })
                 .WithName("CreateUnitOfMeasure")
                 .WithSummary("Create unit of measure")
                 .WithDescription("Creates a unit of measure and returns the created entity.")
                 .Produces<UnitOfMeasure>(StatusCodes.Status200OK)
-                .ProducesDefaultProblem(StatusCodes.Status400BadRequest);
+                .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict);
 
             group.MapPut("{id}", async (DrService service, Guid id, UnitOfMeasure unitOfMeasure) =>
             {
                 var result = await service.UpdateUnitOfMeasureAsync(unitOfMeasure);
-                return result is not null
-                    ? Results.Ok(result)
-                    : TypedResults.Problem(new ProblemDetails
+                return result switch
+                {
+                    UomOperationResult.Success => Results.Ok(),
+                    UomOperationResult.DuplicateName => TypedResults.Problem(new ProblemDetails
+                    {
+                        Title = "Conflict",
+                        Status = StatusCodes.Status409Conflict,
+                        Detail = "Esiste già un'unità di misura con questo nome."
+                    }),
+                    UomOperationResult.DuplicateAbbreviation => TypedResults.Problem(new ProblemDetails
+                    {
+                        Title = "Conflict",
+                        Status = StatusCodes.Status409Conflict,
+                        Detail = "Esiste già un'unità di misura con questa abbreviazione."
+                    }),
+                    _ => TypedResults.Problem(new ProblemDetails
                     {
                         Title = "Data Not Found",
                         Status = StatusCodes.Status404NotFound,
                         Detail = "Unit of measure not found for update."
-                    });
+                    })
+                };
             })
                 .AddEndpointFilter(async (context, next) =>
                 {
@@ -96,26 +129,34 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .WithName("UpdateUnitOfMeasure")
                 .WithSummary("Update unit of measure")
                 .WithDescription("Updates an existing unit of measure by identifier.")
-                .Produces<UnitOfMeasureDto>(StatusCodes.Status200OK)
-                .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound);
+                .Produces(StatusCodes.Status200OK)
+                .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound, StatusCodes.Status409Conflict);
 
             group.MapDelete("{id}", async (DrService service, Guid id) =>
             {
-                var deleted = await service.DeleteUnitOfMeasureAsync(id);
-                return deleted
-                    ? Results.Ok()
-                    : TypedResults.Problem(new ProblemDetails
+                var result = await service.DeleteUnitOfMeasureAsync(id);
+                return result switch
+                {
+                    UomOperationResult.Success => Results.Ok(),
+                    UomOperationResult.InUse => TypedResults.Problem(new ProblemDetails
+                    {
+                        Title = "Conflict",
+                        Status = StatusCodes.Status409Conflict,
+                        Detail = "L'unità di misura è in uso e non può essere eliminata."
+                    }),
+                    _ => TypedResults.Problem(new ProblemDetails
                     {
                         Title = "Data Not Found",
                         Status = StatusCodes.Status404NotFound,
                         Detail = "Unit of measure not found for delete."
-                    });
+                    })
+                };
             })
                 .WithName("DeleteUnitOfMeasure")
                 .WithSummary("Delete unit of measure")
                 .WithDescription("Deletes a unit of measure by identifier.")
                 .Produces(StatusCodes.Status200OK)
-                .ProducesDefaultProblem(StatusCodes.Status404NotFound);
+                .ProducesDefaultProblem(StatusCodes.Status404NotFound, StatusCodes.Status409Conflict);
 
             return endpoints;
         }

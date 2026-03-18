@@ -27,6 +27,16 @@ public partial class DrRepository
         return true;
     }
 
+    public async Task<bool> NutrientNameExistsAsync(string name, Guid? excludeId = null) =>
+        await drContext.Nutrients
+            .AnyAsync(n => n.Name == name && (excludeId == null || n.Id != excludeId))
+            .ConfigureAwait(false);
+
+    public async Task<bool> IsNutrientInUseAsync(Guid id) =>
+        await drContext.FoodsNutrients
+            .AnyAsync(fn => fn.NutrientId == id)
+            .ConfigureAwait(false);
+
     public async Task<IEnumerable<Nutrient>> GetNutrientsAsync() =>
         await drContext.Nutrients.AsNoTracking().ToListAsync().ConfigureAwait(false);
 

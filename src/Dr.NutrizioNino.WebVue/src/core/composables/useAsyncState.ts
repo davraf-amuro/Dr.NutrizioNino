@@ -6,7 +6,6 @@ const errorMessages: Record<number, string> = {
   401: 'Non autorizzato. Effettua il login.',
   403: 'Accesso negato.',
   404: 'Risorsa non trovata.',
-  409: 'Conflitto: la risorsa è già in uso o in stato non modificabile.',
   422: 'Dati non validi.',
   500: 'Errore interno del server.'
 }
