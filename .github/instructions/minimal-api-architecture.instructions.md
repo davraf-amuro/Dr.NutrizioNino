@@ -1,3 +1,7 @@
+---
+applyTo: "**"
+---
+
 # Minimal API Design Rules (AI Agent)
 
 Scopo: regole obbligatorie per progetti Minimal API .NET 10. Segui sempre. Testo ottimizzato per token.
@@ -12,6 +16,7 @@ Scopo: regole obbligatorie per progetti Minimal API .NET 10. Segui sempre. Testo
 - SimpleAuthenticationTools (API Key): chiedere prima di aggiungere il pacchetto
 - Aggiungi sempre il file launchSettings.json con configurazione per IIS Express e Kestrel
 - Aggiungi sempre il file appsettings.local.json, aggiungi la chiamata in program.cs, e ignora il file in .gitignore
+- Dati sensibili: segui sempre `sensitive-data.instructions.md`
 
 ## Vietato
 - MVC Controllers
@@ -155,9 +160,10 @@ private static async Task<IResult> GetHandler(DateTime FromDate, DateTime ToDate
 - [ ] Program.cs chiama MapOpenApi prima dei Map*Endpoints
 - [ ] GET con provider: filter + mapping DTO + ProblemDetails 404 se vuoto
 - [ ] File .http aggiunto per endpoint nuovi
+- [ ] `appsettings.json` contiene solo valori fake/placeholder per dati sensibili, mai credenziali reali
 
 ## Test
 - Aggiungi sempre un file .http per endpoint nuovi
 
-*Template v1.2 - .NET 10 - Token-optimized for AI agents* - Last Update 2026-02-26 15:01
+*Template v1.3 - .NET 10 - Token-optimized for AI agents* - Last Update 2026-03-17 21:28
 

@@ -10,6 +10,33 @@
             "name": "Launch Chrome against localhost",
             "url": "http://localhost:8080",
             "webRoot": "${workspaceFolder}"
+        },
+        {
+            "name": "API (.NET)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-api",
+            "program": "${workspaceFolder}/src/Dr.NutrizioNino.Api/bin/net10.0/Dr.NutrizioNino.Api.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/src/Dr.NutrizioNino.Api",
+            "stopAtEntry": false,
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            }
+        },
+        {
+            "name": "Vue Dev Server",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "npm run dev",
+            "cwd": "${workspaceFolder}/src/Dr.NutrizioNino.WebVue"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Full Stack (API + Vue)",
+            "configurations": ["API (.NET)", "Vue Dev Server"],
+            "stopAll": true
         }
     ]
 }

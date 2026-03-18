@@ -18,10 +18,11 @@ const emit = defineEmits<{
 
 const columns: DataTableColumns<FoodDashboardDto> = [
   { title: 'Nome', key: 'name' },
-  { title: 'Kcal', key: 'calorie', width: 80 },
-  { title: 'Quantità', key: 'quantity', width: 100 },
-  { title: 'UdM', key: 'abbreviation', width: 80 },
   { title: 'Marca', key: 'brandDescription' },
+  { title: 'Kcal', key: 'calorie', width: 80 },
+  { title: 'UdM', key: 'abbreviation', width: 80 },
+  { title: 'Quantità', key: 'quantity', width: 100 },
+  { title: 'Barcode', key: 'barcode' },
   {
     title: 'Azioni',
     key: 'actions',

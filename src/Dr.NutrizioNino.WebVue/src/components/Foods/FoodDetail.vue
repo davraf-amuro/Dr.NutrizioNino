@@ -8,6 +8,10 @@
           <n-input v-model:value="localFood.name" :maxlength="50" :disabled="isSubmitting" />
         </n-form-item>
 
+        <n-form-item label="Barcode" path="barcode">
+          <n-input v-model:value="localFood.barcode" :maxlength="50" :disabled="isSubmitting" clearable />
+        </n-form-item>
+
         <n-form-item label="Marca" path="brandId">
           <n-select
             v-model:value="localFood.brandId"

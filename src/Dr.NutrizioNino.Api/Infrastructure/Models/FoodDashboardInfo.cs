@@ -9,6 +9,8 @@ public class FoodDashboardInfo
 
     public string? Name { get; set; }
 
+    public string? Barcode { get; set; }
+
     public decimal Quantity { get; set; }
 
     public string? BrandDescription { get; set; }

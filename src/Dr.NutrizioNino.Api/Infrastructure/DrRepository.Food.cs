@@ -18,12 +18,16 @@ public partial class DrRepository
 
     public async Task DeleteFoodAsync(Guid id)
     {
-        var record = await drContext.Foods.FindAsync(id).ConfigureAwait(false);
+        var record = await drContext.Foods
+            .Include(f => f.FoodsNutrients)
+            .FirstOrDefaultAsync(f => f.Id == id)
+            .ConfigureAwait(false);
         if (record is null)
         {
             return;
         }
 
+        drContext.FoodsNutrients.RemoveRange(record.FoodsNutrients);
         drContext.Foods.Remove(record);
         await drContext.SaveChangesAsync().ConfigureAwait(false);
     }
