@@ -1,63 +1,64 @@
 # Backend Architecture Intervention Plan
 
-## 1) Obiettivi misurabili
-- Applicare versioning URL a tutti gli endpoint backend.
-- Eliminare i bypass di validazione middleware sui path business.
-- Portare a completamento i metodi repository attualmente incompleti/placeholder.
-- Uniformare data-access read/write a pattern async coerenti.
-- Introdurre un minimo set di test di regressione su endpoint core.
+## 1) Obiettivi
 
-## 2) Backlog interventi prioritizzato
-| ID | Intervento | Pattern/Approccio | Area API | Effort (S/M/L) | Impatto (1-5) | Rischio | Dipendenze | KPI |
-|----|------------|-------------------|----------|----------------|---------------|--------|------------|-----|
-| B01 | Standardizzare tutte le route su `api/v{version:apiVersion}/...` | Route Groups versionati + `WithApiVersionSet` + `MapToApiVersion` | Endpoints | M | 5 | Medio | Aggiornamento endpoint + file `.http` | % endpoint versionati |
-| B02 | Allineare `ValidatorMiddleware` alle route reali | Security middleware coerente col prefix API + risposte 401 strutturate | Middleware | S | 5 | Basso | B01 | % richieste protette su route business |
-| B03 | Correggere CORS per metodi realmente esposti (`PUT`,`DELETE`) | Policy CORS allineata ai metodi endpoint effettivi | Program/Pipeline | S | 4 | Basso | Nessuna | Errori CORS client |
-| B04 | Completare i metodi repository incompleti | Implementazione CRUD completa, rimozione placeholder/throw | Infrastructure | M | 5 | Medio | Revisione Service usage | Errori runtime da metodi non implementati |
-| B05 | Uniformare async/EF Core I/O | `SaveChangesAsync`, `ToListAsync`, `CancellationToken` ultimo parametro | Infrastructure/Services | M | 4 | Medio | B04 | % metodi I/O con CT + async reale |
-| B06 | Ridurre logging ad alto costo/rischio | Structured logging con mascheramento campi sensibili e riduzione body logging | Middleware/Observability | S | 4 | Basso | Definizione policy logging | Volume log/request + eventi con PII |
-| B07 | Rafforzare OpenAPI metadata endpoint | `Produces`, `WithName`, `WithSummary`, `WithDescription` uniformi | Endpoints | M | 3 | Basso | B01 | % endpoint con metadata completa |
-| B08 | Aggiungere integration test minimi su endpoint core | Test happy-path + not-found + validation | Testing | M | 4 | Medio | B01/B04 | Copertura endpoint core |
-| B09 | Introdurre baseline metriche backend | Logging/misure per latenza endpoint e query count | Operability | M | 3 | Medio | B06 | P95 endpoint principali, query/request |
+- Allineare `ValidatorMiddleware` alle route business reali.
+- Uniformare `CancellationToken` su tutti i metodi repository I/O.
+- Ridurre logging ad alto rischio (body, header, sensitive data).
+- Introdurre suite di integration test minima sui path CRUD principali.
+- Introdurre baseline metriche di latenza.
 
-## 3) Piano per fasi
+## 2) Backlog interventi
 
-### Quick Wins (1 sprint)
-- B03: allineamento CORS ai metodi endpoint esposti.
-- B02: fix controllo path in `ValidatorMiddleware`.
-- B06: riduzione logging body/header raw e redaction minima.
-- B07: metadata OpenAPI minima uniforme per endpoint privi.
+| ID | Intervento | Pattern/Approccio | Effort | Impatto (1-5) | Stato |
+|----|------------|-------------------|--------|---------------|-------|
+| B01 | Standardizzare route su `api/v{version:apiVersion}/...` | Route Groups versionati | M | 5 | ✅ Completato |
+| B02 | Allineare `ValidatorMiddleware` alle route reali | Prefix coerente + ProblemDetails 401 | S | 5 | ⚠️ Da fare |
+| B03 | Correggere CORS per `PUT`, `DELETE` | Policy CORS allineata ai metodi esposti | S | 4 | ✅ Completato |
+| B04 | Completare CRUD repository + validazioni | CRUD completo, duplicate check, FK protection | M | 5 | ✅ Completato |
+| B05 | Uniformare async/EF Core | `SaveChangesAsync`, `CancellationToken` uniforme | M | 4 | ⚠️ Parziale |
+| B06 | Ridurre logging body/header | Structured logging con redaction | S | 4 | ⚠️ Da fare |
+| B07 | Rafforzare OpenAPI metadata | `Produces`, `WithName`, `WithSummary` uniformi | M | 3 | ✅ Completato |
+| B08 | Integration test endpoint core | Happy-path + not-found + conflict | M | 4 | ⚠️ Da fare |
+| B09 | Baseline metriche backend | Logging latenza endpoint + query count | M | 3 | ⚠️ Da fare |
+
+## 3) Piano per fasi aggiornato
+
+### Quick Wins (prossimo sprint)
+
+- **B02**: verificare e allineare prefisso `ValidatorMiddleware` alle route `api/v{version}/...`
+- **B05**: completare `CancellationToken` nei metodi repository mancanti
+- **B06**: disabilitare `EnableSensitiveDataLogging` in produzione, aggiungere redaction su campi PII
 
 ### Mid-term (1-2 sprint)
-- B01: migrazione completa route/versioning endpoint.
-- B04: completamento metodi repository oggi incompleti.
-- B05: uniformita async I/O + no-tracking/materializzazione coerente.
-- B08: suite integrazione minima per endpoint core.
 
-### Strategic (2+ sprint)
-- B09: baseline metriche performance e quality gates.
-- Revisione periodica dei contratti API e compatibilita versione.
-- Hardening continuo su sicurezza e osservabilita.
+- **B08**: integration test per endpoint Foods, Nutrients, UnitsOfMeasures, Brands
+  - happy-path GET/POST/PUT/DELETE
+  - not-found (404)
+  - conflict (409) su duplicate e FK violation
 
-## 4) KPI tecnici da monitorare
-- `% endpoint con route versionata`.
-- `% endpoint con metadata OpenAPI completa`.
-- `Numero eccezioni runtime da metodi non implementati`.
-- `P95 latenza endpoint principali` (dopo baseline).
-- `Errori CORS lato client`.
-- `% metodi repository I/O con async reale + CancellationToken`.
+### Strategic
 
-## 5) Criteri di accettazione
-- Tutti i group endpoint backend rispettano formato `api/v{version:apiVersion}/...`.
-- `ValidatorMiddleware` protegge effettivamente le route business previste.
-- Nessun metodo repository critico rimane placeholder o `NotImplemented`.
-- Nessun metodo async I/O usa `SaveChanges` sync o pattern placeholder non necessari.
-- Esiste una suite integration test minima che copre endpoint CRUD principali.
+- **B09**: baseline metriche P95 latenza endpoint principali
+- Hardening continuo osservabilità e sicurezza
 
-## Trade-off principali
-- Migrazione route/versioning richiede update consumer e file `.http`, ma riduce debito tecnico futuro.
-- Ridurre logging raw migliora sicurezza/performance, ma richiede definire a monte i campi diagnostici minimi.
-- Uniformare async/CT aumenta disciplina del codice, con un piccolo costo iniziale di refactor.
+## 4) KPI tecnici
+
+| KPI | Target |
+|-----|--------|
+| % endpoint con route versionata | 100% ✅ |
+| % endpoint con metadata OpenAPI completa | 100% ✅ |
+| Errori runtime da metodi non implementati | 0 ✅ |
+| % metodi repository con `CancellationToken` | < 100% — da completare |
+| Copertura integration test endpoint core | Da misurare |
+| Volume log con PII/body raw | Da ridurre |
+
+## 5) Criteri di accettazione aperti
+
+- `ValidatorMiddleware` protegge effettivamente le route business `/api/v{version}/...`.
+- Tutti i metodi repository I/O accettano `CancellationToken`.
+- Nessun log in produzione contiene body request o header di autenticazione raw.
+- Suite integration test copre almeno i path CRUD principali con scenari happy-path, not-found e conflict.
 
 ---
-*Piano generato il: 2026-03-02 | Focus: Backend API | LLM: GitHub Copilot*
+*Ultima revisione: 2026-03-18 | Focus: Backend API*

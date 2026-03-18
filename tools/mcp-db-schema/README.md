@@ -21,7 +21,7 @@ Tool MCP per leggere lo schema di tabelle e viste di un database SQL Server, pen
 ## Aggiungere al progetto
 
 ```bash
-git clone https://git.uniot.eu/voisoft/mcp/mcp-db-schema.git tools/mcp-db-schema
+git clone https://github.com/davraf-amuro/dr-mcp-dbschema.git tools/mcp-db-schema
 ```
 
 Aggiungere al file `.mcp.json` nella root del progetto:

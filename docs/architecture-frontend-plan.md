@@ -1,63 +1,63 @@
 # Frontend Architecture Intervention Plan
 
-## Obiettivi misurabili
-- Ridurre di almeno il 70% la duplicazione di logica async/error nei composable.
-- Ridurre di almeno il 40% i refetch su revisit delle route nella stessa sessione.
-- Ridurre di almeno il 30% gli update reattivi nel flow di editing food.
-- Portare al 100% la coerenza dei controlli UI nei target view (Naive UI vs native).
-- Introdurre baseline test frontend (almeno 8 test mirati composable/component).
+## Obiettivi
 
-## Backlog prioritizzato
-| ID | Intervento | Pattern/Approach | Area | Effort (S/M/L) | Impatto (1-5) | Rischio | Dipendenze | KPI |
-|---|---|---|---|---|---:|---|---|---|
-| FW-01 | Introdurre composable async-state condiviso | `useAsyncState` con `pendingCount`, `error`, `run()` | State/Data flow | S | 5 | Low | Nessuna | blocchi duplicati rimossi |
-| FW-02 | Tipizzare il modello errore API | `ApiError` centralizzato da interceptor con status/detail | API/Error handling | S | 5 | Low | FW-01 opzionale | % errori con gestione status-aware |
-| FW-03 | Cache per dominio con invalidazione esplicita | cache in-memory nei composable (`load(force?)`) | Performance/Data | M | 4 | Medium | FW-01 | API calls per revisit/session |
-| FW-04 | Refactor reattività form food | eliminare watcher deep, usare watch/computed mirati | Rendering/Perf | M | 4 | Medium | FW-01 | update reattivi per edit flow |
-| FW-05 | Completare/rimuovere azione `select` in foods list | collegare `@select` o eliminare azione morta | Component responsibilities | S | 3 | Low | Nessuna | dead event count = 0 |
-| FW-06 | Standardizzare primitive UI nei view target | usare componenti Naive UI coerenti | UI consistency | S | 2 | Low | Nessuna | occorrenze controlli misti |
-| FW-07 | Rimuovere scaffold starter da shell/home/about | sostituire con shell prodotto | Maintainability | S | 3 | Low | Nessuna | riferimenti scaffold = 0 |
-| FW-08 | Migrazione naming consistency progressiva | convergenza casing/modules su aree toccate | DX/Maintainability | M | 3 | Medium | FW-07 | issue import/casing |
-| FW-09 | Aggiungere test frontend mirati | unit composable + interaction component | Quality gate | M | 4 | Medium | FW-01, FW-04 | test count, regressioni intercettate |
+- Eliminare watcher deep nei form Foods.
+- Completare o rimuovere l'evento `select` morto in FoodsList.
+- Rimuovere i residui scaffold starter.
+- Uniformare naming delle interfacce.
+- Introdurre baseline test su composable e componenti critici.
 
-## Piano per fasi
+## Backlog interventi
 
-### Quick Wins (1-2 sprint)
-- FW-01 `useAsyncState` condiviso.
-- FW-02 `ApiError` tipizzato.
-- FW-05 completare/rimuovere `select` morto.
-- FW-06 standardizzazione minima controlli UI.
+| ID | Intervento | Pattern/Approccio | Effort | Impatto (1-5) | Stato |
+|----|------------|-------------------|--------|---------------|-------|
+| FW-01 | `useAsyncState` condiviso | `pendingCount`, `errorMessage`, `run()` | S | 5 | ✅ Completato |
+| FW-02 | `ApiError` tipizzato | Interceptor con `status`, `title`, `detail` | S | 5 | ✅ Completato |
+| FW-03 | Cache per dominio | Cache in-memory 60s con `load(force?)` | M | 4 | ✅ Completato |
+| FW-04 | Refactor reattività form Foods | Watch su singoli valori, no watcher deep | M | 4 | ⚠️ Da fare |
+| FW-05 | Completare/rimuovere `select` in Foods | Collegare a funzione di dettaglio o rimuovere | S | 3 | ⚠️ Da fare |
+| FW-06 | Standardizzare controlli UI | Tutti i form usano Naive UI | S | 2 | ✅ Completato (nuovi moduli) |
+| FW-07 | Rimuovere scaffold starter | Eliminare `HomeView.vue`, `TheWelcome.vue` | S | 3 | ⚠️ Parziale |
+| FW-08 | Naming consistency | Convergere `Interfaces/foods/` → `Interfaces/Foods/` | M | 3 | ⚠️ Da fare |
+| FW-09 | Test frontend | Unit composable + interaction componenti | M | 4 | ⚠️ Da fare |
 
-### Mid-term (2-4 sprint)
-- FW-03 cache per dominio + invalidazione.
-- FW-04 refactor reattività form food.
-- FW-09 baseline test frontend.
+## Piano per fasi aggiornato
 
-### Strategic (continuo)
-- FW-07 pulizia completa scaffold starter.
-- FW-08 convergenza naming/casing graduale.
+### Quick Wins (prossimo sprint)
+
+- **FW-05**: verificare se `select` in `FoodsList.vue` serve — collegarlo o eliminarlo
+- **FW-07**: rimuovere `HomeView.vue`, `TheWelcome.vue` e relativo routing se non usati
+
+### Mid-term (1-2 sprint)
+
+- **FW-04**: refactor `FoodDetail.vue` e `FoodNutrientInput.vue` — sostituire watcher deep con watch mirati su valori singoli
+- **FW-08**: rinominare `Interfaces/foods/` → `Interfaces/Foods/` e aggiornare gli import
+- **FW-09**: aggiungere test per almeno `useNutrients`, `useUnits`, `useBrands` (caricamento, cache, errori)
+
+### Strategic
+
+- Convergenza naming completa su tutti i moduli.
+- Test harness per i componenti Forms critici.
 
 ## KPI tecnici
-- Numero blocchi duplicati async/error.
-- Numero richieste per revisit route nella stessa sessione.
-- Tempo medio/TTI delle view Foods/Brands dopo primo load.
-- Numero update reattivi nel flow edit (baseline vs target).
-- Copertura test e regressioni intercettate su composable/component.
 
-## Criteri di accettazione
-- Nessun composable critico mantiene wrapper async/error ad-hoc duplicato.
-- Gli errori API esposti ai component includono almeno `message` + `status`.
-- Revisit Foods/Brands usa cache salvo `refresh` esplicito.
+| KPI | Target | Stato |
+|-----|--------|-------|
+| Blocchi async/error duplicati | 0 | ✅ Risolto |
+| Refetch per revisit stessa sessione | 0 (cache 60s) | ✅ Risolto |
+| Watcher deep su object props | 0 | ⚠️ FW-04 pending |
+| Scaffold starter nel flusso utente | 0 | ⚠️ FW-07 parziale |
+| Test composable | ≥ 8 | ⚠️ FW-09 pending |
+| Cartelle `Interfaces/` con naming coerente | 100% PascalCase | ⚠️ FW-08 pending |
+
+## Criteri di accettazione aperti
+
 - Nessun watcher deep su full object props nei form core.
 - Nessun evento emesso resta senza consumer nel parent.
 - Nessun componente scaffold rimane nel flusso utente primario.
-
-## Top 5 interventi
-- FW-01 shared async-state composable.
-- FW-02 typed API error envelope.
-- FW-03 composable cache con invalidazione.
-- FW-04 food form reactivity refactor.
-- FW-09 test harness minimale per composable/component.
+- Tutte le cartelle `Interfaces/` usano naming PascalCase.
+- Suite test copre almeno i composable principali con scenari di caricamento, cache e gestione errori.
 
 ---
-*Piano generato il: 2026-03-02 | Focus: Frontend WebVue | LLM: GitHub Copilot*
+*Ultima revisione: 2026-03-18 | Focus: Frontend WebVue*
