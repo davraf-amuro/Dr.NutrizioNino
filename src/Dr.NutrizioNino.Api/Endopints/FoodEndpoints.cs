@@ -17,7 +17,7 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .WithApiVersionSet(versionSet)
                 .MapToApiVersion(ApiVersionFactory.Version1);
 
-            group.MapGet("{id}", async (DrService service, Guid id) =>
+            group.MapGet("{id}", async (FoodService service, Guid id) =>
             {
                 var result = await service.GetFullFood(id);
                 return result is not null
@@ -35,7 +35,7 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .Produces<FoodInfo>(StatusCodes.Status200OK)
                 .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 
-            group.MapGet("dashboard", async (DrService service) =>
+            group.MapGet("dashboard", async (FoodService service) =>
             {
                 var result = await service.GetFoodsDashboardAsync();
                 return result.Count > 0
@@ -53,7 +53,7 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .Produces<IList<FoodDashboardInfo>>(StatusCodes.Status200OK)
                 .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 
-            group.MapGet("dashboard/{id}", async (DrService service, Guid id) =>
+            group.MapGet("dashboard/{id}", async (FoodService service, Guid id) =>
             {
                 var result = await service.GetFoodDashboardAsync(id);
                 return result is not null
@@ -77,13 +77,13 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .WithDescription("Returns a new guid string for GUI initialization.")
                 .Produces<string>(StatusCodes.Status200OK);
 
-            group.MapGet("getnewfood", async (DrService service) => await service.GetFullFood(null))
+            group.MapGet("getnewfood", async (FoodService service) => await service.GetFullFood(null))
                 .WithName("GetNewFoodTemplate")
                 .WithSummary("Get new food template")
                 .WithDescription("Returns a template for creating a new food.")
                 .Produces<FoodInfo>(StatusCodes.Status200OK);
 
-            group.MapPost("Create", async (DrService service, FoodInfo foodInfo) =>
+            group.MapPost("Create", async (FoodService service, FoodInfo foodInfo) =>
             {
                 if (await service.IsFoodNameTakenAsync(foodInfo.Name))
                 {
@@ -105,7 +105,7 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .ProducesDefaultProblem(StatusCodes.Status400BadRequest)
                 ;
 
-            group.MapPut("{id}", async (DrService service, Guid id, FoodInfo foodInfo) =>
+            group.MapPut("{id}", async (FoodService service, Guid id, FoodInfo foodInfo) =>
             {
                 if (await service.IsFoodNameTakenAsync(foodInfo.Name, excludeId: foodInfo.Id))
                 {
@@ -150,7 +150,7 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .Produces(StatusCodes.Status200OK)
                 .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound);
 
-            group.MapDelete("{id}", async (DrService service, Guid id) =>
+            group.MapDelete("{id}", async (FoodService service, Guid id) =>
             {
                 await service.DeleteFoodAsync(id);
                 return Results.Ok();

@@ -1,12 +1,11 @@
 using Dr.NutrizioNino.Api.Helpers;
 using Dr.NutrizioNino.Api.Infrastructure;
-using Dr.NutrizioNino.Api.Infrastructure.Models;
 using Dr.NutrizioNino.Api.Models;
 using Dr.NutrizioNino.Models.Dto;
 
 namespace Dr.NutrizioNino.Api.Services;
 
-public partial class DrService
+public class BrandService(DrRepository drRepository)
 {
     public async Task<IList<BrandDto>> GetBrandsAsync()
     {
@@ -44,5 +43,4 @@ public partial class DrService
     {
         return await drRepository.IsBrandNameTakenAsync(name, excludeId).ConfigureAwait(false);
     }
-
 }

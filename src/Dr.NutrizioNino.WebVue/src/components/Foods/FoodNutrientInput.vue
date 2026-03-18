@@ -44,12 +44,17 @@ const unitOfMeasureOptions = computed<SelectOption[]>(() =>
 watch(() => props.foodNutrientDto.unitOfMeasureId, (v) => { selectedUnitOfMeasureId.value = v }, { immediate: true })
 watch(() => props.foodNutrientDto.quantity, (v) => { quantity.value = v }, { immediate: true })
 
+let debounceTimer: ReturnType<typeof setTimeout> | null = null
+
 watch([selectedUnitOfMeasureId, quantity], () => {
-  emit('update', {
-    ...props.foodNutrientDto,
-    unitOfMeasureId: selectedUnitOfMeasureId.value,
-    quantity: quantity.value
-  })
+  if (debounceTimer) clearTimeout(debounceTimer)
+  debounceTimer = setTimeout(() => {
+    emit('update', {
+      ...props.foodNutrientDto,
+      unitOfMeasureId: selectedUnitOfMeasureId.value,
+      quantity: quantity.value
+    })
+  }, 300)
 })
 </script>
 

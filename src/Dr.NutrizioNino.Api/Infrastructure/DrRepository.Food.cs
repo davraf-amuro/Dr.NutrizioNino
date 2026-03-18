@@ -27,9 +27,11 @@ public partial class DrRepository
             return;
         }
 
+        await using var transaction = await drContext.Database.BeginTransactionAsync().ConfigureAwait(false);
         drContext.FoodsNutrients.RemoveRange(record.FoodsNutrients);
         drContext.Foods.Remove(record);
         await drContext.SaveChangesAsync().ConfigureAwait(false);
+        await transaction.CommitAsync().ConfigureAwait(false);
     }
 
     public async Task<IEnumerable<Food>> GetFoodsAsync() =>
@@ -91,6 +93,8 @@ public partial class DrRepository
             return false;
         }
 
+        await using var transaction = await drContext.Database.BeginTransactionAsync().ConfigureAwait(false);
+
         record.Name = food.Name;
         record.Quantity = food.Quantity;
         record.Barcode = food.Barcode;
@@ -102,6 +106,7 @@ public partial class DrRepository
         drContext.FoodsNutrients.AddRange(food.FoodsNutrients);
 
         await drContext.SaveChangesAsync().ConfigureAwait(false);
+        await transaction.CommitAsync().ConfigureAwait(false);
         return true;
     }
 }

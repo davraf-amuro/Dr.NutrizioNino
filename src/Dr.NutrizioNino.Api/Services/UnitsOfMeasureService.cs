@@ -7,7 +7,7 @@ namespace Dr.NutrizioNino.Api.Services;
 
 public enum UomOperationResult { Success, NotFound, DuplicateName, DuplicateAbbreviation, InUse }
 
-public partial class DrService
+public class UnitsOfMeasureService(DrRepository drRepository)
 {
     public async Task<IList<UnitOfMeasureDto>> GetUnitsOfMeasuresAsync()
     {

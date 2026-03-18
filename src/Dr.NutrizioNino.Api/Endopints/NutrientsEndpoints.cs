@@ -18,7 +18,7 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .WithApiVersionSet(versionSet)
                 .MapToApiVersion(ApiVersionFactory.Version1);
 
-            group.MapGet("", async (DrService service) =>
+            group.MapGet("", async (NutrientService service) =>
             {
                 var result = await service.GetNutrientsAsync();
                 return result.Count > 0
@@ -36,7 +36,7 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .Produces<IList<NutrientInfo>>()
                 .ProducesDefaultProblem(StatusCodes.Status404NotFound)
             ;
-            group.MapGet("{id}", async (DrService service, Guid id) =>
+            group.MapGet("{id}", async (NutrientService service, Guid id) =>
             {
                 var result = await service.GetNutrientAsync(id);
                 return result is not null
@@ -54,7 +54,7 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .Produces<Nutrient>(StatusCodes.Status200OK)
                 .ProducesDefaultProblem(StatusCodes.Status404NotFound)
                 ;
-            group.MapPost("", async (DrService service, CreateNutrientDto newNutrient) =>
+            group.MapPost("", async (NutrientService service, CreateNutrientDto newNutrient) =>
             {
                 var result = await service.CreateNutrientAsync(newNutrient);
                 return result is not null
@@ -72,7 +72,7 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .Produces<Nutrient>(StatusCodes.Status200OK)
                 .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict)
                 ;
-            group.MapPut("{id}", async (DrService service, Guid id, Nutrient nutrient) =>
+            group.MapPut("{id}", async (NutrientService service, Guid id, Nutrient nutrient) =>
             {
                 var result = await service.UpdateNutrientAsync(nutrient);
                 return result switch
@@ -119,7 +119,7 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .Produces(StatusCodes.Status200OK)
                 .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound, StatusCodes.Status409Conflict)
                 ;
-            group.MapDelete("{id}", async (DrService service, Guid id) =>
+            group.MapDelete("{id}", async (NutrientService service, Guid id) =>
             {
                 var result = await service.DeleteNutrientAsync(id);
                 return result switch

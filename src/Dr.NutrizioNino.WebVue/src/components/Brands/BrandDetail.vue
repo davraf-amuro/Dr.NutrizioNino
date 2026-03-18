@@ -2,10 +2,10 @@
   <n-space vertical size="medium">
     <n-h3 style="margin: 0">{{ isEditMode ? 'Modifica marca' : 'Aggiungi nuova marca' }}</n-h3>
 
-    <n-form>
-      <n-form-item label="Nome">
+    <n-form ref="formRef" :model="formModel" :rules="rules">
+      <n-form-item label="Nome" path="name">
         <n-input
-          v-model:value="name"
+          v-model:value="formModel.name"
           placeholder="Inserisci il nome della marca"
           clearable
           :disabled="isSubmitting"
@@ -15,7 +15,7 @@
 
     <n-space justify="end" size="small">
       <n-button @click="cancel" :disabled="isSubmitting">Annulla</n-button>
-      <n-button type="primary" @click="save" :disabled="!name.trim()" :loading="isSubmitting">
+      <n-button type="primary" @click="save" :loading="isSubmitting">
         {{ isEditMode ? 'Aggiorna' : 'Salva' }}
       </n-button>
     </n-space>
@@ -23,8 +23,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import { NButton, NForm, NFormItem, NH3, NInput, NSpace } from 'naive-ui'
+import { computed, reactive, ref, watch } from 'vue'
+import { NButton, NForm, NFormItem, NH3, NInput, NSpace, type FormInst, type FormRules } from 'naive-ui'
 import type { Brand } from '@/Interfaces/Brand'
 
 const props = defineProps<{
@@ -38,25 +38,34 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
-const name = ref('')
+const formRef = ref<FormInst | null>(null)
+const formModel = reactive({ name: '' })
 const isEditMode = computed(() => props.mode === 'edit')
+
+const rules: FormRules = {
+  name: [{ required: true, message: 'Il nome è obbligatorio', trigger: ['blur', 'input'] }]
+}
 
 watch(
   () => props.brand,
   (brand) => {
-    name.value = brand?.name ?? ''
+    formModel.name = brand?.name ?? ''
   },
   { immediate: true }
 )
 
 function save() {
-  emit('save', name.value.trim())
-  name.value = ''
+  formRef.value?.validate((errors) => {
+    if (!errors) {
+      emit('save', formModel.name.trim())
+      formModel.name = ''
+    }
+  })
 }
 
 function cancel() {
   emit('cancel')
-  name.value = ''
+  formModel.name = ''
 }
 </script>
 

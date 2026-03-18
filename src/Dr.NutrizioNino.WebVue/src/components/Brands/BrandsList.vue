@@ -6,6 +6,7 @@
     :single-line="false"
     :bordered="true"
     :pagination="false"
+    aria-label="Lista marche"
   />
 </template>
 

@@ -61,12 +61,18 @@ try
     builder.Services.AddDbContext<DrNutrizioNinoContext>(options =>
     {
         options.UseSqlServer(builder.Configuration.GetConnectionString("DrNutrizioNinoSql"));
-        options.EnableSensitiveDataLogging();
-        options.EnableDetailedErrors();
+        if (builder.Environment.IsDevelopment())
+        {
+            options.EnableSensitiveDataLogging();
+            options.EnableDetailedErrors();
+        }
     });
 
     builder.Services.AddScoped<DrRepository>();
-    builder.Services.AddScoped<DrService>();
+    builder.Services.AddScoped<BrandService>();
+    builder.Services.AddScoped<FoodService>();
+    builder.Services.AddScoped<NutrientService>();
+    builder.Services.AddScoped<UnitsOfMeasureService>();
 
     builder.Services.AddCors(options =>
     {

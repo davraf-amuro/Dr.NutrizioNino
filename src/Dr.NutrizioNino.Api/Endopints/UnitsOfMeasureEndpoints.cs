@@ -17,7 +17,7 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .WithApiVersionSet(versionSet)
                 .MapToApiVersion(ApiVersionFactory.Version1);
 
-            group.MapGet("", async (DrService service) =>
+            group.MapGet("", async (UnitsOfMeasureService service) =>
             {
                 var result = await service.GetUnitsOfMeasuresAsync();
                 return result.Count > 0
@@ -35,7 +35,7 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .Produces<IList<UnitOfMeasureDto>>(StatusCodes.Status200OK)
                 .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 
-            group.MapGet("{id}", async (DrService service, Guid id) =>
+            group.MapGet("{id}", async (UnitsOfMeasureService service, Guid id) =>
             {
                 var result = await service.GetUnitOfMeasureAsync(id);
                 return result is not null
@@ -53,7 +53,7 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .Produces<UnitOfMeasure>(StatusCodes.Status200OK)
                 .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 
-            group.MapPost("", async (DrService service, CreateUnitOfMeasureDto newUnitOfMeasure) =>
+            group.MapPost("", async (UnitsOfMeasureService service, CreateUnitOfMeasureDto newUnitOfMeasure) =>
             {
                 var (result, entity) = await service.CreateUnitOfMeasureAsync(newUnitOfMeasure);
                 return result switch
@@ -79,7 +79,7 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .Produces<UnitOfMeasure>(StatusCodes.Status200OK)
                 .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict);
 
-            group.MapPut("{id}", async (DrService service, Guid id, UnitOfMeasure unitOfMeasure) =>
+            group.MapPut("{id}", async (UnitsOfMeasureService service, Guid id, UnitOfMeasure unitOfMeasure) =>
             {
                 var result = await service.UpdateUnitOfMeasureAsync(unitOfMeasure);
                 return result switch
@@ -132,7 +132,7 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .Produces(StatusCodes.Status200OK)
                 .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound, StatusCodes.Status409Conflict);
 
-            group.MapDelete("{id}", async (DrService service, Guid id) =>
+            group.MapDelete("{id}", async (UnitsOfMeasureService service, Guid id) =>
             {
                 var result = await service.DeleteUnitOfMeasureAsync(id);
                 return result switch

@@ -1,5 +1,13 @@
 <template>
-  <n-data-table :columns="columns" :data="props.foods" />
+  <n-data-table
+    :columns="columns"
+    :data="props.foods"
+    :row-key="(row: FoodDashboardDto) => row.id"
+    :single-line="false"
+    :bordered="true"
+    :pagination="false"
+    aria-label="Lista alimenti"
+  />
 </template>
 
 <script setup lang="ts">

@@ -2,24 +2,19 @@
   <n-space vertical size="medium">
     <n-h3 style="margin: 0">{{ isEditMode ? 'Modifica unità di misura' : 'Aggiungi nuova unità di misura' }}</n-h3>
 
-    <n-form>
-      <n-form-item label="Nome">
-        <n-input v-model:value="localName" :maxlength="50" :disabled="isSubmitting" />
+    <n-form ref="formRef" :model="formModel" :rules="rules">
+      <n-form-item label="Nome" path="name">
+        <n-input v-model:value="formModel.name" :maxlength="50" :disabled="isSubmitting" />
       </n-form-item>
 
-      <n-form-item label="Abbreviazione">
-        <n-input v-model:value="localAbbreviation" :maxlength="5" :disabled="isSubmitting" style="width: 120px" />
+      <n-form-item label="Abbreviazione" path="abbreviation">
+        <n-input v-model:value="formModel.abbreviation" :maxlength="5" :disabled="isSubmitting" style="width: 120px" />
       </n-form-item>
     </n-form>
 
     <n-space justify="end" size="small">
       <n-button @click="cancel" :disabled="isSubmitting">Annulla</n-button>
-      <n-button
-        type="primary"
-        @click="save"
-        :disabled="!localName.trim() || !localAbbreviation.trim()"
-        :loading="isSubmitting"
-      >
+      <n-button type="primary" @click="save" :loading="isSubmitting">
         {{ isEditMode ? 'Aggiorna' : 'Salva' }}
       </n-button>
     </n-space>
@@ -27,8 +22,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import { NButton, NForm, NFormItem, NH3, NInput, NSpace } from 'naive-ui'
+import { computed, reactive, ref, watch } from 'vue'
+import { NButton, NForm, NFormItem, NH3, NInput, NSpace, type FormInst, type FormRules } from 'naive-ui'
 import type { UnitOfMeasureDto } from '@/Interfaces/UnitOfMeasureDto'
 
 const props = defineProps<{
@@ -42,25 +37,34 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
+const formRef = ref<FormInst | null>(null)
 const isEditMode = computed(() => props.mode === 'edit')
 
-const localName = ref('')
-const localAbbreviation = ref('')
+const formModel = reactive({ name: '', abbreviation: '' })
+
+const rules: FormRules = {
+  name: [{ required: true, message: 'Il nome è obbligatorio', trigger: ['blur', 'input'] }],
+  abbreviation: [{ required: true, message: "L'abbreviazione è obbligatoria", trigger: ['blur', 'input'] }]
+}
 
 watch(
   () => props.unit,
   (u) => {
-    localName.value = u?.name ?? ''
-    localAbbreviation.value = u?.abbreviation ?? ''
+    formModel.name = u?.name ?? ''
+    formModel.abbreviation = u?.abbreviation ?? ''
   },
   { immediate: true }
 )
 
 function save() {
-  emit('save', {
-    id: props.unit?.id ?? '',
-    name: localName.value.trim(),
-    abbreviation: localAbbreviation.value.trim()
+  formRef.value?.validate((errors) => {
+    if (!errors) {
+      emit('save', {
+        id: props.unit?.id ?? '',
+        name: formModel.name.trim(),
+        abbreviation: formModel.abbreviation.trim()
+      })
+    }
   })
 }
 

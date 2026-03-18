@@ -17,7 +17,7 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .WithApiVersionSet(versionSet)
                 .MapToApiVersion(ApiVersionFactory.Version1);
 
-            group.MapGet("", async (DrService service) =>
+            group.MapGet("", async (BrandService service) =>
             {
                 var result = await service.GetBrandsAsync();
                 return result.Count > 0
@@ -35,7 +35,7 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .Produces<IList<BrandDto>>()
                 .ProducesDefaultProblem(StatusCodes.Status404NotFound)
             ;
-            group.MapGet("{id}", async (DrService service, Guid id) =>
+            group.MapGet("{id}", async (BrandService service, Guid id) =>
             {
                 var result = await service.GetBrandAsync(id);
                 return result is not null
@@ -53,7 +53,7 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .Produces<BrandDto>(StatusCodes.Status200OK)
                 .ProducesDefaultProblem(StatusCodes.Status404NotFound)
                 ;
-            group.MapPost("", async (DrService service, CreateBrandDto newBrand) =>
+            group.MapPost("", async (BrandService service, CreateBrandDto newBrand) =>
             {
                 if (await service.IsBrandNameTakenAsync(newBrand.Name))
                 {
@@ -74,7 +74,7 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .Produces<BrandDto>(StatusCodes.Status200OK)
                 .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict)
                 ;
-            group.MapPut("{id}", async (DrService service, Guid id, Brand brand) =>
+            group.MapPut("{id}", async (BrandService service, Guid id, Brand brand) =>
             {
                 if (await service.IsBrandNameTakenAsync(brand.Name, excludeId: brand.Id))
                 {
@@ -122,7 +122,7 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .WithDescription("Updates an existing brand by identifier.")
                 .Produces(StatusCodes.Status200OK)
                 .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound);
-            group.MapGet("{id}/is-in-use", async (DrService service, Guid id) =>
+            group.MapGet("{id}/is-in-use", async (BrandService service, Guid id) =>
             {
                 var inUse = await service.IsBrandInUseAsync(id);
                 return Results.Ok(inUse);
@@ -132,7 +132,7 @@ namespace Dr.NutrizioNino.Api.Endopints
                 .WithDescription("Returns true if the brand is referenced by one or more foods.")
                 .Produces<bool>(StatusCodes.Status200OK);
 
-            group.MapDelete("{id}", async (DrService service, Guid id) =>
+            group.MapDelete("{id}", async (BrandService service, Guid id) =>
             {
                 var deleted = await service.DeleteBrandAsync(id);
                 return deleted

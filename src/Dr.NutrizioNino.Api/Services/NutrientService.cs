@@ -8,7 +8,7 @@ namespace Dr.NutrizioNino.Api.Services;
 
 public enum NutrientOperationResult { Success, NotFound, Conflict }
 
-public partial class DrService
+public class NutrientService(DrRepository drRepository)
 {
     public async Task<IList<NutrientInfo>> GetNutrientsAsync()
     {
@@ -47,15 +47,4 @@ public partial class DrService
         var deleted = await drRepository.DeleteNutrientAsync(id).ConfigureAwait(false);
         return deleted ? NutrientOperationResult.Success : NutrientOperationResult.NotFound;
     }
-
-    //public async Task<ApiResponseDto<NutrientsGetForFoodCreatingInfo>> GetNutrientsForFoodCreating()
-    //{
-    //    var nutrients = await drRepository.GetNutrientsForFoodCreatingAsync();
-
-    //    return new ApiResponseDto<NutrientsGetForFoodCreatingInfo>
-    //    {
-    //        Success = true,
-    //        Data = nutrients.OrderBy(x => x.PositionOrder).ToList()
-    //    };
-    //}
 }
