@@ -16,18 +16,20 @@
 | FW-02 | `ApiError` tipizzato | Interceptor con `status`, `title`, `detail` | S | 5 | ✅ Completato |
 | FW-03 | Cache per dominio | Cache in-memory 60s con `load(force?)` | M | 4 | ✅ Completato |
 | FW-04 | Refactor reattività form Foods | Watch su singoli valori, no watcher deep | M | 4 | ⚠️ Da fare |
-| FW-05 | Completare/rimuovere `select` in Foods | Collegare a funzione di dettaglio o rimuovere | S | 3 | ⚠️ Da fare |
+| FW-05 | Completare/rimuovere `select` in Foods | Evento rimosso da `FoodsList.vue` | S | 3 | ✅ Completato |
 | FW-06 | Standardizzare controlli UI | Tutti i form usano Naive UI | S | 2 | ✅ Completato (nuovi moduli) |
 | FW-07 | Rimuovere scaffold starter | Eliminare `HomeView.vue`, `TheWelcome.vue` | S | 3 | ⚠️ Parziale |
 | FW-08 | Naming consistency | Convergere `Interfaces/foods/` → `Interfaces/Foods/` | M | 3 | ⚠️ Da fare |
 | FW-09 | Test frontend | Unit composable + interaction componenti | M | 4 | ⚠️ Da fare |
+| FW-10 | Ricerca e sort tabelle | `useTableSearch` composable + `sorter` su tutte le colonne | S | 3 | ✅ Completato |
+| FW-11 | Quick-add Marca/UdM nel form Alimento | `BrandQuickAddModal` + `UnitQuickAddModal` inline | M | 4 | 🔄 In lavorazione |
 
 ## Piano per fasi aggiornato
 
 ### Quick Wins (prossimo sprint)
 
-- **FW-05**: verificare se `select` in `FoodsList.vue` serve — collegarlo o eliminarlo
 - **FW-07**: rimuovere `HomeView.vue`, `TheWelcome.vue` e relativo routing se non usati
+- **FW-11**: completare `BrandQuickAddModal` e `UnitQuickAddModal` e integrarli in `FoodDetail.vue`
 
 ### Mid-term (1-2 sprint)
 
@@ -46,6 +48,9 @@
 |-----|--------|-------|
 | Blocchi async/error duplicati | 0 | ✅ Risolto |
 | Refetch per revisit stessa sessione | 0 (cache 60s) | ✅ Risolto |
+| Evento emesso senza consumer | 0 | ✅ Risolto |
+| Ricerca e sort su tutte le tabelle | ✅ | ✅ Completato |
+| Quick-add Marca/UdM nel form Alimento | ✅ | 🔄 In lavorazione |
 | Watcher deep su object props | 0 | ⚠️ FW-04 pending |
 | Scaffold starter nel flusso utente | 0 | ⚠️ FW-07 parziale |
 | Test composable | ≥ 8 | ⚠️ FW-09 pending |
@@ -60,4 +65,4 @@
 - Suite test copre almeno i composable principali con scenari di caricamento, cache e gestione errori.
 
 ---
-*Ultima revisione: 2026-03-18 | Focus: Frontend WebVue*
+*Ultima revisione: 2026-03-24 | Focus: Frontend WebVue*

@@ -13,23 +13,39 @@
         </n-form-item>
 
         <n-form-item label="Marca" path="brandId">
-          <n-select
-            v-model:value="localFood.brandId"
-            :options="brandOptions"
-            placeholder="-seleziona-"
-            clearable
-            :disabled="isSubmitting"
-          />
+          <n-input-group>
+            <n-select
+              v-model:value="localFood.brandId"
+              :options="brandOptions"
+              placeholder="-seleziona-"
+              clearable
+              :disabled="isSubmitting"
+              style="flex: 1; min-width: 0"
+            />
+            <n-button
+              :disabled="isSubmitting"
+              aria-label="Aggiungi nuova marca"
+              @click="showBrandModal = true"
+            >+</n-button>
+          </n-input-group>
         </n-form-item>
 
         <n-grid :cols="2" :x-gap="12">
           <n-gi>
             <n-form-item label="Unità di misura" path="unitOfMeasureId">
-              <n-select
-                v-model:value="localFood.unitOfMeasureId"
-                :options="unitOptions"
-                :disabled="isSubmitting"
-              />
+              <n-input-group>
+                <n-select
+                  v-model:value="localFood.unitOfMeasureId"
+                  :options="unitOptions"
+                  :disabled="isSubmitting"
+                  style="flex: 1; min-width: 0"
+                />
+                <n-button
+                  :disabled="isSubmitting"
+                  aria-label="Aggiungi nuova unità di misura"
+                  @click="showUnitModal = true"
+                >+</n-button>
+              </n-input-group>
             </n-form-item>
           </n-gi>
           <n-gi>
@@ -73,6 +89,9 @@
       </n-space>
     </n-spin>
 
+    <BrandQuickAddModal v-model:show="showBrandModal" @created="onBrandCreated" />
+    <UnitQuickAddModal v-model:show="showUnitModal" @created="onUnitCreated" />
+
     <n-space justify="space-between">
       <n-button type="error" @click="cancelHandler" :disabled="isSubmitting">Annulla</n-button>
       <n-button type="primary" @click="completeHandler" :loading="isSubmitting" :disabled="!localFood.name.trim()">
@@ -93,6 +112,7 @@ import {
   NGrid,
   NH3,
   NInput,
+  NInputGroup,
   NInputNumber,
   NSelect,
   NSpace,
@@ -105,6 +125,8 @@ import type { FoodDto } from '@/Interfaces/foods/FoodDto'
 import type { UnitOfMeasureDto } from '@/Interfaces/UnitOfMeasureDto'
 import type { Brand } from '@/Interfaces/Brand'
 import FoodNutrientInput from './FoodNutrientInput.vue'
+import BrandQuickAddModal from './BrandQuickAddModal.vue'
+import UnitQuickAddModal from './UnitQuickAddModal.vue'
 
 const props = defineProps<{
   food: FoodDto
@@ -117,6 +139,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   cancel: []
   complete: [food: FoodDto]
+  'brand-created': [brand: Brand]
+  'unit-created': [unit: UnitOfMeasureDto]
 }>()
 
 const formRef = ref<FormInst | null>(null)
@@ -158,6 +182,19 @@ watch(() => props.food, (newFood) => {
 }, { immediate: true })
 
 watch(() => props.brands, () => ensureBrandSelection(), { immediate: true })
+
+const showBrandModal = ref(false)
+const showUnitModal = ref(false)
+
+const onBrandCreated = (brand: Brand) => {
+  localFood.value.brandId = brand.id
+  emit('brand-created', brand)
+}
+
+const onUnitCreated = (unit: UnitOfMeasureDto) => {
+  localFood.value.unitOfMeasureId = unit.id
+  emit('unit-created', unit)
+}
 
 const cancelHandler = () => emit('cancel')
 

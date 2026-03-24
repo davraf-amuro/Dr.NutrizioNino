@@ -25,15 +25,21 @@ Rimangono aperti: allineamento del middleware di sicurezza alle route reali, uni
 | ID | Area | Evidenza | Impatto | Priorità | Stato |
 |----|------|----------|---------|----------|-------|
 | B01 | API versioning | Route group con `api/v{version:apiVersion}/...`, `WithApiVersionSet`, `MapToApiVersion` su tutti gli endpoint | Alto | Alta | ✅ Risolto |
-| B02 | Sicurezza request | `ValidatorMiddleware` valida path con `/api/` ma gli endpoint non usano quel prefisso — bypass token/origin possibile | Alto | Alta | ⚠️ Aperto |
+| B02 | Sicurezza request | `ValidatorMiddleware` controlla `StartsWithSegments("/api")` — gli endpoint usano `/api/v{version}/...`, il prefisso è allineato | Alto | Alta | ✅ Risolto |
 | B03 | CORS | Policy include `PUT`, `DELETE` | Alto | Alta | ✅ Risolto |
 | B04 | Integrità funzionale | CRUD completo per Foods, Brands, Nutrients, UnitsOfMeasures. Validazione duplicati e FK protection su Nutrients e UdM | Alto | Alta | ✅ Risolto |
 | B05 | Async/EF consistency | Alcuni metodi mancano di `CancellationToken`. `SaveChangesAsync` e `ToListAsync` usati, ma non uniformi | Media | Alta | ⚠️ Parziale |
-| B06 | Logging/sensibilità dati | `HttpContextLogger` logga header completi + body. `EnableSensitiveDataLogging` attivo | Media | Media | ⚠️ Aperto |
+| B06 | Logging/sensibilità dati | `HttpContextLogger` filtra header sensibili via `SensitiveHeaders` HashSet. `EnableSensitiveDataLogging` ancora attivo in `Program.cs` | Media | Media | ⚠️ Parziale |
 | B08 | Test coverage | Test di integrazione presenti ma con copertura minima | Alta | Alta | ⚠️ Aperto |
 | B09 | Metriche baseline | Nessuna misura P95/query-per-request versionata | Media | Media | ⚠️ Aperto |
 
-## 4) Opportunità di miglioramento residue
+## 4) Bug corretti
+
+| ID | Area | Fix applicato |
+|----|------|---------------|
+| B10 | Precisione colonna DB | `Foods_Nutrients.Quantity`: `numeric(4,2)` → `numeric(6,2)` — valore `155,00` causava `DbUpdateException` |
+
+## 5) Opportunità di miglioramento residue
 
 | Area | Problema attuale | Pattern suggerito | Beneficio atteso | Complessità |
 |------|------------------|-------------------|------------------|-------------|
@@ -42,7 +48,7 @@ Rimangono aperti: allineamento del middleware di sicurezza alle route reali, uni
 | Logging | Body e header loggati senza redaction | Structured logging con mascheramento campi sensibili | Riduzione rischio leak dati e volume log | S |
 | Test | Suite di integrazione ridotta | Integration test happy-path + not-found + conflict per endpoint CRUD | Confidenza nei refactor | M |
 
-## 5) Anti-pattern risolti
+## 6) Anti-pattern risolti
 
 | Anti-pattern | Risolto con |
 |--------------|-------------|
@@ -51,13 +57,14 @@ Rimangono aperti: allineamento del middleware di sicurezza alle route reali, uni
 | Metadata OpenAPI mancante | Tutti gli endpoint hanno `Produces`, `WithName`, `WithSummary`, `WithDescription` |
 | Nessuna validazione duplicati | Check su nome/abbreviazione su create/update per Nutrients e UnitsOfMeasures |
 | Delete senza FK protection | Block delete con 409 Conflict se record in uso (Nutrients → Foods_Nutrients; UdM → Foods, Foods_Nutrients, Nutrients) |
+| Middleware non allineato alle route | `ValidatorMiddleware` ora controlla correttamente il prefisso `/api` |
+| Header autenticazione loggati in chiaro | `HttpContextLogger` filtra `authorization`, `cookie`, `set-cookie`, `internal-authorization` |
 
-## 6) Anti-pattern ancora presenti
+## 7) Anti-pattern ancora presenti
 
-- `ValidatorMiddleware` condizionato da prefisso route potenzialmente non allineato.
 - Metodi `async` senza `CancellationToken` nei repository.
-- `HttpContextLogger` logga request body/header senza redaction.
+- `EnableSensitiveDataLogging` attivo in `Program.cs` (EF Core logga valori parametri SQL in dev).
 - Test di integrazione con copertura insufficiente.
 
 ---
-*Ultima revisione: 2026-03-18 | Focus: Backend API*
+*Ultima revisione: 2026-03-24 | Focus: Backend API*

@@ -21,7 +21,9 @@ const {
   startEditFood,
   completeCreateFood,
   cancelCreateFood,
-  removeFood
+  removeFood,
+  addBrandLookup,
+  addUnitLookup
 } = useFoods()
 
 const dialog = useDialog()
@@ -71,6 +73,8 @@ onMounted(async () => {
           v-if="isCreating && selectedFood"
           @cancel="cancelCreateFood"
           @complete="completeCreateFood"
+          @brand-created="addBrandLookup"
+          @unit-created="addUnitLookup"
           :food="selectedFood"
           :mode="formMode"
           :brands="brands"

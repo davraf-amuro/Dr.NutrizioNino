@@ -15,7 +15,7 @@ namespace Dr.NutrizioNino.Api.Models.Configurations
 
             entity.ToTable("Foods_Nutrients");
 
-            entity.Property(e => e.Quantity).HasColumnType("numeric(4, 2)");
+            entity.Property(e => e.Quantity).HasColumnType("numeric(6, 2)");
 
             entity.HasOne(d => d.Food).WithMany(p => p.FoodsNutrients)
                 .HasForeignKey(d => d.FoodId)

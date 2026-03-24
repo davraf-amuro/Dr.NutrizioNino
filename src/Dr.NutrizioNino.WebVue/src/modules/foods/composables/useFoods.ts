@@ -157,6 +157,16 @@ export const useFoods = () => {
     selectedFood.value = null
   }
 
+  const addBrandLookup = (brand: Brand) => {
+    brands.value.push(brand)
+    if (brandsCache) brandsCache.push(brand)
+  }
+
+  const addUnitLookup = (unit: UnitOfMeasureDto) => {
+    unitsOfMeasures.value.push(unit)
+    if (unitsCache) unitsCache.push(unit)
+  }
+
   const removeFood = async (food: FoodDashboardDto) => {
     const removed = await run(async () => {
       await deleteFood(food.id)
@@ -184,6 +194,8 @@ export const useFoods = () => {
     startEditFood,
     completeCreateFood,
     cancelCreateFood,
-    removeFood
+    removeFood,
+    addBrandLookup,
+    addUnitLookup
   }
 }
