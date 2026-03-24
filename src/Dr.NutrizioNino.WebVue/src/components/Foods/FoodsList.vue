@@ -1,19 +1,28 @@
 <template>
-  <n-data-table
-    :columns="columns"
-    :data="props.foods"
-    :row-key="(row: FoodDashboardDto) => row.id"
-    :single-line="false"
-    :bordered="true"
-    :pagination="false"
-    aria-label="Lista alimenti"
-  />
+  <n-space vertical>
+    <n-input
+      v-model:value="searchQuery"
+      placeholder="Cerca per nome..."
+      clearable
+      aria-label="Cerca per nome"
+    />
+    <n-data-table
+      :columns="columns"
+      :data="filteredData"
+      :row-key="(row: FoodDashboardDto) => row.id"
+      :single-line="false"
+      :bordered="true"
+      :pagination="false"
+      aria-label="Lista alimenti"
+    />
+  </n-space>
 </template>
 
 <script setup lang="ts">
 import { h } from 'vue'
 import type { FoodDashboardDto } from '@/Interfaces/foods/FoodDashboardDto'
-import { NButton, NDataTable, NSpace, type DataTableColumns } from 'naive-ui'
+import { NButton, NDataTable, NInput, NSpace, type DataTableColumns } from 'naive-ui'
+import { useTableSearch } from '@/core/composables/useTableSearch'
 
 const props = defineProps<{
   foods: FoodDashboardDto[]
@@ -24,13 +33,15 @@ const emit = defineEmits<{
   delete: [food: FoodDashboardDto]
 }>()
 
+const { searchQuery, filteredData } = useTableSearch(() => props.foods, 'name')
+
 const columns: DataTableColumns<FoodDashboardDto> = [
-  { title: 'Nome', key: 'name' },
-  { title: 'Marca', key: 'brandDescription' },
-  { title: 'Kcal', key: 'calorie', width: 80 },
-  { title: 'UdM', key: 'abbreviation', width: 80 },
-  { title: 'Quantità', key: 'quantity', width: 100 },
-  { title: 'Barcode', key: 'barcode' },
+  { title: 'Nome', key: 'name', sorter: 'default' },
+  { title: 'Marca', key: 'brandDescription', sorter: 'default' },
+  { title: 'Kcal', key: 'calorie', width: 80, sorter: (a, b) => (a.calorie ?? 0) - (b.calorie ?? 0) },
+  { title: 'UdM', key: 'abbreviation', width: 80, sorter: 'default' },
+  { title: 'Quantità', key: 'quantity', width: 100, sorter: (a, b) => (a.quantity ?? 0) - (b.quantity ?? 0) },
+  { title: 'Barcode', key: 'barcode', sorter: 'default' },
   {
     title: 'Azioni',
     key: 'actions',
