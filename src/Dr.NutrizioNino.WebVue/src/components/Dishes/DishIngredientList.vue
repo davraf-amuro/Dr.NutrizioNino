@@ -6,6 +6,7 @@
       placeholder="Cerca alimento da aggiungere..."
       clearable
       :get-show="() => true"
+      :render-label="renderFoodLabel"
       @select="onFoodSelect"
       aria-label="Cerca alimento"
     />
@@ -28,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, h, ref } from 'vue'
+import { computed, h, nextTick, ref } from 'vue'
 import {
   NAutoComplete,
   NButton,
@@ -66,15 +67,32 @@ const autocompleteOptions = computed(() =>
     .map((f) => ({ label: f.name ?? '', value: f.id }))
 )
 
+const renderFoodLabel = (option: { label: string; value: string | number }) => {
+  const food = props.availableFoods.find((f) => f.id === option.value)
+  return h('div', { style: 'line-height: 1.4; padding: 2px 0' }, [
+    h('div', option.label),
+    food?.brandDescription
+      ? h('div', { style: 'font-size: 12px; color: #aaa' }, food.brandDescription)
+      : null
+  ])
+}
+
 const totalWeight = computed(() => props.ingredients.reduce((s, i) => s + i.quantityGrams, 0))
 
 const onFoodSelect = (foodId: string) => {
-  searchInput.value = ''
   emit('add-food', foodId)
+  nextTick(() => { searchInput.value = '' })
 }
 
 const columns: DataTableColumns<DishIngredient> = [
-  { title: 'Alimento', key: 'food', render: (row) => row.food.name },
+  {
+    title: 'Alimento',
+    key: 'food',
+    render: (row) => {
+      const brand = props.availableFoods.find((f) => f.id === row.food.id)?.brandDescription
+      return brand ? `${row.food.name} (${brand})` : row.food.name
+    }
+  },
   {
     title: 'Quantità (g)',
     key: 'quantityGrams',
