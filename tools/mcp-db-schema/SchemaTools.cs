@@ -78,13 +78,15 @@ public class SchemaTools(ConnectionManager connectionManager)
 
     [McpServerTool]
     [Description("""
-        Esegue uno statement DDL (CREATE TABLE, ALTER TABLE, DROP TABLE, CREATE/ALTER VIEW, CREATE INDEX, ecc.) sul database.
-        REGOLA OBBLIGATORIA: chiamare SEMPRE prima con confirmed=false per generare l'anteprima e mostrarla all'utente.
-        Chiamare con confirmed=true SOLO dopo aver ricevuto l'approvazione esplicita dell'utente.
+        Esegue DDL sul database con tre livelli di autorizzazione:
+        - 🟢 CREATE nuovo oggetto: mostra anteprima informativa, l'utente può confermare
+        - 🟡 Rischio medio (ADD/DROP CONSTRAINT, DROP VIEW/INDEX, CREATE OR ALTER su oggetto esistente): richiedi conferma esplicita
+        - 🔴 Rischio alto (DROP TABLE, DROP COLUMN, ALTER COLUMN): NON chiamare confirmed=true senza che l'utente abbia letto i rischi e scritto esplicitamente di voler procedere
+        REGOLA: chiamare SEMPRE prima con confirmed=false, poi confirmed=true SOLO dopo approvazione esplicita dell'utente.
         """)]
     public async Task<string> execute_ddl(
         [Description("Statement DDL da eseguire")] string sql,
-        [Description("false = anteprima senza eseguire (obbligatorio come primo passo), true = esegue dopo approvazione utente")] bool confirmed = false,
+        [Description("false = anteprima senza eseguire (obbligatorio come primo passo), true = esegue solo dopo approvazione esplicita dell'utente")] bool confirmed = false,
         CancellationToken cancellationToken = default)
     {
         if (connectionManager.ActiveConnectionString is null)
@@ -103,51 +105,144 @@ public class SchemaTools(ConnectionManager connectionManager)
             }
         }
 
-        if (!confirmed)
+        var (summary, riskLevel, riskDetail) = DescribeDdl(sql.Trim());
+
+        // Per CREATE OR ALTER VIEW/PROCEDURE: controlla se l'oggetto esiste già e promuovi il rischio
+        if (riskLevel == RiskLevel.Low && IsCreateOrAlter(sql))
         {
-            var (summary, riskLevel, riskDetail) = DescribeDdl(sql.Trim());
-            var riskHeader = riskLevel switch
+            var objectName = ExtractCreateOrAlterName(sql);
+            if (objectName is not null && await ObjectExistsAsync(objectName, connectionManager.ActiveConnectionString!, cancellationToken))
             {
-                RiskLevel.Low      => "🟢 RISCHIO BASSO",
-                RiskLevel.Medium   => "🟡 RISCHIO MEDIO — leggere attentamente prima di confermare",
-                RiskLevel.High     => "🔴 RISCHIO ALTO — operazione potenzialmente DISTRUTTIVA",
-                _                  => "⚪ RISCHIO NON DETERMINATO"
-            };
-
-            return $"""
-                ══════════════════════════════════════════════════════
-                ANTEPRIMA — nessuna modifica è stata eseguita.
-                ══════════════════════════════════════════════════════
-
-                Operazione : {summary}
-                Database   : {connectionManager.ActiveConnectionName}
-                Rischio    : {riskHeader}
-
-                {riskDetail}
-
-                SQL che verrà eseguito:
-                ──────────────────────────────────────────────────────
-                {sql.Trim()}
-                ──────────────────────────────────────────────────────
-
-                Per applicare: conferma esplicitamente all'utente,
-                poi richiama execute_ddl con confirmed=true.
-                ══════════════════════════════════════════════════════
-                """;
+                riskLevel = RiskLevel.Medium;
+                riskDetail = $"L'oggetto '{objectName}' esiste già: questa operazione lo sovrascriverà.\n" + riskDetail;
+            }
         }
 
-        var (execSummary, _, _) = DescribeDdl(sql.Trim());
+        if (!confirmed)
+        {
+            return riskLevel switch
+            {
+                RiskLevel.Low => $"""
+                    ℹ️  ANTEPRIMA — nessuna modifica eseguita
+                    ══════════════════════════════════════════════════════
+                    Operazione : {summary}
+                    Database   : {connectionManager.ActiveConnectionName}
+
+                    {riskDetail}
+
+                    SQL:
+                    ──────────────────────────────────────────────────────
+                    {sql.Trim()}
+                    ──────────────────────────────────────────────────────
+
+                    Stai per creare un nuovo oggetto. Conferma per procedere.
+                    ══════════════════════════════════════════════════════
+                    """,
+
+                RiskLevel.Medium => $"""
+                    ⚠️  RICHIESTA CONFERMA
+                    ══════════════════════════════════════════════════════
+                    Operazione : {summary}
+                    Database   : {connectionManager.ActiveConnectionName}
+                    Rischio    : 🟡 MEDIO
+
+                    {riskDetail}
+
+                    SQL:
+                    ──────────────────────────────────────────────────────
+                    {sql.Trim()}
+                    ──────────────────────────────────────────────────────
+
+                    Questa operazione modifica struttura esistente.
+                    Mostra questo messaggio all'utente e attendi conferma prima di procedere.
+                    ══════════════════════════════════════════════════════
+                    """,
+
+                RiskLevel.High => $"""
+                    🛑  PERMESSO ESPLICITO RICHIESTO
+                    ══════════════════════════════════════════════════════
+                    Operazione : {summary}
+                    Database   : {connectionManager.ActiveConnectionName}
+                    Rischio    : 🔴 ALTO — OPERAZIONE POTENZIALMENTE IRREVERSIBILE
+
+                    {riskDetail}
+
+                    SQL:
+                    ──────────────────────────────────────────────────────
+                    {sql.Trim()}
+                    ──────────────────────────────────────────────────────
+
+                    ⚠️  ISTRUZIONE PER L'AI: NON chiamare confirmed=true finché l'utente
+                    non ha scritto esplicitamente di voler procedere, dopo aver letto i rischi.
+                    Mostra TUTTO questo messaggio e attendi risposta testuale.
+                    ══════════════════════════════════════════════════════
+                    """,
+
+                _ => $"""
+                    ⚪ OPERAZIONE NON RICONOSCIUTA — verificare il SQL manualmente
+                    ══════════════════════════════════════════════════════
+                    Operazione : {summary}
+                    Database   : {connectionManager.ActiveConnectionName}
+
+                    {riskDetail}
+
+                    SQL:
+                    ──────────────────────────────────────────────────────
+                    {sql.Trim()}
+                    ──────────────────────────────────────────────────────
+
+                    Verificare il SQL prima di confermare.
+                    ══════════════════════════════════════════════════════
+                    """
+            };
+        }
+
+        var riskBadge = riskLevel switch
+        {
+            RiskLevel.High    => "🔴",
+            RiskLevel.Medium  => "🟡",
+            RiskLevel.Unknown => "⚪",
+            _                 => "🟢"
+        };
+
         try
         {
             await using var conn = new SqlConnection(connectionManager.ActiveConnectionString);
             await conn.OpenAsync(cancellationToken);
             await using var cmd = new SqlCommand(sql.Trim(), conn) { CommandTimeout = 30 };
             await cmd.ExecuteNonQueryAsync(cancellationToken);
-            return $"✅ Eseguito con successo su '{connectionManager.ActiveConnectionName}'.\n{execSummary}";
+            return $"✅ {riskBadge} Eseguito su '{connectionManager.ActiveConnectionName}'.\n{summary}";
         }
         catch (SqlException ex)
         {
             return $"❌ Errore SQL (connection: {connectionManager.ActiveConnectionName}): {ex.Message}";
+        }
+    }
+
+    private static bool IsCreateOrAlter(string sql)
+        => Regex.IsMatch(sql, @"CREATE\s+OR\s+ALTER\s+(VIEW|PROCEDURE|PROC|FUNCTION)", RegexOptions.IgnoreCase);
+
+    private static string? ExtractCreateOrAlterName(string sql)
+    {
+        var m = Regex.Match(sql, @"CREATE\s+OR\s+ALTER\s+(?:VIEW|PROCEDURE|PROC|FUNCTION)\s+(?:\[?\w+\]?\.)?\[?(\w+)\]?", RegexOptions.IgnoreCase);
+        return m.Success ? m.Groups[1].Value : null;
+    }
+
+    private static async Task<bool> ObjectExistsAsync(string name, string connectionString, CancellationToken ct)
+    {
+        try
+        {
+            await using var conn = new SqlConnection(connectionString);
+            await conn.OpenAsync(ct);
+            await using var cmd = new SqlCommand(
+                "SELECT 1 FROM sys.objects WHERE name = @name AND type IN ('V','P','FN','TF','IF')", conn);
+            cmd.Parameters.AddWithValue("@name", name);
+            var result = await cmd.ExecuteScalarAsync(ct);
+            return result is not null;
+        }
+        catch
+        {
+            return false; // in caso di errore di connessione, non bloccare il flusso
         }
     }
 
