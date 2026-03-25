@@ -80,7 +80,7 @@
 
       <n-space vertical size="small">
         <FoodNutrientInput
-          v-for="fnu in localFood.nutrients"
+          v-for="fnu in sortedNutrients"
           :key="fnu.nutrientId"
           :food-nutrient-dto="fnu"
           :units-of-measures="unitsOfMeasures"
@@ -103,6 +103,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { sortNutrients } from '@/core/utils/sortNutrients'
 import {
   NButton,
   NDivider,
@@ -175,6 +176,7 @@ const ensureBrandSelection = () => {
 }
 
 const localFood = ref(cloneFood(props.food))
+const sortedNutrients = computed(() => sortNutrients(localFood.value.nutrients))
 
 watch(() => props.food, (newFood) => {
   localFood.value = cloneFood(newFood)

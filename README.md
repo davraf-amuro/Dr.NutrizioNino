@@ -1,6 +1,6 @@
 # Dr.NutrizioNino
 
-Applicazione web per la gestione di alimenti, nutrienti, unità di misura e marche.
+Applicazione web per la gestione di alimenti, nutrienti, unità di misura, marche e piatti.
 Backend .NET 10 Minimal API · Frontend Vue 3.
 
 ## Stack tecnologico
@@ -84,7 +84,7 @@ Dr.NutrizioNino/
 │   └── Dr.NutrizioNino.WebVue/        # Frontend Vue 3
 │       └── src/
 │           ├── components/            # Componenti UI per dominio
-│           ├── modules/*/api/         # Chiamate HTTP per feature
+│           ├── modules/*/api/         # Chiamate HTTP per feature (foods, brands, nutrients, units, dishes)
 │           ├── modules/*/composables/ # State management per feature
 │           ├── views/                 # Pagine principali
 │           └── core/                  # useAsyncState, apiClient, ApiError
@@ -124,6 +124,7 @@ Versione attiva: **v1**
 | Nutrienti | `/api/v1/nutrients` |
 | Unità di misura | `/api/v1/unitsOfMeasures` |
 | Marche | `/api/v1/brands` |
+| Piatti | `/api/v1/dishes` |
 
 Documentazione interattiva completa: `http://localhost:5083/scalar/v1`
 
@@ -131,10 +132,10 @@ Documentazione interattiva completa: `http://localhost:5083/scalar/v1`
 
 ## MCP Server
 
-Il progetto include `dr-mcp-dbschema`, un MCP Server che permette agli agenti AI di leggere lo schema del database SQL Server.
+Il progetto include `dr-mcp-dbschema`, un MCP Server che permette agli agenti AI di leggere lo schema del database SQL Server ed eseguire DDL con autorizzazione a tre livelli (🟢 CREATE / 🟡 ALTER struttura esistente / 🔴 DROP o ALTER COLUMN).
 
 Configurato in `.mcp.json`. Vedi [`tools/mcp-db-schema/README.md`](tools/mcp-db-schema/README.md) per i dettagli.
 
 ---
 
-*Aggiornato il: 2026-03-18*
+*Aggiornato il: 2026-03-25*

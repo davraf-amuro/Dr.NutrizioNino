@@ -1,5 +1,6 @@
 import { computed, type Ref } from 'vue'
 import type { FoodDto } from '@/Interfaces/foods/FoodDto'
+import { sortNutrients } from '@/core/utils/sortNutrients'
 
 export interface DishIngredient {
   food: FoodDto
@@ -9,6 +10,7 @@ export interface DishIngredient {
 export interface CalculatedNutrient {
   nutrientId: string
   name: string
+  positionOrder: number
   unitOfMeasureId: string
   quantity: number
 }
@@ -32,6 +34,7 @@ export const useDishCalculator = (ingredients: Ref<DishIngredient[]>) => {
           contributions.set(key, {
             nutrientId: n.nutrientId,
             name: n.name,
+            positionOrder: n.positionOrder ?? 0,
             unitOfMeasureId: n.unitOfMeasureId,
             quantity: 0,
             total: contribution
@@ -40,12 +43,15 @@ export const useDishCalculator = (ingredients: Ref<DishIngredient[]>) => {
       }
     }
 
-    return Array.from(contributions.values()).map((v) => ({
-      nutrientId: v.nutrientId,
-      name: v.name,
-      unitOfMeasureId: v.unitOfMeasureId,
-      quantity: Math.round((v.total / totalWeight.value) * 100 * 100) / 100
-    }))
+    return sortNutrients(
+      Array.from(contributions.values()).map((v) => ({
+        nutrientId: v.nutrientId,
+        name: v.name,
+        positionOrder: v.positionOrder,
+        unitOfMeasureId: v.unitOfMeasureId,
+        quantity: Math.round((v.total / totalWeight.value) * 100 * 100) / 100
+      }))
+    )
   })
 
   const calorie = computed(() => {

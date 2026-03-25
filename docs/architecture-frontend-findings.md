@@ -2,9 +2,11 @@
 
 ## Executive Summary
 
-Il frontend segue un'architettura feature-oriented (`modules/*/api` + `modules/*/composables`) coerente su tutti i domini (Foods, Brands, Nutrients, Units).
+Il frontend segue un'architettura feature-oriented (`modules/*/api` + `modules/*/composables`) coerente su tutti i domini (Foods, Brands, Nutrients, Units, Dishes).
 
 Le aree risolte dall'analisi iniziale (2026-03-02): `useAsyncState` condiviso, `ApiError` tipizzato, cache in-memory per dominio, pulizia scaffold dalla shell.
+
+Feature aggiunte (2026-03-25): dominio Piatti completo, ordinamento nutrienti centralizzato via `sortNutrients`.
 
 Rimangono aperti: reattività form Foods (watcher deep), test frontend, convergenza naming.
 
@@ -15,10 +17,12 @@ Rimangono aperti: reattività form Foods (watcher deep), test frontend, converge
 | App shell + routing | `src/App.vue`, `src/router/index.ts` |
 | HTTP core | `src/core/http/apiClient.ts`, `src/core/http/ApiError.ts` |
 | Async state + utility | `src/core/composables/useAsyncState.ts`, `src/core/composables/useTableSearch.ts` |
+| Utility condivise | `src/core/utils/sortNutrients.ts` |
 | Domain — Foods | `src/modules/foods/api/`, `src/modules/foods/composables/` |
 | Domain — Brands | `src/modules/brands/api/`, `src/modules/brands/composables/` |
 | Domain — Nutrients | `src/modules/nutrients/api/`, `src/modules/nutrients/composables/` |
 | Domain — Units | `src/modules/units/api/`, `src/modules/units/composables/` |
+| Domain — Dishes | `src/modules/dishes/api/`, `src/modules/dishes/composables/`, `src/core/composables/useDishCalculator.ts` |
 | UI layer | `src/views/`, `src/components/` |
 
 ## Stato dei rischi
@@ -39,7 +43,10 @@ Rimangono aperti: reattività form Foods (watcher deep), test frontend, converge
 | ID | Feature | Descrizione | Stato |
 |----|---------|-------------|-------|
 | FW-10 | Ricerca e ordinamento liste | `useTableSearch` composable in `core/composables/`. Ricerca per nome (case-insensitive) e sort per colonna su Brands, Foods, Nutrients, Units | ✅ Completato |
-| FW-11 | Quick-add Marca e UdM nel form Alimento | `BrandQuickAddModal.vue` e `UnitQuickAddModal.vue` — bottone "Nuovo" accanto ai dropdown nel form alimento | 🔄 In lavorazione |
+| FW-11 | Quick-add Marca e UdM nel form Alimento | `BrandQuickAddModal.vue` e `UnitQuickAddModal.vue` — bottone "Nuovo" accanto ai dropdown nel form alimento | ✅ Completato |
+| FW-12 | Dominio Piatti | `DishesView.vue`, `DishBuilder.vue`, `DishIngredientList.vue`, `DishNutritionPreview.vue`. Composable `useDishes` + `useDishCalculator`. Calcolo nutrienti proporzionale normalizzato a 100g | ✅ Completato |
+| FW-13 | Marca nel form piatti | `DishIngredientList.vue`: autocomplete a due righe (nome + marca in grigio), colonna tabella `Nome (Marca)`. Reset combo via `nextTick` dopo selezione | ✅ Completato |
+| FW-14 | Ordinamento nutrienti centralizzato | `sortNutrients.ts` in `core/utils/`. Ordine: `positionOrder` ASC (0 = non classificato → in fondo), poi `name` alfabetico. Applicato in `FoodDetail.vue` e `useDishCalculator.ts` | ✅ Completato |
 
 ## Opportunità di miglioramento residue
 
@@ -62,6 +69,8 @@ Rimangono aperti: reattività form Foods (watcher deep), test frontend, converge
 | Scaffold starter nella shell | `App.vue` pulito, menu di navigazione funzionale |
 | Nessuna ricerca/sort nelle tabelle | `useTableSearch` composable + `sorter` su tutte le colonne |
 | Evento `select` emesso senza consumer | Rimosso da `FoodsList.vue` |
+| Ordinamento nutrienti non deterministico | `sortNutrients` utility condivisa: `positionOrder` → alfabetico. Usata in `FoodDetail.vue` e `useDishCalculator.ts` |
+| Combo autocomplete non si resettava dopo selezione | `nextTick` in `onFoodSelect` — NAutoComplete aggiorna il model dopo `@select` |
 
 ## Anti-pattern ancora presenti
 
@@ -70,4 +79,4 @@ Rimangono aperti: reattività form Foods (watcher deep), test frontend, converge
 - Naming `Interfaces/foods/` (kebab) non allineato agli altri moduli (PascalCase).
 
 ---
-*Ultima revisione: 2026-03-24 | Focus: Frontend WebVue*
+*Ultima revisione: 2026-03-25 | Focus: Frontend WebVue*

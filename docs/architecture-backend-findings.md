@@ -5,6 +5,8 @@
 Il backend adotta Minimal API con separazione `Endpoints → Services → Repository → DbContext`.
 Dall'analisi iniziale (2026-03-02) sono stati risolti i problemi principali di versioning, metodi repository incompleti e metadata OpenAPI.
 
+Feature aggiunte (2026-03-25): dominio Piatti (`DishEndpoints`, `DishService`, `DrRepository.Dish`), tool MCP `execute_ddl` con autorizzazione a tre livelli.
+
 Rimangono aperti: allineamento del middleware di sicurezza alle route reali, uniformità async/EF Core con `CancellationToken`, logging strutturato con redaction, test di integrazione e baseline metriche.
 
 ## 2) Mappa architettura corrente
@@ -12,13 +14,14 @@ Rimangono aperti: allineamento del middleware di sicurezza alle route reali, uni
 | Livello | File/Cartella |
 |---------|---------------|
 | Entry point | `src/Dr.NutrizioNino.Api/Program.cs` |
-| Route handlers | `src/Dr.NutrizioNino.Api/Endopints/*Endpoints.cs` |
-| Business logic | `src/Dr.NutrizioNino.Api/Services/DrService*.cs` |
-| Data access | `src/Dr.NutrizioNino.Api/Infrastructure/DrRepository*.cs` |
+| Route handlers | `src/Dr.NutrizioNino.Api/Endopints/*Endpoints.cs` (Foods, Nutrients, Brands, Units, Dishes) |
+| Business logic | `src/Dr.NutrizioNino.Api/Services/DrService*.cs`, `Services/DishService.cs` |
+| Data access | `src/Dr.NutrizioNino.Api/Infrastructure/DrRepository*.cs`, `Infrastructure/DrRepository.Dish.cs` |
 | EF Core context | `src/Dr.NutrizioNino.Api/Infrastructure/DrNutrizioNinoContext.cs` |
 | Middleware | `Middleware/HttpContextLogger.cs`, `Middleware/ValidatorMiddleware.cs` |
 | OpenAPI transformers | `src/Dr.NutrizioNino.Api/Transformers/` |
 | Test backend | `src/Testing/Dr.NutrizioNino.Api.Test/` |
+| MCP Server | `tools/mcp-db-schema/` — lettura schema + DDL con 3 livelli di autorizzazione |
 
 ## 3) Stato dei rischi
 
@@ -33,13 +36,20 @@ Rimangono aperti: allineamento del middleware di sicurezza alle route reali, uni
 | B08 | Test coverage | Test di integrazione presenti ma con copertura minima | Alta | Alta | ⚠️ Aperto |
 | B09 | Metriche baseline | Nessuna misura P95/query-per-request versionata | Media | Media | ⚠️ Aperto |
 
-## 4) Bug corretti
+## 4) Funzionalità aggiunte
+
+| ID | Area | Descrizione |
+|----|------|-------------|
+| B11 | Dominio Piatti | `DishEndpoints` (POST/GET/DELETE `/api/v1/dishes`), `DishService` con calcolo nutrienti proporzionale normalizzato a 100g, `DrRepository.Dish` (partial class) con transazione EF. Tabella `DishIngredients` come distinta base storica. Flag `IsDish` su `Foods` |
+| B12 | MCP `execute_ddl` | Tool DDL con 3 livelli: 🟢 CREATE (informativo), 🟡 ALTER struttura esistente (conferma richiesta), 🔴 DROP/ALTER COLUMN (blocco esplicito). Check DB per `CREATE OR ALTER` su oggetti esistenti |
+
+## 5) Bug corretti
 
 | ID | Area | Fix applicato |
 |----|------|---------------|
 | B10 | Precisione colonna DB | `Foods_Nutrients.Quantity`: `numeric(4,2)` → `numeric(6,2)` — valore `155,00` causava `DbUpdateException` |
 
-## 5) Opportunità di miglioramento residue
+## 6) Opportunità di miglioramento residue
 
 | Area | Problema attuale | Pattern suggerito | Beneficio atteso | Complessità |
 |------|------------------|-------------------|------------------|-------------|
@@ -48,7 +58,7 @@ Rimangono aperti: allineamento del middleware di sicurezza alle route reali, uni
 | Logging | Body e header loggati senza redaction | Structured logging con mascheramento campi sensibili | Riduzione rischio leak dati e volume log | S |
 | Test | Suite di integrazione ridotta | Integration test happy-path + not-found + conflict per endpoint CRUD | Confidenza nei refactor | M |
 
-## 6) Anti-pattern risolti
+## 7) Anti-pattern risolti
 
 | Anti-pattern | Risolto con |
 |--------------|-------------|
@@ -60,11 +70,11 @@ Rimangono aperti: allineamento del middleware di sicurezza alle route reali, uni
 | Middleware non allineato alle route | `ValidatorMiddleware` ora controlla correttamente il prefisso `/api` |
 | Header autenticazione loggati in chiaro | `HttpContextLogger` filtra `authorization`, `cookie`, `set-cookie`, `internal-authorization` |
 
-## 7) Anti-pattern ancora presenti
+## 8) Anti-pattern ancora presenti
 
 - Metodi `async` senza `CancellationToken` nei repository.
 - `EnableSensitiveDataLogging` attivo in `Program.cs` (EF Core logga valori parametri SQL in dev).
 - Test di integrazione con copertura insufficiente.
 
 ---
-*Ultima revisione: 2026-03-24 | Focus: Backend API*
+*Ultima revisione: 2026-03-25 | Focus: Backend API*
