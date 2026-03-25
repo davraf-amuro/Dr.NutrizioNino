@@ -20,4 +20,6 @@ public class FoodDashboardInfo
     public string? UnitOfMeasureDescription { get; set; }
 
     public string? Abbreviation { get; set; }
+
+    public bool IsDish { get; set; }
 }

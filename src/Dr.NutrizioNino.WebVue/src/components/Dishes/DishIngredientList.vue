@@ -1,0 +1,103 @@
+<template>
+  <n-space vertical size="small">
+    <n-auto-complete
+      v-model:value="searchInput"
+      :options="autocompleteOptions"
+      placeholder="Cerca alimento da aggiungere..."
+      clearable
+      :get-show="() => true"
+      @select="onFoodSelect"
+      aria-label="Cerca alimento"
+    />
+
+    <n-data-table
+      v-if="ingredients.length > 0"
+      :columns="columns"
+      :data="ingredients"
+      :row-key="(row) => row.food.id"
+      :single-line="false"
+      :bordered="true"
+      :pagination="false"
+      aria-label="Lista ingredienti"
+    />
+
+    <n-text v-if="ingredients.length > 0" depth="3" style="font-size: 13px">
+      Peso totale: {{ totalWeight }}g
+    </n-text>
+  </n-space>
+</template>
+
+<script setup lang="ts">
+import { computed, h, ref } from 'vue'
+import {
+  NAutoComplete,
+  NButton,
+  NDataTable,
+  NInputNumber,
+  NSpace,
+  NText,
+  type DataTableColumns
+} from 'naive-ui'
+import type { FoodDashboardDto } from '@/Interfaces/foods/FoodDashboardDto'
+import type { FoodDto } from '@/Interfaces/foods/FoodDto'
+import type { DishIngredient } from '@/core/composables/useDishCalculator'
+
+const props = defineProps<{
+  ingredients: DishIngredient[]
+  availableFoods: FoodDashboardDto[]
+  isLoading?: boolean
+}>()
+
+const emit = defineEmits<{
+  'add-food': [foodId: string]
+  'update-quantity': [foodId: string, quantity: number]
+  remove: [foodId: string]
+}>()
+
+const searchInput = ref('')
+
+const autocompleteOptions = computed(() =>
+  props.availableFoods
+    .filter(
+      (f) =>
+        f.name?.toLowerCase().includes(searchInput.value.toLowerCase()) &&
+        !props.ingredients.some((i) => i.food.id === f.id)
+    )
+    .map((f) => ({ label: f.name ?? '', value: f.id }))
+)
+
+const totalWeight = computed(() => props.ingredients.reduce((s, i) => s + i.quantityGrams, 0))
+
+const onFoodSelect = (foodId: string) => {
+  searchInput.value = ''
+  emit('add-food', foodId)
+}
+
+const columns: DataTableColumns<DishIngredient> = [
+  { title: 'Alimento', key: 'food', render: (row) => row.food.name },
+  {
+    title: 'Quantità (g)',
+    key: 'quantityGrams',
+    width: 140,
+    render: (row) =>
+      h(NInputNumber, {
+        value: row.quantityGrams,
+        min: 1,
+        max: 9999,
+        precision: 1,
+        showButton: false,
+        style: 'width: 100%',
+        'onUpdate:value': (val: number | null) => {
+          if (val !== null) emit('update-quantity', row.food.id, val)
+        }
+      })
+  },
+  {
+    title: '',
+    key: 'remove',
+    width: 60,
+    render: (row) =>
+      h(NButton, { size: 'small', quaternary: true, type: 'error', onClick: () => emit('remove', row.food.id) }, { default: () => '✕' })
+  }
+]
+</script>

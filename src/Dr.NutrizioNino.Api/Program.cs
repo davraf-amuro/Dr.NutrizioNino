@@ -71,6 +71,7 @@ try
     builder.Services.AddScoped<DrRepository>();
     builder.Services.AddScoped<BrandService>();
     builder.Services.AddScoped<FoodService>();
+    builder.Services.AddScoped<DishService>();
     builder.Services.AddScoped<NutrientService>();
     builder.Services.AddScoped<UnitsOfMeasureService>();
 
@@ -114,6 +115,7 @@ try
 
     //aggiungi gli endpoint 
     app.MapsFoodsEndpoints(versionSet);
+    app.MapsDishesEndpoints(versionSet);
     app.MapsBrandsEndpoints(versionSet);
     app.MapsNutrientsEndpoints(versionSet);
     app.MapUnitsOfMeasureEndpoints(versionSet);
