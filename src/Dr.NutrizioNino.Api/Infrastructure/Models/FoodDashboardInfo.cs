@@ -22,4 +22,6 @@ public class FoodDashboardInfo
     public string? Abbreviation { get; set; }
 
     public bool IsDish { get; set; }
+
+    public string? SupermarketsText { get; set; }
 }

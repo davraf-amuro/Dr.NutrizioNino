@@ -2,7 +2,7 @@
   <n-space vertical size="large" class="dishes-page">
     <n-card title="Piatti" size="large">
       <template #header-extra>
-        <n-button v-if="!isCreating" type="primary" :loading="isLoading" @click="startCreate">
+        <n-button v-if="!isCreating && !dishDetail" type="primary" :loading="isLoading" @click="startCreate">
           Nuovo piatto
         </n-button>
       </template>
@@ -13,8 +13,9 @@
         </n-alert>
 
         <DishesList
-          v-if="!isCreating"
+          v-if="!isCreating && !dishDetail"
           :dishes="dishes"
+          @detail="handleViewDish"
           @delete="handleDeleteDish"
         />
 
@@ -25,6 +26,14 @@
           @cancel="cancelCreate"
           @save="completeDish"
         />
+
+        <n-spin v-if="dishDetail === null && isLoading" :show="true" />
+
+        <DishDetail
+          v-if="dishDetail"
+          :dish="dishDetail"
+          @close="closeDetail"
+        />
       </n-space>
     </n-card>
   </n-space>
@@ -32,9 +41,10 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { NAlert, NButton, NCard, NSpace, useDialog } from 'naive-ui'
+import { NAlert, NButton, NCard, NSpace, NSpin, useDialog } from 'naive-ui'
 import DishesList from '@/components/Dishes/DishesList.vue'
 import DishBuilder from '@/components/Dishes/DishBuilder.vue'
+import DishDetail from '@/components/Dishes/DishDetail.vue'
 import { useDishes } from '@/modules/dishes/composables/useDishes'
 import type { FoodDashboardDto } from '@/Interfaces/foods/FoodDashboardDto'
 
@@ -42,6 +52,7 @@ const {
   dishes,
   availableFoods,
   isCreating,
+  dishDetail,
   isLoading,
   errorMessage,
   loadDishes,
@@ -49,10 +60,16 @@ const {
   startCreate,
   cancelCreate,
   completeDish,
-  removeDish
+  removeDish,
+  viewDish,
+  closeDetail
 } = useDishes()
 
 const dialog = useDialog()
+
+const handleViewDish = async (dish: FoodDashboardDto) => {
+  await viewDish(dish)
+}
 
 const handleDeleteDish = (dish: FoodDashboardDto) => {
   dialog.warning({

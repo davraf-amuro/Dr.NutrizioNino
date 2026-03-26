@@ -7,4 +7,5 @@ export interface FoodDashboardDto {
   calorie: number
   unitOfMeasureDescription: string
   abbreviation: string
+  supermarketsText: string | null
 }

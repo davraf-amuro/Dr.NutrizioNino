@@ -2,6 +2,5 @@ namespace Dr.NutrizioNino.Api.Models;
 
 public partial class Food
 {
-    public bool IsDish { get; set; }
-    public virtual ICollection<DishIngredient> DishIngredients { get; set; } = new List<DishIngredient>();
+    // IsDish e DishIngredients rimossi: i piatti sono ora nella tabella separata Dishes
 }

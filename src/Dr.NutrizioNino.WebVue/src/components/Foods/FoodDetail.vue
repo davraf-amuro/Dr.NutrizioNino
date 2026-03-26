@@ -30,6 +30,25 @@
           </n-input-group>
         </n-form-item>
 
+        <n-form-item label="Supermercati" path="supermarketIds">
+          <n-input-group>
+            <n-select
+              v-model:value="localFood.supermarketIds"
+              :options="supermarketOptions"
+              placeholder="-seleziona-"
+              multiple
+              clearable
+              :disabled="isSubmitting"
+              style="flex: 1; min-width: 0"
+            />
+            <n-button
+              :disabled="isSubmitting"
+              aria-label="Aggiungi nuovo supermercato"
+              @click="showSupermarketModal = true"
+            >+</n-button>
+          </n-input-group>
+        </n-form-item>
+
         <n-grid :cols="2" :x-gap="12">
           <n-gi>
             <n-form-item label="Unità di misura" path="unitOfMeasureId">
@@ -91,6 +110,7 @@
 
     <BrandQuickAddModal v-model:show="showBrandModal" @created="onBrandCreated" />
     <UnitQuickAddModal v-model:show="showUnitModal" @created="onUnitCreated" />
+    <SupermarketQuickAddModal v-model:show="showSupermarketModal" @created="onSupermarketCreated" />
 
     <n-space justify="space-between">
       <n-button type="error" @click="cancelHandler" :disabled="isSubmitting">Annulla</n-button>
@@ -125,15 +145,18 @@ import {
 import type { FoodDto } from '@/Interfaces/foods/FoodDto'
 import type { UnitOfMeasureDto } from '@/Interfaces/UnitOfMeasureDto'
 import type { Brand } from '@/Interfaces/Brand'
+import type { Supermarket } from '@/Interfaces/Supermarket'
 import FoodNutrientInput from './FoodNutrientInput.vue'
 import BrandQuickAddModal from './BrandQuickAddModal.vue'
 import UnitQuickAddModal from './UnitQuickAddModal.vue'
+import SupermarketQuickAddModal from './SupermarketQuickAddModal.vue'
 
 const props = defineProps<{
   food: FoodDto
   mode?: 'create' | 'edit'
   brands: Brand[]
   unitsOfMeasures: UnitOfMeasureDto[]
+  supermarkets: Supermarket[]
   isSubmitting?: boolean
 }>()
 
@@ -142,6 +165,7 @@ const emit = defineEmits<{
   complete: [food: FoodDto]
   'brand-created': [brand: Brand]
   'unit-created': [unit: UnitOfMeasureDto]
+  'supermarket-created': [supermarket: Supermarket]
 }>()
 
 const formRef = ref<FormInst | null>(null)
@@ -161,6 +185,10 @@ const brandOptions = computed<SelectOption[]>(() =>
 
 const unitOptions = computed<SelectOption[]>(() =>
   props.unitsOfMeasures.map((unit) => ({ label: unit.name, value: unit.id }))
+)
+
+const supermarketOptions = computed<SelectOption[]>(() =>
+  props.supermarkets.map((s) => ({ label: s.name, value: s.id }))
 )
 
 const cloneFood = (food: FoodDto): FoodDto => ({
@@ -187,6 +215,7 @@ watch(() => props.brands, () => ensureBrandSelection(), { immediate: true })
 
 const showBrandModal = ref(false)
 const showUnitModal = ref(false)
+const showSupermarketModal = ref(false)
 
 const onBrandCreated = (brand: Brand) => {
   localFood.value.brandId = brand.id
@@ -196,6 +225,11 @@ const onBrandCreated = (brand: Brand) => {
 const onUnitCreated = (unit: UnitOfMeasureDto) => {
   localFood.value.unitOfMeasureId = unit.id
   emit('unit-created', unit)
+}
+
+const onSupermarketCreated = (supermarket: Supermarket) => {
+  localFood.value.supermarketIds = [...(localFood.value.supermarketIds ?? []), supermarket.id]
+  emit('supermarket-created', supermarket)
 }
 
 const cancelHandler = () => emit('cancel')

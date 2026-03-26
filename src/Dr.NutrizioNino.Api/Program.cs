@@ -74,6 +74,7 @@ try
     builder.Services.AddScoped<DishService>();
     builder.Services.AddScoped<NutrientService>();
     builder.Services.AddScoped<UnitsOfMeasureService>();
+    builder.Services.AddScoped<SupermarketService>();
 
     builder.Services.AddCors(options =>
     {
@@ -112,12 +113,13 @@ try
     app.UseExceptionHandler();
     app.UseStatusCodePages();
 
-    //aggiungi gli endpoint 
+    //aggiungi gli endpoint
     app.MapsFoodsEndpoints(versionSet);
     app.MapsDishesEndpoints(versionSet);
     app.MapsBrandsEndpoints(versionSet);
     app.MapsNutrientsEndpoints(versionSet);
     app.MapUnitsOfMeasureEndpoints(versionSet);
+    app.MapsSupermarketsEndpoints(versionSet);
 
     //carica i middleware
     app.UseMiddleware<HttpContextLogger>();

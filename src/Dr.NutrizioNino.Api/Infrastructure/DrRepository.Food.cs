@@ -20,6 +20,7 @@ public partial class DrRepository
     {
         var record = await drContext.Foods
             .Include(f => f.FoodsNutrients)
+            .Include(f => f.FoodSupermarkets)
             .FirstOrDefaultAsync(f => f.Id == id)
             .ConfigureAwait(false);
         if (record is null)
@@ -29,6 +30,7 @@ public partial class DrRepository
 
         await using var transaction = await drContext.Database.BeginTransactionAsync().ConfigureAwait(false);
         drContext.FoodsNutrients.RemoveRange(record.FoodsNutrients);
+        drContext.FoodSupermarkets.RemoveRange(record.FoodSupermarkets);
         drContext.Foods.Remove(record);
         await drContext.SaveChangesAsync().ConfigureAwait(false);
         await transaction.CommitAsync().ConfigureAwait(false);
@@ -39,7 +41,11 @@ public partial class DrRepository
 
     internal async Task<Food?> GetFoodAsync(Guid id)
     {
-        return await drContext.Foods.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id).ConfigureAwait(false);
+        return await drContext.Foods
+            .AsNoTracking()
+            .Include(f => f.FoodSupermarkets)
+            .FirstOrDefaultAsync(x => x.Id == id)
+            .ConfigureAwait(false);
     }
 
     public async Task<bool> UpdateFoodAsync(Food food)
@@ -85,6 +91,7 @@ public partial class DrRepository
     {
         var record = await drContext.Foods
             .Include(f => f.FoodsNutrients)
+            .Include(f => f.FoodSupermarkets)
             .FirstOrDefaultAsync(f => f.Id == food.Id)
             .ConfigureAwait(false);
 
@@ -104,6 +111,9 @@ public partial class DrRepository
 
         drContext.FoodsNutrients.RemoveRange(record.FoodsNutrients);
         drContext.FoodsNutrients.AddRange(food.FoodsNutrients);
+
+        drContext.FoodSupermarkets.RemoveRange(record.FoodSupermarkets);
+        drContext.FoodSupermarkets.AddRange(food.FoodSupermarkets);
 
         await drContext.SaveChangesAsync().ConfigureAwait(false);
         await transaction.CommitAsync().ConfigureAwait(false);

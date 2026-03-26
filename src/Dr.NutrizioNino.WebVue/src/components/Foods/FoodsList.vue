@@ -21,7 +21,7 @@
 <script setup lang="ts">
 import { h } from 'vue'
 import type { FoodDashboardDto } from '@/Interfaces/foods/FoodDashboardDto'
-import { NButton, NDataTable, NInput, NSpace, type DataTableColumns } from 'naive-ui'
+import { NButton, NDataTable, NInput, NSpace, NTag, type DataTableColumns } from 'naive-ui'
 import { useTableSearch } from '@/core/composables/useTableSearch'
 
 const props = defineProps<{
@@ -42,6 +42,17 @@ const columns: DataTableColumns<FoodDashboardDto> = [
   { title: 'UdM', key: 'abbreviation', width: 80, sorter: 'default' },
   { title: 'Quantità', key: 'quantity', width: 100, sorter: (a, b) => (a.quantity ?? 0) - (b.quantity ?? 0) },
   { title: 'Barcode', key: 'barcode', sorter: 'default' },
+  {
+    title: 'Supermercati',
+    key: 'supermarketsText',
+    render: (row) => {
+      if (!row.supermarketsText) return null
+      const names = row.supermarketsText.split(', ')
+      return h(NSpace, { size: 4, wrap: true }, () =>
+        names.map((name) => h(NTag, { size: 'small', type: 'info' }, { default: () => name }))
+      )
+    }
+  },
   {
     title: 'Azioni',
     key: 'actions',

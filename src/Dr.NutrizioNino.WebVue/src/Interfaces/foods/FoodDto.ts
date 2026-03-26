@@ -9,4 +9,5 @@ export interface FoodDto {
   brandId: string | null
   calorie: number
   nutrients: FoodNutrientDto[]
+  supermarketIds: string[] | null
 }

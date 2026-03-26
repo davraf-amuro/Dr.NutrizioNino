@@ -11,6 +11,7 @@ const {
   selectedFood,
   brands,
   unitsOfMeasures,
+  supermarkets,
   isCreating,
   formMode,
   isLoading,
@@ -23,7 +24,8 @@ const {
   cancelCreateFood,
   removeFood,
   addBrandLookup,
-  addUnitLookup
+  addUnitLookup,
+  addSupermarketLookup
 } = useFoods()
 
 const dialog = useDialog()
@@ -75,10 +77,12 @@ onMounted(async () => {
           @complete="completeCreateFood"
           @brand-created="addBrandLookup"
           @unit-created="addUnitLookup"
+          @supermarket-created="addSupermarketLookup"
           :food="selectedFood"
           :mode="formMode"
           :brands="brands"
           :units-of-measures="unitsOfMeasures"
+          :supermarkets="supermarkets"
           :is-submitting="isLoading"
         />
       </n-space>

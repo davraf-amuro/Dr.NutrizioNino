@@ -27,6 +27,17 @@ public static class DishEndpoints
             .WithDescription("Returns the list of all dishes.")
             .Produces<IList<FoodDashboardInfo>>(StatusCodes.Status200OK);
 
+        group.MapGet("{id}", async (DishService service, Guid id, CancellationToken ct) =>
+        {
+            var result = await service.GetDishDetailAsync(id, ct);
+            return result is null ? Results.NotFound() : Results.Ok(result);
+        })
+            .WithName("GetDishDetail")
+            .WithSummary("Get dish detail")
+            .WithDescription("Returns dish details with ingredients and nutrients.")
+            .Produces<DishDetailDto>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound);
+
         group.MapPost("", async (DishService service, CreateDishDto dto, CancellationToken ct) =>
         {
             if (await service.IsDishNameTakenAsync(dto.Name))

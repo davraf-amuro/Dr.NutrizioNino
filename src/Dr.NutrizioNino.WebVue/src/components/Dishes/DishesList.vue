@@ -25,7 +25,10 @@ import { NButton, NDataTable, NInput, NSpace, type DataTableColumns } from 'naiv
 import { useTableSearch } from '@/core/composables/useTableSearch'
 
 const props = defineProps<{ dishes: FoodDashboardDto[] }>()
-const emit = defineEmits<{ delete: [dish: FoodDashboardDto] }>()
+const emit = defineEmits<{
+  delete: [dish: FoodDashboardDto]
+  detail: [dish: FoodDashboardDto]
+}>()
 
 const { searchQuery, filteredData } = useTableSearch(() => props.dishes, 'name')
 
@@ -35,13 +38,14 @@ const columns: DataTableColumns<FoodDashboardDto> = [
   {
     title: 'Azioni',
     key: 'actions',
-    width: 90,
+    width: 160,
     render: (row) =>
-      h(
-        NButton,
-        { size: 'small', type: 'error', onClick: () => emit('delete', row) },
-        { default: () => 'Elimina' }
-      )
+      h(NSpace, { size: 'small' }, {
+        default: () => [
+          h(NButton, { size: 'small', onClick: () => emit('detail', row) }, { default: () => 'Dettaglio' }),
+          h(NButton, { size: 'small', type: 'error', onClick: () => emit('delete', row) }, { default: () => 'Elimina' })
+        ]
+      })
   }
 ]
 </script>

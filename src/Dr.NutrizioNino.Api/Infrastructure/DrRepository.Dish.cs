@@ -1,5 +1,6 @@
 using Dr.NutrizioNino.Api.Infrastructure.Models;
 using Dr.NutrizioNino.Api.Models;
+using Dr.NutrizioNino.Models.Dto;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dr.NutrizioNino.Api.Infrastructure;
@@ -20,10 +21,40 @@ public partial class DrRepository
             .ToListAsync(ct)
             .ConfigureAwait(false);
 
-    public async Task<Guid> CreateDishAsync(Food dish, IList<DishIngredient> ingredients, CancellationToken ct = default)
+    public async Task<DishDetailDto?> GetDishByIdAsync(Guid id, CancellationToken ct = default)
+    {
+        var dish = await drContext.Dishes
+            .AsNoTracking()
+            .Include(d => d.DishNutrients).ThenInclude(dn => dn.Nutrient)
+            .Include(d => d.DishIngredients).ThenInclude(di => di.Food)
+            .FirstOrDefaultAsync(d => d.Id == id, ct)
+            .ConfigureAwait(false);
+
+        if (dish is null) return null;
+
+        return new DishDetailDto(
+            dish.Id,
+            dish.Name,
+            dish.Calorie,
+            dish.DishIngredients
+                .Select(di => new DishDetailIngredientDto(di.FoodId, di.Food.Name, di.QuantityGrams))
+                .ToList(),
+            dish.DishNutrients
+                .OrderBy(dn => dn.Nutrient.PositionOrder)
+                .Select(dn => new DishDetailNutrientDto(dn.NutrientId, dn.Nutrient.Name, dn.Nutrient.PositionOrder, dn.UnitOfMeasureId, dn.Quantity))
+                .ToList()
+        );
+    }
+
+    public async Task<bool> IsDishNameTakenAsync(string name, CancellationToken ct = default) =>
+        await drContext.Dishes
+            .AnyAsync(d => d.Name.ToLower() == name.ToLower(), ct)
+            .ConfigureAwait(false);
+
+    public async Task<Guid> CreateDishAsync(Dish dish, IList<DishIngredient> ingredients, CancellationToken ct = default)
     {
         await using var transaction = await drContext.Database.BeginTransactionAsync(ct).ConfigureAwait(false);
-        drContext.Foods.Add(dish);
+        drContext.Dishes.Add(dish);
         drContext.DishIngredients.AddRange(ingredients);
         await drContext.SaveChangesAsync(ct).ConfigureAwait(false);
         await transaction.CommitAsync(ct).ConfigureAwait(false);
@@ -32,35 +63,35 @@ public partial class DrRepository
 
     public async Task DeleteDishAsync(Guid id, CancellationToken ct = default)
     {
-        var record = await drContext.Foods
-            .Include(f => f.FoodsNutrients)
-            .Include(f => f.DishIngredients)
-            .FirstOrDefaultAsync(f => f.Id == id, ct)
+        var record = await drContext.Dishes
+            .Include(d => d.DishNutrients)
+            .Include(d => d.DishIngredients)
+            .FirstOrDefaultAsync(d => d.Id == id, ct)
             .ConfigureAwait(false);
 
         if (record is null) return;
 
         await using var transaction = await drContext.Database.BeginTransactionAsync(ct).ConfigureAwait(false);
+        drContext.DishNutrients.RemoveRange(record.DishNutrients);
         drContext.DishIngredients.RemoveRange(record.DishIngredients);
-        drContext.FoodsNutrients.RemoveRange(record.FoodsNutrients);
-        drContext.Foods.Remove(record);
+        drContext.Dishes.Remove(record);
         await drContext.SaveChangesAsync(ct).ConfigureAwait(false);
         await transaction.CommitAsync(ct).ConfigureAwait(false);
     }
 
     public async Task<IEnumerable<FoodDashboardInfo>> GetDishesDashboardAsync(CancellationToken ct = default) =>
-        await drContext.Foods
+        await drContext.Dishes
             .AsNoTracking()
-            .Where(f => f.IsDish)
-            .Select(f => new FoodDashboardInfo
+            .Select(d => new FoodDashboardInfo
             {
-                Id = f.Id,
-                Name = f.Name,
-                Quantity = f.Quantity,
-                Calorie = f.Calorie,
+                Id = d.Id,
+                Name = d.Name,
+                Quantity = d.Quantity,
+                Calorie = d.Calorie,
                 BrandDescription = null,
-                UnitOfMeasureDescription = f.UnitOfMeasure.Name,
-                Abbreviation = f.UnitOfMeasure.Abbreviation
+                UnitOfMeasureDescription = d.UnitOfMeasure.Name,
+                Abbreviation = d.UnitOfMeasure.Abbreviation,
+                IsDish = true
             })
             .ToListAsync(ct)
             .ConfigureAwait(false);

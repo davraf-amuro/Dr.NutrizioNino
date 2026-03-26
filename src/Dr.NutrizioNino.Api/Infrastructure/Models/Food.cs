@@ -25,4 +25,6 @@ public partial class Food
 
     public virtual ICollection<FoodNutrient> FoodsNutrients { get; set; } = new List<FoodNutrient>();
 
+    public virtual ICollection<FoodSupermarket> FoodSupermarkets { get; set; } = new List<FoodSupermarket>();
+
 }

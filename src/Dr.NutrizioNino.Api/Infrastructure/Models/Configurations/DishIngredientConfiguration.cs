@@ -13,7 +13,7 @@ public class DishIngredientConfiguration : IEntityTypeConfiguration<DishIngredie
         entity.Property(e => e.QuantityGrams).HasColumnType("numeric(6,2)");
 
         entity.HasOne(d => d.Dish)
-            .WithMany(f => f.DishIngredients)
+            .WithMany(d => d.DishIngredients)
             .HasForeignKey(d => d.DishId)
             .OnDelete(DeleteBehavior.ClientSetNull)
             .HasConstraintName("FK_DishIngredients_Dish");

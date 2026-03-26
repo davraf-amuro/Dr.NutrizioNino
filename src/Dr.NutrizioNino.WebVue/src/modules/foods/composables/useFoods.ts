@@ -1,10 +1,12 @@
 import { ref } from 'vue'
 import type { Brand } from '@/Interfaces/Brand'
+import type { Supermarket } from '@/Interfaces/Supermarket'
 import type { UnitOfMeasureDto } from '@/Interfaces/UnitOfMeasureDto'
 import type { FoodDashboardDto } from '@/Interfaces/foods/FoodDashboardDto'
 import type { FoodDto } from '@/Interfaces/foods/FoodDto'
 import { useAsyncState } from '@/core/composables/useAsyncState'
 import { getBrands } from '@/modules/brands/api/brands.api'
+import { getSupermarkets } from '@/modules/supermarkets/api/supermarkets.api'
 import {
   createFood,
   deleteFood,
@@ -21,6 +23,7 @@ let dashboardCache: FoodDashboardDto[] | null = null
 let dashboardCacheAt = 0
 let brandsCache: Brand[] | null = null
 let unitsCache: UnitOfMeasureDto[] | null = null
+let supermarketsCache: Supermarket[] | null = null
 let lookupsCacheAt = 0
 type FoodFormMode = 'create' | 'edit'
 
@@ -30,6 +33,7 @@ export const useFoods = () => {
   const selectedFood = ref<FoodDto | null>(null)
   const brands = ref<Brand[]>([])
   const unitsOfMeasures = ref<UnitOfMeasureDto[]>([])
+  const supermarkets = ref<Supermarket[]>([])
   const isCreating = ref(false)
   const formMode = ref<FoodFormMode>('create')
 
@@ -38,9 +42,10 @@ export const useFoods = () => {
     dashboardCacheAt = Date.now()
   }
 
-  const updateLookupsCache = (newBrands: Brand[], newUnits: UnitOfMeasureDto[]) => {
+  const updateLookupsCache = (newBrands: Brand[], newUnits: UnitOfMeasureDto[], newSupermarkets: Supermarket[]) => {
     brandsCache = [...newBrands]
     unitsCache = [...newUnits]
+    supermarketsCache = [...newSupermarkets]
     lookupsCacheAt = Date.now()
   }
 
@@ -59,28 +64,26 @@ export const useFoods = () => {
   }
 
   const loadLookups = async (force = false) => {
-    const hasValidCache = !force && brandsCache && unitsCache && Date.now() - lookupsCacheAt < cacheTtlMs
-    if (hasValidCache && brandsCache && unitsCache) {
+    const hasValidCache = !force && brandsCache && unitsCache && supermarketsCache && Date.now() - lookupsCacheAt < cacheTtlMs
+    if (hasValidCache && brandsCache && unitsCache && supermarketsCache) {
       brands.value = [...brandsCache]
       unitsOfMeasures.value = [...unitsCache]
+      supermarkets.value = [...supermarketsCache]
       return
     }
 
-    const [brandsData, unitsData] = await Promise.all([
+    const [brandsData, unitsData, supermarketsData] = await Promise.all([
       run(() => getBrands()),
-      run(() => getUnitsOfMeasures())
+      run(() => getUnitsOfMeasures()),
+      run(() => getSupermarkets())
     ])
 
-    if (brandsData) {
-      brands.value = brandsData
-    }
+    if (brandsData) brands.value = brandsData
+    if (unitsData) unitsOfMeasures.value = unitsData
+    if (supermarketsData) supermarkets.value = supermarketsData
 
-    if (unitsData) {
-      unitsOfMeasures.value = unitsData
-    }
-
-    if (brandsData && unitsData) {
-      updateLookupsCache(brandsData, unitsData)
+    if (brandsData && unitsData && supermarketsData) {
+      updateLookupsCache(brandsData, unitsData, supermarketsData)
     }
   }
 
@@ -167,6 +170,11 @@ export const useFoods = () => {
     if (unitsCache) unitsCache.push(unit)
   }
 
+  const addSupermarketLookup = (supermarket: Supermarket) => {
+    supermarkets.value.push(supermarket)
+    if (supermarketsCache) supermarketsCache.push(supermarket)
+  }
+
   const removeFood = async (food: FoodDashboardDto) => {
     const removed = await run(async () => {
       await deleteFood(food.id)
@@ -184,6 +192,7 @@ export const useFoods = () => {
     selectedFood,
     brands,
     unitsOfMeasures,
+    supermarkets,
     isCreating,
     formMode,
     isLoading,
@@ -196,6 +205,7 @@ export const useFoods = () => {
     cancelCreateFood,
     removeFood,
     addBrandLookup,
-    addUnitLookup
+    addUnitLookup,
+    addSupermarketLookup
   }
 }

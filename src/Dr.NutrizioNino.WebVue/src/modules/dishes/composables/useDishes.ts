@@ -1,7 +1,8 @@
 import { ref } from 'vue'
 import type { FoodDashboardDto } from '@/Interfaces/foods/FoodDashboardDto'
+import type { DishDetailDto } from '@/Interfaces/dishes/DishDetailDto'
 import { useAsyncState } from '@/core/composables/useAsyncState'
-import { createDish, deleteDish, getDishesDashboard, type CreateDishRequest } from '@/modules/dishes/api/dishes.api'
+import { createDish, deleteDish, getDish, getDishesDashboard, type CreateDishRequest } from '@/modules/dishes/api/dishes.api'
 import { getFoodsDashboard } from '@/modules/foods/api/foods.api'
 
 const cacheTtlMs = 60_000
@@ -15,6 +16,7 @@ export const useDishes = () => {
   const dishes = ref<FoodDashboardDto[]>([])
   const availableFoods = ref<FoodDashboardDto[]>([])
   const isCreating = ref(false)
+  const dishDetail = ref<DishDetailDto | null>(null)
 
   const loadDishes = async (force = false) => {
     const hasValidCache = !force && dishesCache && Date.now() - dishesCacheAt < cacheTtlMs
@@ -52,6 +54,15 @@ export const useDishes = () => {
     isCreating.value = false
   }
 
+  const viewDish = async (dish: FoodDashboardDto) => {
+    const data = await run(() => getDish(dish.id))
+    if (data) dishDetail.value = data
+  }
+
+  const closeDetail = () => {
+    dishDetail.value = null
+  }
+
   const completeDish = async (dto: CreateDishRequest) => {
     const result = await run(() => createDish(dto))
     if (result) {
@@ -75,6 +86,7 @@ export const useDishes = () => {
     dishes,
     availableFoods,
     isCreating,
+    dishDetail,
     isLoading,
     errorMessage,
     loadDishes,
@@ -82,6 +94,8 @@ export const useDishes = () => {
     startCreate,
     cancelCreate,
     completeDish,
-    removeDish
+    removeDish,
+    viewDish,
+    closeDetail
   }
 }

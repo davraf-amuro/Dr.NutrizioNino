@@ -19,5 +19,6 @@ public record FoodInfo(
     , decimal Calorie
     , Guid UnitOfMeasureId
     , IList<NutrientsGetForFoodCreatingInfo> Nutrients
+    , IList<Guid>? SupermarketIds = null
     )
 { }

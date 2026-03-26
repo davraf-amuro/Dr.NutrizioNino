@@ -20,7 +20,8 @@ const menuOptions: MenuOption[] = [
   { label: 'Piatti', key: '/dishes' },
   { label: 'Nutrienti', key: '/nutrients' },
   { label: 'Marche', key: '/brands' },
-  { label: 'Unità di misura', key: '/units' }
+  { label: 'Unità di misura', key: '/units' },
+  { label: 'Supermercati', key: '/supermarkets' }
 ]
 
 const activeKey = computed(() => {
@@ -28,6 +29,7 @@ const activeKey = computed(() => {
   if (route.path.startsWith('/brands')) return '/brands'
   if (route.path.startsWith('/nutrients')) return '/nutrients'
   if (route.path.startsWith('/units')) return '/units'
+  if (route.path.startsWith('/supermarkets')) return '/supermarkets'
   return '/foods'
 })
 </script>
