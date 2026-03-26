@@ -8,6 +8,8 @@ Le aree risolte dall'analisi iniziale (2026-03-02): `useAsyncState` condiviso, `
 
 Feature aggiunte (2026-03-25): dominio Piatti completo, ordinamento nutrienti centralizzato via `sortNutrients`.
 
+Feature aggiunte (2026-03-26): dominio Supermercati completo, `SupermarketQuickAddModal` nel form Alimento, colonna Supermercati con tag in `FoodsList`, pagina dettaglio piatto read-only.
+
 Rimangono aperti: reattività form Foods (watcher deep), test frontend, convergenza naming.
 
 ## Architecture Map
@@ -23,7 +25,8 @@ Rimangono aperti: reattività form Foods (watcher deep), test frontend, converge
 | Domain — Nutrients | `src/modules/nutrients/api/`, `src/modules/nutrients/composables/` |
 | Domain — Units | `src/modules/units/api/`, `src/modules/units/composables/` |
 | Domain — Dishes | `src/modules/dishes/api/`, `src/modules/dishes/composables/`, `src/core/composables/useDishCalculator.ts` |
-| UI layer | `src/views/`, `src/components/` |
+| Domain — Supermarkets | `src/modules/supermarkets/api/`, `src/modules/supermarkets/composables/` |
+| UI layer | `src/views/`, `src/components/` (Brands, Dishes, Foods, Nutrients, Supermarkets, Units) |
 
 ## Stato dei rischi
 
@@ -43,10 +46,13 @@ Rimangono aperti: reattività form Foods (watcher deep), test frontend, converge
 | ID | Feature | Descrizione | Stato |
 |----|---------|-------------|-------|
 | FW-10 | Ricerca e ordinamento liste | `useTableSearch` composable in `core/composables/`. Ricerca per nome (case-insensitive) e sort per colonna su Brands, Foods, Nutrients, Units | ✅ Completato |
-| FW-11 | Quick-add Marca e UdM nel form Alimento | `BrandQuickAddModal.vue` e `UnitQuickAddModal.vue` — bottone "Nuovo" accanto ai dropdown nel form alimento | ✅ Completato |
+| FW-11 | Quick-add Marca, UdM e Supermercato nel form Alimento | `BrandQuickAddModal.vue`, `UnitQuickAddModal.vue`, `SupermarketQuickAddModal.vue` — bottone "+" accanto ai dropdown nel form alimento. Tutti gestiscono 409 inline | ✅ Completato |
 | FW-12 | Dominio Piatti | `DishesView.vue`, `DishBuilder.vue`, `DishIngredientList.vue`, `DishNutritionPreview.vue`. Composable `useDishes` + `useDishCalculator`. Calcolo nutrienti proporzionale normalizzato a 100g | ✅ Completato |
 | FW-13 | Marca nel form piatti | `DishIngredientList.vue`: autocomplete a due righe (nome + marca in grigio), colonna tabella `Nome (Marca)`. Reset combo via `nextTick` dopo selezione | ✅ Completato |
 | FW-14 | Ordinamento nutrienti centralizzato | `sortNutrients.ts` in `core/utils/`. Ordine: `positionOrder` ASC (0 = non classificato → in fondo), poi `name` alfabetico. Applicato in `FoodDetail.vue` e `useDishCalculator.ts` | ✅ Completato |
+| FW-15 | Dominio Supermercati | `SupermarketsView.vue`, `SupermarketsList.vue`, `SupermarketDetail.vue`, `useSupermarkets`, `supermarkets.api.ts`. CRUD completo con check 409. Voce "Supermercati" nel menu principale | ✅ Completato |
+| FW-16 | Supermercati su Alimento | `FoodDetail.vue`: multi-select supermercati con `SupermarketQuickAddModal`. `FoodsList.vue`: colonna con `NTag` per ogni supermercato. `useFoods` carica supermercati come lookup insieme a brand e UdM | ✅ Completato |
+| FW-17 | Dettaglio piatto read-only | `DishDetail.vue`: tabella ingredienti + preview nutrienti. Integrata in `DishesView.vue` tramite pulsante "Dettaglio" in `DishesList.vue`. Nessun campo editabile | ✅ Completato |
 
 ## Opportunità di miglioramento residue
 
