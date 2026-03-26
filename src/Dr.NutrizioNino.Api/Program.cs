@@ -109,7 +109,6 @@ try
 
     app.UseCors(permitGetPost);
     app.UseHttpsRedirection();
-    app.UseStaticFiles();
     app.UseExceptionHandler();
     app.UseStatusCodePages();
 
