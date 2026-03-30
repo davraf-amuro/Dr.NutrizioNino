@@ -13,8 +13,10 @@ public class DishConfiguration : IEntityTypeConfiguration<Dish>
 
         entity.Property(e => e.Id).ValueGeneratedNever();
         entity.Property(e => e.Name).IsRequired().HasMaxLength(50);
-        entity.Property(e => e.Quantity).HasColumnType("numeric(6,2)");
+        entity.Property(e => e.WeightGrams).HasColumnName("WeightGrams").HasColumnType("numeric(6,2)");
         entity.Property(e => e.Calorie).HasColumnType("numeric(6,2)");
+        entity.Property(e => e.IsNutritionStale).IsRequired().HasDefaultValue(false);
+        entity.Property(e => e.NutrientsCalculatedAt).HasColumnType("datetime");
 
         entity.HasOne(d => d.UnitOfMeasure)
             .WithMany()

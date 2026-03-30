@@ -24,4 +24,8 @@ public class FoodDashboardInfo
     public bool IsDish { get; set; }
 
     public string? SupermarketsText { get; set; }
+
+    public bool IsNutritionStale { get; set; }
+
+    public DateTime? NutrientsCalculatedAt { get; set; }
 }

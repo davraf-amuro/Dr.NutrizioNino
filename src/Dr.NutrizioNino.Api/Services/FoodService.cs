@@ -64,9 +64,9 @@ public class FoodService(DrRepository drRepository)
         await drRepository.DeleteFoodAsync(id);
     }
 
-    public async Task<IList<FoodDashboardInfo>> GetFoodsDashboardAsync()
+    public async Task<IList<FoodDashboardInfo>> GetFoodsDashboardAsync(string? nameFilter = null)
     {
-        var request = await drRepository.GetFoodsDashboardAsync().ConfigureAwait(false);
+        var request = await drRepository.GetFoodsDashboardAsync(nameFilter).ConfigureAwait(false);
         return request.ToList();
     }
 

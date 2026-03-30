@@ -30,11 +30,15 @@ public partial class DrRepository
             .FirstOrDefaultAsync(d => d.Id == id, ct)
             .ConfigureAwait(false);
 
-        if (dish is null) return null;
+        if (dish is null)
+        {
+            return null;
+        }
 
         return new DishDetailDto(
             dish.Id,
             dish.Name,
+            dish.WeightGrams,
             dish.Calorie,
             dish.DishIngredients
                 .Select(di => new DishDetailIngredientDto(di.FoodId, di.Food.Name, di.QuantityGrams))
@@ -45,6 +49,13 @@ public partial class DrRepository
                 .ToList()
         );
     }
+
+    /// <summary>Carica il piatto con i soli ingredienti, usato per il ricalcolo.</summary>
+    internal async Task<Dish?> GetDishWithIngredientsAsync(Guid id, CancellationToken ct = default) =>
+        await drContext.Dishes
+            .Include(d => d.DishIngredients)
+            .FirstOrDefaultAsync(d => d.Id == id, ct)
+            .ConfigureAwait(false);
 
     public async Task<bool> IsDishNameTakenAsync(string name, CancellationToken ct = default) =>
         await drContext.Dishes
@@ -69,7 +80,10 @@ public partial class DrRepository
             .FirstOrDefaultAsync(d => d.Id == id, ct)
             .ConfigureAwait(false);
 
-        if (record is null) return;
+        if (record is null)
+        {
+            return;
+        }
 
         await using var transaction = await drContext.Database.BeginTransactionAsync(ct).ConfigureAwait(false);
         drContext.DishNutrients.RemoveRange(record.DishNutrients);
@@ -86,13 +100,96 @@ public partial class DrRepository
             {
                 Id = d.Id,
                 Name = d.Name,
-                Quantity = d.Quantity,
-                Calorie = d.Calorie,
+                Barcode = null,
+                Quantity = d.WeightGrams,
                 BrandDescription = null,
+                Calorie = d.Calorie,
                 UnitOfMeasureDescription = d.UnitOfMeasure.Name,
                 Abbreviation = d.UnitOfMeasure.Abbreviation,
-                IsDish = true
+                IsDish = true,
+                SupermarketsText = null,
+                IsNutritionStale = d.IsNutritionStale,
+                NutrientsCalculatedAt = d.NutrientsCalculatedAt
             })
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+
+    /// <summary>Aggiorna calorie, peso e nutrienti del piatto in un'unica transazione; azzera il flag stale.</summary>
+    public async Task<bool> UpdateDishNutrientsAsync(Guid dishId, decimal newWeightGrams, decimal newCalorie, IList<DishNutrient> newNutrients, CancellationToken ct = default)
+    {
+        var record = await drContext.Dishes
+            .Include(d => d.DishNutrients)
+            .FirstOrDefaultAsync(d => d.Id == dishId, ct)
+            .ConfigureAwait(false);
+
+        if (record is null)
+        {
+            return false;
+        }
+
+        await using var transaction = await drContext.Database.BeginTransactionAsync(ct).ConfigureAwait(false);
+
+        record.WeightGrams = newWeightGrams;
+        record.Calorie = newCalorie;
+        record.IsNutritionStale = false;
+        record.NutrientsCalculatedAt = DateTime.UtcNow;
+
+        drContext.DishNutrients.RemoveRange(record.DishNutrients);
+        drContext.DishNutrients.AddRange(newNutrients);
+
+        await drContext.SaveChangesAsync(ct).ConfigureAwait(false);
+        await transaction.CommitAsync(ct).ConfigureAwait(false);
+        return true;
+    }
+
+    /// <summary>Riscala proporzionalmente calorie e nutrienti al nuovo peso; non tocca gli ingredienti.</summary>
+    public async Task<bool> RescaleDishAsync(Guid dishId, decimal newWeightGrams, CancellationToken ct = default)
+    {
+        var record = await drContext.Dishes
+            .Include(d => d.DishNutrients)
+            .FirstOrDefaultAsync(d => d.Id == dishId, ct)
+            .ConfigureAwait(false);
+
+        if (record is null)
+        {
+            return false;
+        }
+
+        if (record.WeightGrams == 0)
+        {
+            return false;
+        }
+
+        var ratio = newWeightGrams / record.WeightGrams;
+
+        await using var transaction = await drContext.Database.BeginTransactionAsync(ct).ConfigureAwait(false);
+
+        record.Calorie = Math.Round(record.Calorie * ratio, 2);
+        record.WeightGrams = newWeightGrams;
+
+        foreach (var dn in record.DishNutrients)
+        {
+            dn.Quantity = Math.Round(dn.Quantity * ratio, 2);
+        }
+
+        await drContext.SaveChangesAsync(ct).ConfigureAwait(false);
+        await transaction.CommitAsync(ct).ConfigureAwait(false);
+        return true;
+    }
+
+    /// <summary>Marca stale tutti i piatti che contengono il cibo specificato tra gli ingredienti.</summary>
+    public async Task MarkDishesStaleByFoodIdAsync(Guid foodId, CancellationToken ct = default) =>
+        await drContext.Dishes
+            .Where(d => d.DishIngredients.Any(di => di.FoodId == foodId))
+            .ExecuteUpdateAsync(s => s.SetProperty(d => d.IsNutritionStale, true), ct)
+            .ConfigureAwait(false);
+
+    /// <summary>Restituisce gli id dei piatti con flag stale attivo.</summary>
+    public async Task<IEnumerable<Guid>> GetStaleDishIdsAsync(CancellationToken ct = default) =>
+        await drContext.Dishes
+            .AsNoTracking()
+            .Where(d => d.IsNutritionStale)
+            .Select(d => d.Id)
             .ToListAsync(ct)
             .ConfigureAwait(false);
 }

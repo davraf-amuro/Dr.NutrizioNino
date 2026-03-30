@@ -17,19 +17,22 @@ public class DishService(DrRepository drRepository)
     public async Task<(Guid? Id, string? Error)> CreateDishAsync(CreateDishDto dto, CancellationToken ct = default)
     {
         if (dto.Ingredients.Count == 0)
+        {
             return (null, "Il piatto deve avere almeno un ingrediente.");
+        }
 
         var foodIds = dto.Ingredients.Select(i => i.FoodId).Distinct().ToList();
         var foods = (await drRepository.GetFoodsByIdsAsync(foodIds, ct)).ToList();
 
         var missingCount = foodIds.Except(foods.Select(f => f.Id)).Count();
         if (missingCount > 0)
+        {
             return (null, $"{missingCount} alimento/i non trovato/i.");
+        }
 
         var allNutrients = (await drRepository.GetNutrientsForFoodsAsync(foodIds, ct)).ToList();
         var totalWeight = dto.Ingredients.Sum(i => i.QuantityGrams);
 
-        // Accumula contributi per NutrientId (la PK di Dishes_Nutrients è {DishId, NutrientId})
         var contributions = new Dictionary<Guid, (Guid UomId, decimal Total)>();
         foreach (var ingredient in dto.Ingredients)
         {
@@ -37,9 +40,13 @@ public class DishService(DrRepository drRepository)
             {
                 var added = fn.Quantity * (ingredient.QuantityGrams / 100m);
                 if (contributions.TryGetValue(fn.NutrientId, out var existing))
+                {
                     contributions[fn.NutrientId] = (existing.UomId, existing.Total + added);
+                }
                 else
+                {
                     contributions[fn.NutrientId] = (fn.UnitOfMeasureId, added);
+                }
             }
         }
 
@@ -48,11 +55,12 @@ public class DishService(DrRepository drRepository)
         {
             Id = dishId,
             Name = dto.Name,
-            Quantity = 100m,
+            WeightGrams = totalWeight,
             Calorie = Math.Round(
-                dto.Ingredients.Sum(i => foods.First(f => f.Id == i.FoodId).Calorie * (i.QuantityGrams / 100m))
-                / totalWeight * 100m, 2),
-            UnitOfMeasureId = Constants.GetDefaultUnitOfMeasure()
+                dto.Ingredients.Sum(i => foods.First(f => f.Id == i.FoodId).Calorie * (i.QuantityGrams / 100m)), 2),
+            UnitOfMeasureId = Constants.GetDefaultUnitOfMeasure(),
+            IsNutritionStale = false,
+            NutrientsCalculatedAt = DateTime.UtcNow
         };
 
         foreach (var kv in contributions)
@@ -62,7 +70,7 @@ public class DishService(DrRepository drRepository)
                 DishId = dishId,
                 NutrientId = kv.Key,
                 UnitOfMeasureId = kv.Value.UomId,
-                Quantity = Math.Round(kv.Value.Total / totalWeight * 100m, 2)
+                Quantity = Math.Round(kv.Value.Total, 2)
             });
         }
 
@@ -82,4 +90,94 @@ public class DishService(DrRepository drRepository)
 
     public async Task DeleteDishAsync(Guid id, CancellationToken ct = default) =>
         await drRepository.DeleteDishAsync(id, ct).ConfigureAwait(false);
+
+    /// <summary>
+    /// Ricalcola calorie e nutrienti del piatto a partire dagli ingredienti correnti.
+    /// Azzera IsNutritionStale e aggiorna NutrientsCalculatedAt.
+    /// </summary>
+    public async Task<(bool Found, string? Error)> RecalculateDishAsync(Guid id, CancellationToken ct = default)
+    {
+        var dish = await drRepository.GetDishWithIngredientsAsync(id, ct).ConfigureAwait(false);
+        if (dish is null)
+        {
+            return (false, null);
+        }
+
+        if (dish.DishIngredients.Count == 0)
+        {
+            return (true, "Il piatto non ha ingredienti: nessun ricalcolo effettuato.");
+        }
+
+        var foodIds = dish.DishIngredients.Select(di => di.FoodId).Distinct().ToList();
+        var foods = (await drRepository.GetFoodsByIdsAsync(foodIds, ct)).ToList();
+        var allNutrients = (await drRepository.GetNutrientsForFoodsAsync(foodIds, ct)).ToList();
+
+        var totalWeight = dish.DishIngredients.Sum(di => di.QuantityGrams);
+
+        var contributions = new Dictionary<Guid, (Guid UomId, decimal Total)>();
+        foreach (var ingredient in dish.DishIngredients)
+        {
+            foreach (var fn in allNutrients.Where(n => n.FoodId == ingredient.FoodId))
+            {
+                var added = fn.Quantity * (ingredient.QuantityGrams / 100m);
+                if (contributions.TryGetValue(fn.NutrientId, out var existing))
+                {
+                    contributions[fn.NutrientId] = (existing.UomId, existing.Total + added);
+                }
+                else
+                {
+                    contributions[fn.NutrientId] = (fn.UnitOfMeasureId, added);
+                }
+            }
+        }
+
+        var newCalorie = Math.Round(
+            dish.DishIngredients
+                .Sum(i => foods.First(f => f.Id == i.FoodId).Calorie * (i.QuantityGrams / 100m)), 2);
+
+        var newNutrients = contributions.Select(kv => new DishNutrient
+        {
+            DishId = id,
+            NutrientId = kv.Key,
+            UnitOfMeasureId = kv.Value.UomId,
+            Quantity = Math.Round(kv.Value.Total, 2)
+        }).ToList();
+
+        await drRepository.UpdateDishNutrientsAsync(id, totalWeight, newCalorie, newNutrients, ct).ConfigureAwait(false);
+        return (true, null);
+    }
+
+    /// <summary>
+    /// Aggiorna il peso del piatto. Se <paramref name="recalculate"/> è true ricalcola dagli ingredienti;
+    /// altrimenti applica un rescaling proporzionale O(1) senza accedere ai Foods.
+    /// </summary>
+    public async Task<(bool Found, string? Error)> UpdateWeightAsync(Guid id, decimal newWeightGrams, bool recalculate, CancellationToken ct = default)
+    {
+        if (recalculate)
+        {
+            return await RecalculateDishAsync(id, ct).ConfigureAwait(false);
+        }
+
+        var found = await drRepository.RescaleDishAsync(id, newWeightGrams, ct).ConfigureAwait(false);
+        return (found, null);
+    }
+
+    /// <summary>
+    /// Ricalcola tutti i piatti con IsNutritionStale = true.
+    /// Restituisce il numero di piatti aggiornati.
+    /// </summary>
+    public async Task<int> RecalculateAllStaleDishesAsync(CancellationToken ct = default)
+    {
+        var staleIds = (await drRepository.GetStaleDishIdsAsync(ct).ConfigureAwait(false)).ToList();
+        var count = 0;
+        foreach (var staleId in staleIds)
+        {
+            var (found, _) = await RecalculateDishAsync(staleId, ct).ConfigureAwait(false);
+            if (found)
+            {
+                count++;
+            }
+        }
+        return count;
+    }
 }

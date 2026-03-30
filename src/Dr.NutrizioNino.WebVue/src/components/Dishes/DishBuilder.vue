@@ -22,7 +22,7 @@
 
       <n-divider title-placement="left">Anteprima nutrienti</n-divider>
 
-      <DishNutritionPreview :nutrients="nutrients" :calorie="calorie" />
+      <DishNutritionPreview :nutrients="nutrients" :calorie="calorie" title="Valori totali (anteprima)" />
     </n-spin>
 
     <n-space justify="space-between" style="margin-top: 8px">

@@ -1,5 +1,5 @@
 <template>
-  <n-card size="small" title="Valori per 100g (anteprima)">
+  <n-card size="small" :title="title">
     <n-space :size="4" align="center" style="margin-bottom: 8px">
       <n-text strong>Kcal: {{ calorie }}</n-text>
     </n-space>
@@ -20,10 +20,13 @@
 import { NCard, NDataTable, NSpace, NText, type DataTableColumns } from 'naive-ui'
 import type { CalculatedNutrient } from '@/core/composables/useDishCalculator'
 
-defineProps<{
+withDefaults(defineProps<{
   nutrients: CalculatedNutrient[]
   calorie: number
-}>()
+  title?: string
+}>(), {
+  title: 'Valori nutrizionali'
+})
 
 const columns: DataTableColumns<CalculatedNutrient> = [
   { title: 'Nutriente', key: 'name' },

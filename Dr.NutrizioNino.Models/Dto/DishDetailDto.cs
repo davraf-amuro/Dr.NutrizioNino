@@ -17,7 +17,10 @@ public record DishDetailIngredientDto(
 public record DishDetailDto(
     Guid Id,
     string Name,
+    decimal WeightGrams,
     decimal Calorie,
     IList<DishDetailIngredientDto> Ingredients,
     IList<DishDetailNutrientDto> Nutrients
 );
+
+public record RescaleDishRequest(decimal WeightGrams, bool Recalculate = false);

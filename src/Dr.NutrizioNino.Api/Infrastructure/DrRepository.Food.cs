@@ -56,6 +56,8 @@ public partial class DrRepository
             return false;
         }
 
+        var calorieChanged = record.Calorie != food.Calorie;
+
         record.Name = food.Name;
         record.Quantity = food.Quantity;
         record.Barcode = food.Barcode;
@@ -64,16 +66,62 @@ public partial class DrRepository
         record.UnitOfMeasureId = food.UnitOfMeasureId;
 
         await drContext.SaveChangesAsync().ConfigureAwait(false);
+
+        if (calorieChanged)
+        {
+            await MarkDishesStaleByFoodIdAsync(food.Id).ConfigureAwait(false);
+        }
+
         return true;
     }
 
-    public async Task<IEnumerable<FoodDashboardInfo>> GetFoodsDashboardAsync() =>
-        await drContext.FoodsDashboard.AsNoTracking().ToListAsync().ConfigureAwait(false);
+    public async Task<IEnumerable<FoodDashboardInfo>> GetFoodsDashboardAsync(string? nameFilter = null) =>
+        await drContext.Foods
+            .AsNoTracking()
+            .Where(f => nameFilter == null || EF.Functions.Like(f.Name, $"%{nameFilter}%"))
+            .Select(f => new FoodDashboardInfo
+            {
+                Id = f.Id,
+                Name = f.Name,
+                Barcode = f.Barcode,
+                Quantity = f.Quantity,
+                BrandDescription = f.Brand != null ? f.Brand.Name : null,
+                Calorie = f.Calorie,
+                UnitOfMeasureDescription = f.UnitOfMeasure.Name,
+                Abbreviation = f.UnitOfMeasure.Abbreviation,
+                IsDish = false,
+                SupermarketsText = string.Join(", ", f.FoodSupermarkets
+                    .Select(fs => fs.Supermarket.Name)
+                    .OrderBy(n => n)),
+                IsNutritionStale = false,
+                NutrientsCalculatedAt = null
+            })
+            .ToListAsync()
+            .ConfigureAwait(false);
 
-    internal async Task<FoodDashboardInfo?> GetFoodDashboardAsync(Guid id)
-    {
-        return await drContext.FoodsDashboard.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
-    }
+    internal async Task<FoodDashboardInfo?> GetFoodDashboardAsync(Guid id) =>
+        await drContext.Foods
+            .AsNoTracking()
+            .Where(f => f.Id == id)
+            .Select(f => new FoodDashboardInfo
+            {
+                Id = f.Id,
+                Name = f.Name,
+                Barcode = f.Barcode,
+                Quantity = f.Quantity,
+                BrandDescription = f.Brand != null ? f.Brand.Name : null,
+                Calorie = f.Calorie,
+                UnitOfMeasureDescription = f.UnitOfMeasure.Name,
+                Abbreviation = f.UnitOfMeasure.Abbreviation,
+                IsDish = false,
+                SupermarketsText = string.Join(", ", f.FoodSupermarkets
+                    .Select(fs => fs.Supermarket.Name)
+                    .OrderBy(n => n)),
+                IsNutritionStale = false,
+                NutrientsCalculatedAt = null
+            })
+            .FirstOrDefaultAsync()
+            .ConfigureAwait(false);
 
     internal async Task<Guid> InsertFullFood(Food food)
     {
@@ -109,6 +157,11 @@ public partial class DrRepository
         record.Calorie = food.Calorie;
         record.UnitOfMeasureId = food.UnitOfMeasureId;
 
+        var calorieChanged = record.Calorie != food.Calorie;
+        var nutrientsChanged = record.FoodsNutrients.Count != food.FoodsNutrients.Count
+            || record.FoodsNutrients.Any(existing => food.FoodsNutrients
+                .All(n => n.NutrientId != existing.NutrientId || n.Quantity != existing.Quantity));
+
         drContext.FoodsNutrients.RemoveRange(record.FoodsNutrients);
         drContext.FoodsNutrients.AddRange(food.FoodsNutrients);
 
@@ -117,6 +170,12 @@ public partial class DrRepository
 
         await drContext.SaveChangesAsync().ConfigureAwait(false);
         await transaction.CommitAsync().ConfigureAwait(false);
+
+        if (calorieChanged || nutrientsChanged)
+        {
+            await MarkDishesStaleByFoodIdAsync(food.Id).ConfigureAwait(false);
+        }
+
         return true;
     }
 }

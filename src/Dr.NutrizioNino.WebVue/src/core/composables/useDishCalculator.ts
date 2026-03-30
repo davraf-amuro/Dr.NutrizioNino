@@ -49,7 +49,7 @@ export const useDishCalculator = (ingredients: Ref<DishIngredient[]>) => {
         name: v.name,
         positionOrder: v.positionOrder,
         unitOfMeasureId: v.unitOfMeasureId,
-        quantity: Math.round((v.total / totalWeight.value) * 100 * 100) / 100
+        quantity: Math.round(v.total * 100) / 100
       }))
     )
   })
@@ -60,7 +60,7 @@ export const useDishCalculator = (ingredients: Ref<DishIngredient[]>) => {
       (sum, { food, quantityGrams }) => sum + Number(food.calorie) * (quantityGrams / 100),
       0
     )
-    return Math.round((total / totalWeight.value) * 100 * 100) / 100
+    return Math.round(total * 100) / 100
   })
 
   return { nutrients, calorie, totalWeight }
