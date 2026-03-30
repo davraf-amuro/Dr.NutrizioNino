@@ -1,3 +1,17 @@
 {
-  "mcpServers": {}
+  "mcpServers": {
+    "db-schema": {
+      "type": "stdio",
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "tools/dr-mcp-dbschema/dr-mcp-dbschema.csproj",
+        "--no-launch-profile"
+      ],
+      "env": {
+        "DB_SCHEMA_ROOT": "src/Dr.NutrizioNino.Api"
+      }
+    }
+  }
 }

@@ -26,6 +26,7 @@ try
     Log.Information("Application building..................");
 
     //carico i parametri di configurazione dal config
+    builder.Configuration.AddJsonFile("appsettings.local.json", optional: true, reloadOnChange: true);
     builder.Configuration.AddEnvironmentVariables(); //si assicura di ereditare le variabili d'ambiente, serve soprattutto in docker
     builder.Services.Configure<AuthorizationTokensDto>(builder.Configuration.GetSection("AuthorizationTokens"));
 

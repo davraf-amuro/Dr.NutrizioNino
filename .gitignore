@@ -420,6 +420,10 @@ FodyWeavers.xsd
 # Built Visual Studio Code Extensions
 *.vsix
 
+# Local settings (non committare)
+appsettings.local.json
+.mcp.json
+
 # Windows Installer files from build outputs
 *.cab
 *.msi
