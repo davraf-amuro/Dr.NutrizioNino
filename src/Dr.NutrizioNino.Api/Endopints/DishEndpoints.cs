@@ -48,7 +48,7 @@ public static class DishEndpoints
 
         group.MapPost("", async (DishService service, CreateDishDto dto, CancellationToken ct) =>
         {
-            if (await service.IsDishNameTakenAsync(dto.Name))
+            if (await service.IsDishNameTakenAsync(dto.Name, ct))
             {
                 return TypedResults.Problem(new ProblemDetails
                 {

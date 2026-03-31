@@ -11,8 +11,8 @@ public class DishService(DrRepository drRepository)
     public async Task<DishDetailDto?> GetDishDetailAsync(Guid id, CancellationToken ct = default) =>
         await drRepository.GetDishByIdAsync(id, ct).ConfigureAwait(false);
 
-    public async Task<bool> IsDishNameTakenAsync(string name) =>
-        await drRepository.IsDishNameTakenAsync(name).ConfigureAwait(false);
+    public async Task<bool> IsDishNameTakenAsync(string name, CancellationToken ct = default) =>
+        await drRepository.IsDishNameTakenAsync(name, ct).ConfigureAwait(false);
 
     public async Task<(Guid? Id, string? Error)> CreateDishAsync(CreateDishDto dto, CancellationToken ct = default)
     {

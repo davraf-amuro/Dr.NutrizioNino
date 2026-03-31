@@ -97,12 +97,12 @@ public static class FoodEndpoints
             }
 
             var newFoodId = await service.InsertFullFood(foodInfo, ct);
-            return Results.Ok(newFoodId);
+            return Results.Ok(foodInfo with { Id = newFoodId });
         })
             .WithName("CreateFood")
             .WithSummary("Create a food")
-            .WithDescription("Creates a food with related nutrients and returns its identifier.")
-            .Produces<Guid>(StatusCodes.Status200OK)
+            .WithDescription("Creates a food with related nutrients and returns the created food with its assigned identifier.")
+            .Produces<FoodInfo>(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict)
             ;
 
