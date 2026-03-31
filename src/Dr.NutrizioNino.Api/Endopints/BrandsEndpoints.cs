@@ -17,9 +17,9 @@ public static class BrandsEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(ApiVersionFactory.Version1);
 
-        group.MapGet("", async (BrandService service) =>
+        group.MapGet("", async (BrandService service, CancellationToken ct) =>
         {
-            var result = await service.GetBrandsAsync();
+            var result = await service.GetBrandsAsync(ct);
             return result.Count > 0
                 ? Results.Ok(result)
                 : TypedResults.Problem(new ProblemDetails
@@ -32,12 +32,12 @@ public static class BrandsEndpoints
             .WithName("GetBrands")
             .WithSummary("Get all brands")
             .WithDescription("Returns all available brands.")
-            .Produces<IList<BrandDto>>()
-            .ProducesDefaultProblem(StatusCodes.Status404NotFound)
-        ;
-        group.MapGet("{id}", async (BrandService service, Guid id) =>
+            .Produces<IList<BrandDto>>(StatusCodes.Status200OK)
+            .ProducesDefaultProblem(StatusCodes.Status404NotFound);
+
+        group.MapGet("{id}", async (BrandService service, Guid id, CancellationToken ct) =>
         {
-            var result = await service.GetBrandAsync(id);
+            var result = await service.GetBrandAsync(id, ct);
             return result is not null
                 ? Results.Ok(result)
                 : TypedResults.Problem(new ProblemDetails
@@ -51,11 +51,11 @@ public static class BrandsEndpoints
             .WithSummary("Get brand by id")
             .WithDescription("Returns a brand for the provided identifier.")
             .Produces<BrandDto>(StatusCodes.Status200OK)
-            .ProducesDefaultProblem(StatusCodes.Status404NotFound)
-            ;
-        group.MapPost("", async (BrandService service, CreateBrandDto newBrand) =>
+            .ProducesDefaultProblem(StatusCodes.Status404NotFound);
+
+        group.MapPost("", async (BrandService service, CreateBrandDto newBrand, CancellationToken ct) =>
         {
-            if (await service.IsBrandNameTakenAsync(newBrand.Name))
+            if (await service.IsBrandNameTakenAsync(newBrand.Name, ct: ct))
             {
                 return TypedResults.Problem(new ProblemDetails
                 {
@@ -65,18 +65,18 @@ public static class BrandsEndpoints
                 });
             }
 
-            var result = await service.CreateBrandAsync(newBrand);
+            var result = await service.CreateBrandAsync(newBrand, ct);
             return Results.Ok(result);
         })
             .WithName("CreateBrand")
             .WithSummary("Create a new brand")
             .WithDescription("Creates a new brand and returns the created entity.")
             .Produces<BrandDto>(StatusCodes.Status200OK)
-            .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict)
-            ;
-        group.MapPut("{id}", async (BrandService service, Guid id, Brand brand) =>
+            .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict);
+
+        group.MapPut("{id}", async (BrandService service, Guid id, Brand brand, CancellationToken ct) =>
         {
-            if (await service.IsBrandNameTakenAsync(brand.Name, excludeId: brand.Id))
+            if (await service.IsBrandNameTakenAsync(brand.Name, excludeId: brand.Id, ct: ct))
             {
                 return TypedResults.Problem(new ProblemDetails
                 {
@@ -86,7 +86,7 @@ public static class BrandsEndpoints
                 });
             }
 
-            var updated = await service.UpdateBrandAsync(brand);
+            var updated = await service.UpdateBrandAsync(brand, ct);
             return updated
                 ? Results.Ok()
                 : TypedResults.Problem(new ProblemDetails
@@ -122,9 +122,10 @@ public static class BrandsEndpoints
             .WithDescription("Updates an existing brand by identifier.")
             .Produces(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound);
-        group.MapGet("{id}/is-in-use", async (BrandService service, Guid id) =>
+
+        group.MapGet("{id}/is-in-use", async (BrandService service, Guid id, CancellationToken ct) =>
         {
-            var inUse = await service.IsBrandInUseAsync(id);
+            var inUse = await service.IsBrandInUseAsync(id, ct);
             return Results.Ok(inUse);
         })
             .WithName("IsBrandInUse")
@@ -132,9 +133,9 @@ public static class BrandsEndpoints
             .WithDescription("Returns true if the brand is referenced by one or more foods.")
             .Produces<bool>(StatusCodes.Status200OK);
 
-        group.MapDelete("{id}", async (BrandService service, Guid id) =>
+        group.MapDelete("{id}", async (BrandService service, Guid id, CancellationToken ct) =>
         {
-            var deleted = await service.DeleteBrandAsync(id);
+            var deleted = await service.DeleteBrandAsync(id, ct);
             return deleted
                 ? Results.Ok()
                 : TypedResults.Problem(new ProblemDetails
@@ -148,8 +149,7 @@ public static class BrandsEndpoints
             .WithSummary("Delete a brand")
             .WithDescription("Deletes an existing brand by identifier.")
             .Produces(StatusCodes.Status200OK)
-            .ProducesDefaultProblem(StatusCodes.Status404NotFound)
-            ;
+            .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 
         return endpoints;
     }

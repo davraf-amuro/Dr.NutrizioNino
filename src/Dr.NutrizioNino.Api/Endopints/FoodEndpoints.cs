@@ -17,9 +17,9 @@ public static class FoodEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(ApiVersionFactory.Version1);
 
-        group.MapGet("{id}", async (FoodService service, Guid id) =>
+        group.MapGet("{id}", async (FoodService service, Guid id, CancellationToken ct) =>
         {
-            var result = await service.GetFullFood(id);
+            var result = await service.GetFullFood(id, ct);
             return result is not null
                 ? Results.Ok(result)
                 : TypedResults.Problem(new ProblemDetails
@@ -35,9 +35,9 @@ public static class FoodEndpoints
             .Produces<FoodInfo>(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 
-        group.MapGet("dashboard", async (FoodService service, string? name) =>
+        group.MapGet("dashboard", async (FoodService service, string? name, CancellationToken ct) =>
         {
-            var result = await service.GetFoodsDashboardAsync(name);
+            var result = await service.GetFoodsDashboardAsync(name, ct);
             return result.Count > 0
                 ? Results.Ok(result)
                 : TypedResults.Problem(new ProblemDetails
@@ -53,9 +53,9 @@ public static class FoodEndpoints
             .Produces<IList<FoodDashboardInfo>>(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 
-        group.MapGet("dashboard/{id}", async (FoodService service, Guid id) =>
+        group.MapGet("dashboard/{id}", async (FoodService service, Guid id, CancellationToken ct) =>
         {
-            var result = await service.GetFoodDashboardAsync(id);
+            var result = await service.GetFoodDashboardAsync(id, ct);
             return result is not null
                 ? Results.Ok(result)
                 : TypedResults.Problem(new ProblemDetails
@@ -77,15 +77,16 @@ public static class FoodEndpoints
             .WithDescription("Returns a new guid string for GUI initialization.")
             .Produces<string>(StatusCodes.Status200OK);
 
-        group.MapGet("getnewfood", async (FoodService service) => await service.GetFullFood(null))
+        group.MapGet("getnewfood", async (FoodService service, CancellationToken ct) =>
+            await service.GetFullFood(null, ct))
             .WithName("GetNewFoodTemplate")
             .WithSummary("Get new food template")
             .WithDescription("Returns a template for creating a new food.")
             .Produces<FoodInfo>(StatusCodes.Status200OK);
 
-        group.MapPost("Create", async (FoodService service, FoodInfo foodInfo) =>
+        group.MapPost("Create", async (FoodService service, FoodInfo foodInfo, CancellationToken ct) =>
         {
-            if (await service.IsFoodNameTakenAsync(foodInfo.Name))
+            if (await service.IsFoodNameTakenAsync(foodInfo.Name, ct: ct))
             {
                 return TypedResults.Problem(new ProblemDetails
                 {
@@ -95,19 +96,19 @@ public static class FoodEndpoints
                 });
             }
 
-            var newFoodId = await service.InsertFullFood(foodInfo);
+            var newFoodId = await service.InsertFullFood(foodInfo, ct);
             return Results.Ok(newFoodId);
         })
             .WithName("CreateFood")
             .WithSummary("Create a food")
             .WithDescription("Creates a food with related nutrients and returns its identifier.")
             .Produces<Guid>(StatusCodes.Status200OK)
-            .ProducesDefaultProblem(StatusCodes.Status400BadRequest)
+            .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict)
             ;
 
-        group.MapPut("{id}", async (FoodService service, Guid id, FoodInfo foodInfo) =>
+        group.MapPut("{id}", async (FoodService service, Guid id, FoodInfo foodInfo, CancellationToken ct) =>
         {
-            if (await service.IsFoodNameTakenAsync(foodInfo.Name, excludeId: foodInfo.Id))
+            if (await service.IsFoodNameTakenAsync(foodInfo.Name, excludeId: foodInfo.Id, ct: ct))
             {
                 return TypedResults.Problem(new ProblemDetails
                 {
@@ -117,7 +118,7 @@ public static class FoodEndpoints
                 });
             }
 
-            var updated = await service.UpdateFullFoodAsync(foodInfo);
+            var updated = await service.UpdateFullFoodAsync(foodInfo, ct);
             return updated
                 ? Results.Ok()
                 : TypedResults.Problem(new ProblemDetails
@@ -148,11 +149,11 @@ public static class FoodEndpoints
             .WithSummary("Update a food")
             .WithDescription("Updates an existing food with all related nutrients by identifier.")
             .Produces(StatusCodes.Status200OK)
-            .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound);
+            .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound, StatusCodes.Status409Conflict);
 
-        group.MapDelete("{id}", async (FoodService service, Guid id) =>
+        group.MapDelete("{id}", async (FoodService service, Guid id, CancellationToken ct) =>
         {
-            await service.DeleteFoodAsync(id);
+            await service.DeleteFoodAsync(id, ct);
             return Results.Ok();
         })
             .WithName("DeleteFood")

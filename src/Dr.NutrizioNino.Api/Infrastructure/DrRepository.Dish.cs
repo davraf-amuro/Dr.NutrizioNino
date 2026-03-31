@@ -93,24 +93,9 @@ public partial class DrRepository
         await transaction.CommitAsync(ct).ConfigureAwait(false);
     }
 
-    public async Task<IEnumerable<FoodDashboardInfo>> GetDishesDashboardAsync(CancellationToken ct = default) =>
-        await drContext.Dishes
+    public async Task<IEnumerable<DishDashboardInfo>> GetDishesDashboardAsync(CancellationToken ct = default) =>
+        await drContext.DishesDashboard
             .AsNoTracking()
-            .Select(d => new FoodDashboardInfo
-            {
-                Id = d.Id,
-                Name = d.Name,
-                Barcode = null,
-                Quantity = d.WeightGrams,
-                BrandDescription = null,
-                Calorie = d.Calorie,
-                UnitOfMeasureDescription = d.UnitOfMeasure.Name,
-                Abbreviation = d.UnitOfMeasure.Abbreviation,
-                IsDish = true,
-                SupermarketsText = null,
-                IsNutritionStale = d.IsNutritionStale,
-                NutrientsCalculatedAt = d.NutrientsCalculatedAt
-            })
             .ToListAsync(ct)
             .ConfigureAwait(false);
 

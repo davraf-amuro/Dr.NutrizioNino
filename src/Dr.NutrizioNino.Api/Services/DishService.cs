@@ -85,7 +85,7 @@ public class DishService(DrRepository drRepository)
         return (dishId, null);
     }
 
-    public async Task<IList<FoodDashboardInfo>> GetDishesDashboardAsync(CancellationToken ct = default) =>
+    public async Task<IList<DishDashboardInfo>> GetDishesDashboardAsync(CancellationToken ct = default) =>
         (await drRepository.GetDishesDashboardAsync(ct).ConfigureAwait(false)).ToList();
 
     public async Task DeleteDishAsync(Guid id, CancellationToken ct = default) =>

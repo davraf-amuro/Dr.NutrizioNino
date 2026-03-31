@@ -8,22 +8,13 @@ namespace Dr.NutrizioNino.Api.Services;
 
 public class FoodService(DrRepository drRepository)
 {
-    public async Task<bool> IsFoodNameTakenAsync(string name, Guid? excludeId = null)
-    {
-        return await drRepository.IsFoodNameTakenAsync(name, excludeId).ConfigureAwait(false);
-    }
+    public async Task<bool> IsFoodNameTakenAsync(string name, Guid? excludeId = null, CancellationToken ct = default) =>
+        await drRepository.IsFoodNameTakenAsync(name, excludeId, ct).ConfigureAwait(false);
 
-    public async Task<Food> CreateFoodAsync(CreateFoodDto newFoodDto)
-    {
-        return await drRepository.CreateFoodAsync(newFoodDto);
-    }
+    public async Task<bool> UpdateFoodAsync(Food food, CancellationToken ct = default) =>
+        await drRepository.UpdateFoodAsync(food, ct).ConfigureAwait(false);
 
-    public async Task<bool> UpdateFoodAsync(Food food)
-    {
-        return await drRepository.UpdateFoodAsync(food).ConfigureAwait(false);
-    }
-
-    public async Task<bool> UpdateFullFoodAsync(FoodInfo foodInfo)
+    public async Task<bool> UpdateFullFoodAsync(FoodInfo foodInfo, CancellationToken ct = default)
     {
         var food = new Food
         {
@@ -56,30 +47,26 @@ public class FoodService(DrRepository drRepository)
             });
         }
 
-        return await drRepository.UpdateFullFoodAsync(food).ConfigureAwait(false);
+        return await drRepository.UpdateFullFoodAsync(food, ct).ConfigureAwait(false);
     }
 
-    public async Task DeleteFoodAsync(Guid id)
+    public async Task DeleteFoodAsync(Guid id, CancellationToken ct = default) =>
+        await drRepository.DeleteFoodAsync(id, ct).ConfigureAwait(false);
+
+    public async Task<IList<FoodDashboardInfo>> GetFoodsDashboardAsync(string? nameFilter = null, CancellationToken ct = default)
     {
-        await drRepository.DeleteFoodAsync(id);
+        var result = await drRepository.GetFoodsDashboardAsync(nameFilter, ct).ConfigureAwait(false);
+        return result.ToList();
     }
 
-    public async Task<IList<FoodDashboardInfo>> GetFoodsDashboardAsync(string? nameFilter = null)
-    {
-        var request = await drRepository.GetFoodsDashboardAsync(nameFilter).ConfigureAwait(false);
-        return request.ToList();
-    }
+    public async Task<FoodDashboardInfo?> GetFoodDashboardAsync(Guid id, CancellationToken ct = default) =>
+        await drRepository.GetFoodDashboardAsync(id, ct).ConfigureAwait(false);
 
-    public async Task<FoodDashboardInfo?> GetFoodDashboardAsync(Guid id)
+    public async Task<FoodInfo?> GetFullFood(Guid? id, CancellationToken ct = default)
     {
-        return await drRepository.GetFoodDashboardAsync(id).ConfigureAwait(false);
-    }
-
-    public async Task<FoodInfo?> GetFullFood(Guid? id)
-    {
-        var nutrients = (await drRepository.GetAllNutrientsForFood(id)).ToList();
+        var nutrients = (await drRepository.GetAllNutrientsForFood(id, ct)).ToList();
         var food = id.HasValue
-            ? await drRepository.GetFoodAsync(id.Value).ConfigureAwait(false)
+            ? await drRepository.GetFoodAsync(id.Value, ct).ConfigureAwait(false)
             : null;
 
         if (id.HasValue && food is null)
@@ -101,7 +88,7 @@ public class FoodService(DrRepository drRepository)
             supermarketIds);
     }
 
-    public async Task<Guid> InsertFullFood(FoodInfo foodInfo)
+    public async Task<Guid> InsertFullFood(FoodInfo foodInfo, CancellationToken ct = default)
     {
         var food = new Food
         {
@@ -134,7 +121,7 @@ public class FoodService(DrRepository drRepository)
             });
         }
 
-        await drRepository.InsertFullFood(food);
+        await drRepository.InsertFullFood(food, ct).ConfigureAwait(false);
         return food.Id;
     }
 }

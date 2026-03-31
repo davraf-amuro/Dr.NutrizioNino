@@ -17,9 +17,9 @@ public static class UnitsOfMeasureEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(ApiVersionFactory.Version1);
 
-        group.MapGet("", async (UnitsOfMeasureService service) =>
+        group.MapGet("", async (UnitsOfMeasureService service, CancellationToken ct) =>
         {
-            var result = await service.GetUnitsOfMeasuresAsync();
+            var result = await service.GetUnitsOfMeasuresAsync(ct);
             return result.Count > 0
                 ? Results.Ok(result)
                 : TypedResults.Problem(new ProblemDetails
@@ -35,9 +35,9 @@ public static class UnitsOfMeasureEndpoints
             .Produces<IList<UnitOfMeasureDto>>(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 
-        group.MapGet("{id}", async (UnitsOfMeasureService service, Guid id) =>
+        group.MapGet("{id}", async (UnitsOfMeasureService service, Guid id, CancellationToken ct) =>
         {
-            var result = await service.GetUnitOfMeasureAsync(id);
+            var result = await service.GetUnitOfMeasureAsync(id, ct);
             return result is not null
                 ? Results.Ok(result)
                 : TypedResults.Problem(new ProblemDetails
@@ -53,9 +53,9 @@ public static class UnitsOfMeasureEndpoints
             .Produces<UnitOfMeasure>(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 
-        group.MapPost("", async (UnitsOfMeasureService service, CreateUnitOfMeasureDto newUnitOfMeasure) =>
+        group.MapPost("", async (UnitsOfMeasureService service, CreateUnitOfMeasureDto newUnitOfMeasure, CancellationToken ct) =>
         {
-            var (result, entity) = await service.CreateUnitOfMeasureAsync(newUnitOfMeasure);
+            var (result, entity) = await service.CreateUnitOfMeasureAsync(newUnitOfMeasure, ct);
             return result switch
             {
                 UomOperationResult.Success => Results.Ok(entity),
@@ -79,9 +79,9 @@ public static class UnitsOfMeasureEndpoints
             .Produces<UnitOfMeasure>(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict);
 
-        group.MapPut("{id}", async (UnitsOfMeasureService service, Guid id, UnitOfMeasure unitOfMeasure) =>
+        group.MapPut("{id}", async (UnitsOfMeasureService service, Guid id, UnitOfMeasure unitOfMeasure, CancellationToken ct) =>
         {
-            var result = await service.UpdateUnitOfMeasureAsync(unitOfMeasure);
+            var result = await service.UpdateUnitOfMeasureAsync(unitOfMeasure, ct);
             return result switch
             {
                 UomOperationResult.Success => Results.Ok(),
@@ -132,9 +132,9 @@ public static class UnitsOfMeasureEndpoints
             .Produces(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound, StatusCodes.Status409Conflict);
 
-        group.MapDelete("{id}", async (UnitsOfMeasureService service, Guid id) =>
+        group.MapDelete("{id}", async (UnitsOfMeasureService service, Guid id, CancellationToken ct) =>
         {
-            var result = await service.DeleteUnitOfMeasureAsync(id);
+            var result = await service.DeleteUnitOfMeasureAsync(id, ct);
             return result switch
             {
                 UomOperationResult.Success => Results.Ok(),

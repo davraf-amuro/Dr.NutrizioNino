@@ -17,9 +17,9 @@ public static class SupermarketsEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(ApiVersionFactory.Version1);
 
-        group.MapGet("", async (SupermarketService service) =>
+        group.MapGet("", async (SupermarketService service, CancellationToken ct) =>
         {
-            var result = await service.GetSupermarketsAsync();
+            var result = await service.GetSupermarketsAsync(ct);
             return result.Count > 0
                 ? Results.Ok(result)
                 : TypedResults.Problem(new ProblemDetails
@@ -32,12 +32,12 @@ public static class SupermarketsEndpoints
             .WithName("GetSupermarkets")
             .WithSummary("Get all supermarkets")
             .WithDescription("Returns all available supermarkets.")
-            .Produces<IList<SupermarketDto>>()
+            .Produces<IList<SupermarketDto>>(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 
-        group.MapGet("{id}", async (SupermarketService service, Guid id) =>
+        group.MapGet("{id}", async (SupermarketService service, Guid id, CancellationToken ct) =>
         {
-            var result = await service.GetSupermarketAsync(id);
+            var result = await service.GetSupermarketAsync(id, ct);
             return result is not null
                 ? Results.Ok(new SupermarketDto(result.Id, result.Name))
                 : TypedResults.Problem(new ProblemDetails
@@ -49,12 +49,13 @@ public static class SupermarketsEndpoints
         })
             .WithName("GetSupermarketById")
             .WithSummary("Get supermarket by id")
-            .Produces<SupermarketDto>()
+            .WithDescription("Returns a supermarket for the provided identifier.")
+            .Produces<SupermarketDto>(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 
-        group.MapPost("", async (SupermarketService service, CreateSupermarketDto dto) =>
+        group.MapPost("", async (SupermarketService service, CreateSupermarketDto dto, CancellationToken ct) =>
         {
-            if (await service.IsSupermarketNameTakenAsync(dto.Name))
+            if (await service.IsSupermarketNameTakenAsync(dto.Name, ct: ct))
             {
                 return TypedResults.Problem(new ProblemDetails
                 {
@@ -64,17 +65,18 @@ public static class SupermarketsEndpoints
                 });
             }
 
-            var result = await service.CreateSupermarketAsync(dto);
+            var result = await service.CreateSupermarketAsync(dto, ct);
             return Results.Ok(new SupermarketDto(result.Id, result.Name));
         })
             .WithName("CreateSupermarket")
             .WithSummary("Create a new supermarket")
-            .Produces<SupermarketDto>()
-            .ProducesDefaultProblem(StatusCodes.Status409Conflict);
+            .WithDescription("Creates a new supermarket and returns the created entity.")
+            .Produces<SupermarketDto>(StatusCodes.Status200OK)
+            .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict);
 
-        group.MapPut("{id}", async (SupermarketService service, Guid id, Supermarket supermarket) =>
+        group.MapPut("{id}", async (SupermarketService service, Guid id, Supermarket supermarket, CancellationToken ct) =>
         {
-            if (await service.IsSupermarketNameTakenAsync(supermarket.Name, excludeId: supermarket.Id))
+            if (await service.IsSupermarketNameTakenAsync(supermarket.Name, excludeId: supermarket.Id, ct: ct))
             {
                 return TypedResults.Problem(new ProblemDetails
                 {
@@ -84,7 +86,7 @@ public static class SupermarketsEndpoints
                 });
             }
 
-            var updated = await service.UpdateSupermarketAsync(supermarket);
+            var updated = await service.UpdateSupermarketAsync(supermarket, ct);
             return updated
                 ? Results.Ok()
                 : TypedResults.Problem(new ProblemDetails
@@ -117,18 +119,20 @@ public static class SupermarketsEndpoints
             })
             .WithName("UpdateSupermarket")
             .WithSummary("Update an existing supermarket")
+            .WithDescription("Updates an existing supermarket by identifier.")
             .Produces(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound, StatusCodes.Status409Conflict);
 
-        group.MapGet("{id}/is-in-use", async (SupermarketService service, Guid id) =>
-            Results.Ok(await service.IsSupermarketInUseAsync(id)))
+        group.MapGet("{id}/is-in-use", async (SupermarketService service, Guid id, CancellationToken ct) =>
+            Results.Ok(await service.IsSupermarketInUseAsync(id, ct)))
             .WithName("IsSupermarketInUse")
             .WithSummary("Check if supermarket is in use")
-            .Produces<bool>();
+            .WithDescription("Returns true if the supermarket is referenced by one or more foods.")
+            .Produces<bool>(StatusCodes.Status200OK);
 
-        group.MapDelete("{id}", async (SupermarketService service, Guid id) =>
+        group.MapDelete("{id}", async (SupermarketService service, Guid id, CancellationToken ct) =>
         {
-            var deleted = await service.DeleteSupermarketAsync(id);
+            var deleted = await service.DeleteSupermarketAsync(id, ct);
             return deleted
                 ? Results.Ok()
                 : TypedResults.Problem(new ProblemDetails
@@ -140,6 +144,7 @@ public static class SupermarketsEndpoints
         })
             .WithName("DeleteSupermarket")
             .WithSummary("Delete a supermarket")
+            .WithDescription("Deletes an existing supermarket by identifier.")
             .Produces(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 

@@ -8,49 +8,47 @@ namespace Dr.NutrizioNino.Api.Infrastructure;
 
 public partial class DrRepository
 {
-    public async Task<Food> CreateFoodAsync(CreateFoodDto newFoodDto)
+    public async Task<Food> CreateFoodAsync(CreateFoodDto newFoodDto, CancellationToken ct = default)
     {
         var newFood = await ModelsFactory.CreateFood(newFoodDto).ConfigureAwait(false);
         drContext.Foods.Add(newFood);
-        await drContext.SaveChangesAsync().ConfigureAwait(false);
+        await drContext.SaveChangesAsync(ct).ConfigureAwait(false);
         return newFood;
     }
 
-    public async Task DeleteFoodAsync(Guid id)
+    public async Task DeleteFoodAsync(Guid id, CancellationToken ct = default)
     {
         var record = await drContext.Foods
             .Include(f => f.FoodsNutrients)
             .Include(f => f.FoodSupermarkets)
-            .FirstOrDefaultAsync(f => f.Id == id)
+            .FirstOrDefaultAsync(f => f.Id == id, ct)
             .ConfigureAwait(false);
         if (record is null)
         {
             return;
         }
 
-        await using var transaction = await drContext.Database.BeginTransactionAsync().ConfigureAwait(false);
+        await using var transaction = await drContext.Database.BeginTransactionAsync(ct).ConfigureAwait(false);
         drContext.FoodsNutrients.RemoveRange(record.FoodsNutrients);
         drContext.FoodSupermarkets.RemoveRange(record.FoodSupermarkets);
         drContext.Foods.Remove(record);
-        await drContext.SaveChangesAsync().ConfigureAwait(false);
-        await transaction.CommitAsync().ConfigureAwait(false);
+        await drContext.SaveChangesAsync(ct).ConfigureAwait(false);
+        await transaction.CommitAsync(ct).ConfigureAwait(false);
     }
 
-    public async Task<IEnumerable<Food>> GetFoodsAsync() =>
-        await drContext.Foods.AsNoTracking().ToListAsync().ConfigureAwait(false);
+    public async Task<IEnumerable<Food>> GetFoodsAsync(CancellationToken ct = default) =>
+        await drContext.Foods.AsNoTracking().ToListAsync(ct).ConfigureAwait(false);
 
-    internal async Task<Food?> GetFoodAsync(Guid id)
-    {
-        return await drContext.Foods
+    internal async Task<Food?> GetFoodAsync(Guid id, CancellationToken ct = default) =>
+        await drContext.Foods
             .AsNoTracking()
             .Include(f => f.FoodSupermarkets)
-            .FirstOrDefaultAsync(x => x.Id == id)
+            .FirstOrDefaultAsync(x => x.Id == id, ct)
             .ConfigureAwait(false);
-    }
 
-    public async Task<bool> UpdateFoodAsync(Food food)
+    public async Task<bool> UpdateFoodAsync(Food food, CancellationToken ct = default)
     {
-        var record = await drContext.Foods.FindAsync(food.Id).ConfigureAwait(false);
+        var record = await drContext.Foods.FindAsync(new object?[] { food.Id }, ct).ConfigureAwait(false);
         if (record is null)
         {
             return false;
@@ -65,82 +63,47 @@ public partial class DrRepository
         record.Calorie = food.Calorie;
         record.UnitOfMeasureId = food.UnitOfMeasureId;
 
-        await drContext.SaveChangesAsync().ConfigureAwait(false);
+        await drContext.SaveChangesAsync(ct).ConfigureAwait(false);
 
         if (calorieChanged)
         {
-            await MarkDishesStaleByFoodIdAsync(food.Id).ConfigureAwait(false);
+            await MarkDishesStaleByFoodIdAsync(food.Id, ct).ConfigureAwait(false);
         }
 
         return true;
     }
 
-    public async Task<IEnumerable<FoodDashboardInfo>> GetFoodsDashboardAsync(string? nameFilter = null) =>
-        await drContext.Foods
+    public async Task<IEnumerable<FoodDashboardInfo>> GetFoodsDashboardAsync(string? nameFilter = null, CancellationToken ct = default) =>
+        await drContext.FoodsDashboard
             .AsNoTracking()
-            .Where(f => nameFilter == null || EF.Functions.Like(f.Name, $"%{nameFilter}%"))
-            .Select(f => new FoodDashboardInfo
-            {
-                Id = f.Id,
-                Name = f.Name,
-                Barcode = f.Barcode,
-                Quantity = f.Quantity,
-                BrandDescription = f.Brand != null ? f.Brand.Name : null,
-                Calorie = f.Calorie,
-                UnitOfMeasureDescription = f.UnitOfMeasure.Name,
-                Abbreviation = f.UnitOfMeasure.Abbreviation,
-                IsDish = false,
-                SupermarketsText = string.Join(", ", f.FoodSupermarkets
-                    .Select(fs => fs.Supermarket.Name)
-                    .OrderBy(n => n)),
-                IsNutritionStale = false,
-                NutrientsCalculatedAt = null
-            })
-            .ToListAsync()
+            .Where(f => nameFilter == null || EF.Functions.Like(f.Name!, $"%{nameFilter}%"))
+            .ToListAsync(ct)
             .ConfigureAwait(false);
 
-    internal async Task<FoodDashboardInfo?> GetFoodDashboardAsync(Guid id) =>
-        await drContext.Foods
+    internal async Task<FoodDashboardInfo?> GetFoodDashboardAsync(Guid id, CancellationToken ct = default) =>
+        await drContext.FoodsDashboard
             .AsNoTracking()
-            .Where(f => f.Id == id)
-            .Select(f => new FoodDashboardInfo
-            {
-                Id = f.Id,
-                Name = f.Name,
-                Barcode = f.Barcode,
-                Quantity = f.Quantity,
-                BrandDescription = f.Brand != null ? f.Brand.Name : null,
-                Calorie = f.Calorie,
-                UnitOfMeasureDescription = f.UnitOfMeasure.Name,
-                Abbreviation = f.UnitOfMeasure.Abbreviation,
-                IsDish = false,
-                SupermarketsText = string.Join(", ", f.FoodSupermarkets
-                    .Select(fs => fs.Supermarket.Name)
-                    .OrderBy(n => n)),
-                IsNutritionStale = false,
-                NutrientsCalculatedAt = null
-            })
-            .FirstOrDefaultAsync()
+            .FirstOrDefaultAsync(f => f.Id == id, ct)
             .ConfigureAwait(false);
 
-    internal async Task<Guid> InsertFullFood(Food food)
+    internal async Task<Guid> InsertFullFood(Food food, CancellationToken ct = default)
     {
         drContext.Foods.Add(food);
-        await drContext.SaveChangesAsync().ConfigureAwait(false);
+        await drContext.SaveChangesAsync(ct).ConfigureAwait(false);
         return food.Id;
     }
 
-    public async Task<bool> IsFoodNameTakenAsync(string name, Guid? excludeId = null) =>
+    public async Task<bool> IsFoodNameTakenAsync(string name, Guid? excludeId = null, CancellationToken ct = default) =>
         await drContext.Foods
-            .AnyAsync(f => f.Name.ToLower() == name.ToLower() && (!excludeId.HasValue || f.Id != excludeId.Value))
+            .AnyAsync(f => f.Name.ToLower() == name.ToLower() && (!excludeId.HasValue || f.Id != excludeId.Value), ct)
             .ConfigureAwait(false);
 
-    public async Task<bool> UpdateFullFoodAsync(Food food)
+    public async Task<bool> UpdateFullFoodAsync(Food food, CancellationToken ct = default)
     {
         var record = await drContext.Foods
             .Include(f => f.FoodsNutrients)
             .Include(f => f.FoodSupermarkets)
-            .FirstOrDefaultAsync(f => f.Id == food.Id)
+            .FirstOrDefaultAsync(f => f.Id == food.Id, ct)
             .ConfigureAwait(false);
 
         if (record is null)
@@ -148,7 +111,12 @@ public partial class DrRepository
             return false;
         }
 
-        await using var transaction = await drContext.Database.BeginTransactionAsync().ConfigureAwait(false);
+        await using var transaction = await drContext.Database.BeginTransactionAsync(ct).ConfigureAwait(false);
+
+        var calorieChanged = record.Calorie != food.Calorie;
+        var nutrientsChanged = record.FoodsNutrients.Count != food.FoodsNutrients.Count
+            || record.FoodsNutrients.Any(existing => food.FoodsNutrients
+                .All(n => n.NutrientId != existing.NutrientId || n.Quantity != existing.Quantity));
 
         record.Name = food.Name;
         record.Quantity = food.Quantity;
@@ -156,11 +124,6 @@ public partial class DrRepository
         record.BrandId = food.BrandId;
         record.Calorie = food.Calorie;
         record.UnitOfMeasureId = food.UnitOfMeasureId;
-
-        var calorieChanged = record.Calorie != food.Calorie;
-        var nutrientsChanged = record.FoodsNutrients.Count != food.FoodsNutrients.Count
-            || record.FoodsNutrients.Any(existing => food.FoodsNutrients
-                .All(n => n.NutrientId != existing.NutrientId || n.Quantity != existing.Quantity));
 
         drContext.FoodsNutrients.RemoveRange(record.FoodsNutrients);
         drContext.FoodsNutrients.AddRange(food.FoodsNutrients);
@@ -168,12 +131,12 @@ public partial class DrRepository
         drContext.FoodSupermarkets.RemoveRange(record.FoodSupermarkets);
         drContext.FoodSupermarkets.AddRange(food.FoodSupermarkets);
 
-        await drContext.SaveChangesAsync().ConfigureAwait(false);
-        await transaction.CommitAsync().ConfigureAwait(false);
+        await drContext.SaveChangesAsync(ct).ConfigureAwait(false);
+        await transaction.CommitAsync(ct).ConfigureAwait(false);
 
         if (calorieChanged || nutrientsChanged)
         {
-            await MarkDishesStaleByFoodIdAsync(food.Id).ConfigureAwait(false);
+            await MarkDishesStaleByFoodIdAsync(food.Id, ct).ConfigureAwait(false);
         }
 
         return true;

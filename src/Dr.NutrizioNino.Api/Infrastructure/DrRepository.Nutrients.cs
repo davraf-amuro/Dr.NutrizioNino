@@ -7,50 +7,48 @@ namespace Dr.NutrizioNino.Api.Infrastructure;
 
 public partial class DrRepository
 {
-    public async Task<Nutrient> CreateNutrientAsync(Nutrient nutrient)
+    public async Task<Nutrient> CreateNutrientAsync(Nutrient nutrient, CancellationToken ct = default)
     {
         drContext.Nutrients.Add(nutrient);
-        await drContext.SaveChangesAsync().ConfigureAwait(false);
+        await drContext.SaveChangesAsync(ct).ConfigureAwait(false);
         return nutrient;
     }
 
-    public async Task<bool> DeleteNutrientAsync(Guid id)
+    public async Task<bool> DeleteNutrientAsync(Guid id, CancellationToken ct = default)
     {
-        var record = await drContext.Nutrients.FindAsync(id).ConfigureAwait(false);
+        var record = await drContext.Nutrients.FindAsync(new object?[] { id }, ct).ConfigureAwait(false);
         if (record is null)
         {
             return false;
         }
 
         drContext.Nutrients.Remove(record);
-        await drContext.SaveChangesAsync().ConfigureAwait(false);
+        await drContext.SaveChangesAsync(ct).ConfigureAwait(false);
         return true;
     }
 
-    public async Task<bool> NutrientNameExistsAsync(string name, Guid? excludeId = null) =>
+    public async Task<bool> NutrientNameExistsAsync(string name, Guid? excludeId = null, CancellationToken ct = default) =>
         await drContext.Nutrients
-            .AnyAsync(n => n.Name == name && (excludeId == null || n.Id != excludeId))
+            .AnyAsync(n => n.Name == name && (excludeId == null || n.Id != excludeId), ct)
             .ConfigureAwait(false);
 
-    public async Task<bool> IsNutrientInUseAsync(Guid id) =>
+    public async Task<bool> IsNutrientInUseAsync(Guid id, CancellationToken ct = default) =>
         await drContext.FoodsNutrients
-            .AnyAsync(fn => fn.NutrientId == id)
+            .AnyAsync(fn => fn.NutrientId == id, ct)
             .ConfigureAwait(false);
 
-    public async Task<IEnumerable<Nutrient>> GetNutrientsAsync() =>
-        await drContext.Nutrients.AsNoTracking().ToListAsync().ConfigureAwait(false);
+    public async Task<IEnumerable<Nutrient>> GetNutrientsAsync(CancellationToken ct = default) =>
+        await drContext.Nutrients.AsNoTracking().ToListAsync(ct).ConfigureAwait(false);
 
-    public async Task<Nutrient?> GetNutrientAsync(Guid id)
-    {
-        return await drContext.Nutrients
+    public async Task<Nutrient?> GetNutrientAsync(Guid id, CancellationToken ct = default) =>
+        await drContext.Nutrients
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == id)
+            .FirstOrDefaultAsync(x => x.Id == id, ct)
             .ConfigureAwait(false);
-    }
 
-    public async Task<bool> UpdateNutrientAsync(Nutrient nutrient)
+    public async Task<bool> UpdateNutrientAsync(Nutrient nutrient, CancellationToken ct = default)
     {
-        var record = await drContext.Nutrients.FindAsync(nutrient.Id).ConfigureAwait(false);
+        var record = await drContext.Nutrients.FindAsync(new object?[] { nutrient.Id }, ct).ConfigureAwait(false);
         if (record is null)
         {
             return false;
@@ -61,24 +59,19 @@ public partial class DrRepository
         record.DefaultQuantity = nutrient.DefaultQuantity;
         record.DefaultUnitOfMeasureId = nutrient.DefaultUnitOfMeasureId;
 
-        await drContext.SaveChangesAsync().ConfigureAwait(false);
+        await drContext.SaveChangesAsync(ct).ConfigureAwait(false);
         return true;
     }
 
     /// <summary>
-    /// restituisce tutti i nutrienti. Se riceve il guid di un cibo restituisce i nutrienti di quel cibo più quelli mancanti
+    /// Restituisce tutti i nutrienti. Se riceve il guid di un cibo restituisce i nutrienti di quel cibo più quelli mancanti.
     /// </summary>
-    /// <param name="id">Guid del cibo</param>
-    /// <returns></returns>
-    public async Task<IEnumerable<NutrientsGetForFoodCreatingInfo>> GetAllNutrientsForFood(Guid? id)
+    public async Task<IEnumerable<NutrientsGetForFoodCreatingInfo>> GetAllNutrientsForFood(Guid? id, CancellationToken ct = default)
     {
-        var nutrients = await drContext.NutrientsGetForFoodCreatingInfoes
+        return await drContext.NutrientsGetForFoodCreatingInfoes
             .FromSql($"EXECUTE dbo.Full_Nutrients_For_Food {id}")
             .AsNoTracking()
-            .ToListAsync()
+            .ToListAsync(ct)
             .ConfigureAwait(false);
-
-        return nutrients;
     }
-
 }

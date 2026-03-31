@@ -26,18 +26,25 @@ public static class DishEndpoints
             .WithName("GetDishesDashboard")
             .WithSummary("Get dishes dashboard")
             .WithDescription("Returns the list of all dishes.")
-            .Produces<IList<FoodDashboardInfo>>(StatusCodes.Status200OK);
+            .Produces<IList<DishDashboardInfo>>(StatusCodes.Status200OK);
 
         group.MapGet("{id}", async (DishService service, Guid id, CancellationToken ct) =>
         {
             var result = await service.GetDishDetailAsync(id, ct);
-            return result is null ? Results.NotFound() : Results.Ok(result);
+            return result is not null
+                ? Results.Ok(result)
+                : TypedResults.Problem(new ProblemDetails
+                {
+                    Title = "Data Not Found",
+                    Status = StatusCodes.Status404NotFound,
+                    Detail = "Dish not found."
+                });
         })
             .WithName("GetDishDetail")
             .WithSummary("Get dish detail")
             .WithDescription("Returns dish details with ingredients and nutrients.")
             .Produces<DishDetailDto>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status404NotFound);
+            .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 
         group.MapPost("", async (DishService service, CreateDishDto dto, CancellationToken ct) =>
         {
@@ -85,7 +92,12 @@ public static class DishEndpoints
             var (found, error) = await service.RecalculateDishAsync(id, ct);
             if (!found)
             {
-                return Results.NotFound();
+                return TypedResults.Problem(new ProblemDetails
+                {
+                    Title = "Data Not Found",
+                    Status = StatusCodes.Status404NotFound,
+                    Detail = "Dish not found."
+                });
             }
 
             if (error is not null)
@@ -104,8 +116,7 @@ public static class DishEndpoints
             .WithSummary("Recalculate dish nutrition")
             .WithDescription("Recalculates calories and nutrients for the specified dish from its current ingredients. Clears IsNutritionStale.")
             .Produces(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status404NotFound)
-            .ProducesDefaultProblem(StatusCodes.Status422UnprocessableEntity);
+            .ProducesDefaultProblem(StatusCodes.Status404NotFound, StatusCodes.Status422UnprocessableEntity);
 
         group.MapPost("recalculate-stale", async (DishService service, CancellationToken ct) =>
         {
@@ -132,7 +143,12 @@ public static class DishEndpoints
             var (found, error) = await service.UpdateWeightAsync(id, request.WeightGrams, request.Recalculate, ct);
             if (!found)
             {
-                return Results.NotFound();
+                return TypedResults.Problem(new ProblemDetails
+                {
+                    Title = "Data Not Found",
+                    Status = StatusCodes.Status404NotFound,
+                    Detail = "Dish not found."
+                });
             }
 
             if (error is not null)
@@ -151,8 +167,7 @@ public static class DishEndpoints
             .WithSummary("Update dish weight")
             .WithDescription("Updates the dish weight. By default applies proportional rescaling (O(1), no ingredient access). Pass recalculate=true to fully recalculate nutrients from ingredients instead.")
             .Produces(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status404NotFound)
-            .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status422UnprocessableEntity);
+            .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound, StatusCodes.Status422UnprocessableEntity);
 
         return endpoints;
     }

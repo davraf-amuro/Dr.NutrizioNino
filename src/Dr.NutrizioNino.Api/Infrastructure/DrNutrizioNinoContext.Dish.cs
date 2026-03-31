@@ -1,3 +1,4 @@
+using Dr.NutrizioNino.Api.Infrastructure.Models;
 using Dr.NutrizioNino.Api.Infrastructure.Models.Configurations;
 using Dr.NutrizioNino.Api.Models.Configurations;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,7 @@ public partial class DrNutrizioNinoContext
     public virtual DbSet<Dish> Dishes { get; set; }
     public virtual DbSet<DishNutrient> DishNutrients { get; set; }
     public virtual DbSet<DishIngredient> DishIngredients { get; set; }
+    public virtual DbSet<DishDashboardInfo> DishesDashboard { get; set; }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
     {
@@ -17,5 +19,6 @@ public partial class DrNutrizioNinoContext
         modelBuilder.ApplyConfiguration(new DishIngredientConfiguration());
         modelBuilder.ApplyConfiguration(new SupermarketConfiguration());
         modelBuilder.ApplyConfiguration(new FoodSupermarketConfiguration());
+        modelBuilder.ApplyConfiguration(new DishDashboardConfiguration());
     }
 }

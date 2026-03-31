@@ -18,9 +18,9 @@ public static class NutrientsEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(ApiVersionFactory.Version1);
 
-        group.MapGet("", async (NutrientService service) =>
+        group.MapGet("", async (NutrientService service, CancellationToken ct) =>
         {
-            var result = await service.GetNutrientsAsync();
+            var result = await service.GetNutrientsAsync(ct);
             return result.Count > 0
                 ? Results.Ok(result)
                 : TypedResults.Problem(new ProblemDetails
@@ -33,12 +33,12 @@ public static class NutrientsEndpoints
             .WithName("GetNutrients")
             .WithSummary("Get all nutrients")
             .WithDescription("Returns all available nutrients ordered by display position.")
-            .Produces<IList<NutrientInfo>>()
+            .Produces<IList<NutrientInfo>>(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status404NotFound)
         ;
-        group.MapGet("{id}", async (NutrientService service, Guid id) =>
+        group.MapGet("{id}", async (NutrientService service, Guid id, CancellationToken ct) =>
         {
-            var result = await service.GetNutrientAsync(id);
+            var result = await service.GetNutrientAsync(id, ct);
             return result is not null
                 ? Results.Ok(result)
                 : TypedResults.Problem(new ProblemDetails
@@ -54,9 +54,9 @@ public static class NutrientsEndpoints
             .Produces<Nutrient>(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status404NotFound)
             ;
-        group.MapPost("", async (NutrientService service, CreateNutrientDto newNutrient) =>
+        group.MapPost("", async (NutrientService service, CreateNutrientDto newNutrient, CancellationToken ct) =>
         {
-            var result = await service.CreateNutrientAsync(newNutrient);
+            var result = await service.CreateNutrientAsync(newNutrient, ct);
             return result is not null
                 ? Results.Ok(result)
                 : TypedResults.Problem(new ProblemDetails
@@ -72,9 +72,9 @@ public static class NutrientsEndpoints
             .Produces<Nutrient>(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict)
             ;
-        group.MapPut("{id}", async (NutrientService service, Guid id, Nutrient nutrient) =>
+        group.MapPut("{id}", async (NutrientService service, Guid id, Nutrient nutrient, CancellationToken ct) =>
         {
-            var result = await service.UpdateNutrientAsync(nutrient);
+            var result = await service.UpdateNutrientAsync(nutrient, ct);
             return result switch
             {
                 NutrientOperationResult.Success => Results.Ok(),
@@ -119,9 +119,9 @@ public static class NutrientsEndpoints
             .Produces(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound, StatusCodes.Status409Conflict)
             ;
-        group.MapDelete("{id}", async (NutrientService service, Guid id) =>
+        group.MapDelete("{id}", async (NutrientService service, Guid id, CancellationToken ct) =>
         {
-            var result = await service.DeleteNutrientAsync(id);
+            var result = await service.DeleteNutrientAsync(id, ct);
             return result switch
             {
                 NutrientOperationResult.Success => Results.Ok(),
