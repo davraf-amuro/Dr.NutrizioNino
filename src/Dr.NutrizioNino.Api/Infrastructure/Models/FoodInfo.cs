@@ -9,7 +9,9 @@ namespace Dr.NutrizioNino.Api.Infrastructure.Models;
 /// <param name="Barcode"></param>
 /// <param name="BrandId"></param>
 /// <param name="Calorie"></param>
+/// <param name="UnitOfMeasureId"></param>
 /// <param name="Nutrients"></param>
+/// <param name="SupermarketIds"></param>
 public record FoodInfo(
     Guid Id
     , string Name

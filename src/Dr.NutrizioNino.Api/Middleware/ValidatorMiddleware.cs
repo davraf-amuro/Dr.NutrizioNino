@@ -1,9 +1,9 @@
+using System.Diagnostics;
+using System.Text.Json;
 using Dr.NutrizioNino.Api.Interfaces;
 using Dr.NutrizioNino.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using System.Diagnostics;
-using System.Text.Json;
 
 public class ValidatorMiddleware
 {

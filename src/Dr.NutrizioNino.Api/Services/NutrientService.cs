@@ -24,7 +24,10 @@ public class NutrientService(DrRepository drRepository)
     public async Task<Nutrient?> CreateNutrientAsync(CreateNutrientDto newNutrientDto)
     {
         var exists = await drRepository.NutrientNameExistsAsync(newNutrientDto.Name).ConfigureAwait(false);
-        if (exists) return null;
+        if (exists)
+        {
+            return null;
+        }
 
         var nutrient = await ModelsFactory.CreateNutrient(newNutrientDto);
         return await drRepository.CreateNutrientAsync(nutrient);
@@ -33,7 +36,10 @@ public class NutrientService(DrRepository drRepository)
     public async Task<NutrientOperationResult> UpdateNutrientAsync(Nutrient nutrient)
     {
         var duplicate = await drRepository.NutrientNameExistsAsync(nutrient.Name, nutrient.Id).ConfigureAwait(false);
-        if (duplicate) return NutrientOperationResult.Conflict;
+        if (duplicate)
+        {
+            return NutrientOperationResult.Conflict;
+        }
 
         var updated = await drRepository.UpdateNutrientAsync(nutrient).ConfigureAwait(false);
         return updated ? NutrientOperationResult.Success : NutrientOperationResult.NotFound;
@@ -42,7 +48,10 @@ public class NutrientService(DrRepository drRepository)
     public async Task<NutrientOperationResult> DeleteNutrientAsync(Guid id)
     {
         var inUse = await drRepository.IsNutrientInUseAsync(id).ConfigureAwait(false);
-        if (inUse) return NutrientOperationResult.Conflict;
+        if (inUse)
+        {
+            return NutrientOperationResult.Conflict;
+        }
 
         var deleted = await drRepository.DeleteNutrientAsync(id).ConfigureAwait(false);
         return deleted ? NutrientOperationResult.Success : NutrientOperationResult.NotFound;
