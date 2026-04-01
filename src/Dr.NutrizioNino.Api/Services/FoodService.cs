@@ -8,6 +8,9 @@ namespace Dr.NutrizioNino.Api.Services;
 
 public class FoodService(DrRepository drRepository)
 {
+    public async Task<Guid?> GetOwnerIdAsync(Guid id, CancellationToken ct = default) =>
+        await drRepository.GetFoodOwnerIdAsync(id, ct).ConfigureAwait(false);
+
     public async Task<bool> IsFoodNameTakenAsync(string name, Guid? excludeId = null, CancellationToken ct = default) =>
         await drRepository.IsFoodNameTakenAsync(name, excludeId, ct).ConfigureAwait(false);
 
@@ -88,7 +91,7 @@ public class FoodService(DrRepository drRepository)
             supermarketIds);
     }
 
-    public async Task<Guid> InsertFullFood(FoodInfo foodInfo, CancellationToken ct = default)
+    public async Task<Guid> InsertFullFood(FoodInfo foodInfo, Guid? ownerId = null, CancellationToken ct = default)
     {
         var food = new Food
         {
@@ -98,7 +101,8 @@ public class FoodService(DrRepository drRepository)
             Barcode = null,
             BrandId = foodInfo.BrandId,
             Calorie = foodInfo.Calorie,
-            UnitOfMeasureId = foodInfo.UnitOfMeasureId
+            UnitOfMeasureId = foodInfo.UnitOfMeasureId,
+            OwnerId = ownerId
         };
 
         foreach (var nutrient in foodInfo.Nutrients)

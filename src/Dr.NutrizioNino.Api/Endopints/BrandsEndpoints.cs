@@ -1,5 +1,7 @@
+using System.Security.Claims;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
+using Dr.NutrizioNino.Api.Helpers;
 using Dr.NutrizioNino.Api.Models;
 using Dr.NutrizioNino.Api.Services;
 using Dr.NutrizioNino.Models.Dto;
@@ -53,7 +55,7 @@ public static class BrandsEndpoints
             .Produces<BrandDto>(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 
-        group.MapPost("", async (BrandService service, CreateBrandDto newBrand, CancellationToken ct) =>
+        group.MapPost("", async (BrandService service, CreateBrandDto newBrand, ClaimsPrincipal user, CancellationToken ct) =>
         {
             if (await service.IsBrandNameTakenAsync(newBrand.Name, ct: ct))
             {
@@ -65,17 +67,24 @@ public static class BrandsEndpoints
                 });
             }
 
-            var result = await service.CreateBrandAsync(newBrand, ct);
+            var ownerId = user.GetUserId();
+            var result = await service.CreateBrandAsync(newBrand, ownerId, ct);
             return Results.Ok(result);
         })
             .WithName("CreateBrand")
             .WithSummary("Create a new brand")
             .WithDescription("Creates a new brand and returns the created entity.")
             .Produces<BrandDto>(StatusCodes.Status200OK)
-            .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict);
+            .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict)
+            .RequireAuthorization();
 
-        group.MapPut("{id}", async (BrandService service, Guid id, Brand brand, CancellationToken ct) =>
+        group.MapPut("{id}", async (BrandService service, Guid id, Brand brand, ClaimsPrincipal user, CancellationToken ct) =>
         {
+            var ownerId = await service.GetOwnerIdAsync(id, ct);
+            var callerId = user.GetUserId();
+            if (ownerId.HasValue && ownerId != callerId)
+                return Results.Forbid();
+
             if (await service.IsBrandNameTakenAsync(brand.Name, excludeId: brand.Id, ct: ct))
             {
                 return TypedResults.Problem(new ProblemDetails
@@ -121,7 +130,8 @@ public static class BrandsEndpoints
             .WithSummary("Update an existing brand")
             .WithDescription("Updates an existing brand by identifier.")
             .Produces(StatusCodes.Status200OK)
-            .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound);
+            .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status403Forbidden, StatusCodes.Status404NotFound)
+            .RequireAuthorization();
 
         group.MapGet("{id}/is-in-use", async (BrandService service, Guid id, CancellationToken ct) =>
         {
@@ -133,8 +143,13 @@ public static class BrandsEndpoints
             .WithDescription("Returns true if the brand is referenced by one or more foods.")
             .Produces<bool>(StatusCodes.Status200OK);
 
-        group.MapDelete("{id}", async (BrandService service, Guid id, CancellationToken ct) =>
+        group.MapDelete("{id}", async (BrandService service, Guid id, ClaimsPrincipal user, CancellationToken ct) =>
         {
+            var ownerId = await service.GetOwnerIdAsync(id, ct);
+            var callerId = user.GetUserId();
+            if (ownerId.HasValue && ownerId != callerId)
+                return Results.Forbid();
+
             var deleted = await service.DeleteBrandAsync(id, ct);
             return deleted
                 ? Results.Ok()
@@ -149,7 +164,30 @@ public static class BrandsEndpoints
             .WithSummary("Delete a brand")
             .WithDescription("Deletes an existing brand by identifier.")
             .Produces(StatusCodes.Status200OK)
-            .ProducesDefaultProblem(StatusCodes.Status404NotFound);
+            .ProducesDefaultProblem(StatusCodes.Status403Forbidden, StatusCodes.Status404NotFound)
+            .RequireAuthorization();
+
+        group.MapPost("{id}/clone", async (BrandService service, Guid id, ClaimsPrincipal user, CancellationToken ct) =>
+        {
+            var original = await service.GetBrandAsync(id, ct);
+            if (original is null)
+                return TypedResults.Problem(new ProblemDetails
+                {
+                    Title = "Data Not Found",
+                    Status = StatusCodes.Status404NotFound,
+                    Detail = "Brand not found for clone."
+                });
+
+            var ownerId = user.GetUserId();
+            var cloned = await service.CreateBrandAsync(new CreateBrandDto($"{original.Name} (copia)"), ownerId, ct);
+            return Results.Created($"api/v1/brands/{cloned.Id}", cloned);
+        })
+            .WithName("CloneBrand")
+            .WithSummary("Clone a brand")
+            .WithDescription("Creates a copy of an existing brand assigned to the current user.")
+            .Produces<BrandDto>(StatusCodes.Status201Created)
+            .ProducesDefaultProblem(StatusCodes.Status404NotFound)
+            .RequireAuthorization();
 
         return endpoints;
     }

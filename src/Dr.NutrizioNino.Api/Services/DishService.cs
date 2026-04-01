@@ -14,7 +14,10 @@ public class DishService(DrRepository drRepository)
     public async Task<bool> IsDishNameTakenAsync(string name, CancellationToken ct = default) =>
         await drRepository.IsDishNameTakenAsync(name, ct).ConfigureAwait(false);
 
-    public async Task<(DishDetailDto? Dto, string? Error)> CreateDishAsync(CreateDishDto dto, CancellationToken ct = default)
+    public async Task<Guid?> GetOwnerIdAsync(Guid id, CancellationToken ct = default) =>
+        await drRepository.GetDishOwnerIdAsync(id, ct).ConfigureAwait(false);
+
+    public async Task<(DishDetailDto? Dto, string? Error)> CreateDishAsync(CreateDishDto dto, Guid? ownerId = null, CancellationToken ct = default)
     {
         if (dto.Ingredients.Count == 0)
         {
@@ -60,7 +63,8 @@ public class DishService(DrRepository drRepository)
                 dto.Ingredients.Sum(i => foods.First(f => f.Id == i.FoodId).Calorie * (i.QuantityGrams / 100m)), 2),
             UnitOfMeasureId = Constants.GetDefaultUnitOfMeasure(),
             IsNutritionStale = false,
-            NutrientsCalculatedAt = DateTime.UtcNow
+            NutrientsCalculatedAt = DateTime.UtcNow,
+            OwnerId = ownerId
         };
 
         foreach (var kv in contributions)

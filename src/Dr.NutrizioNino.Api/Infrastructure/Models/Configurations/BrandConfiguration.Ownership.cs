@@ -4,16 +4,14 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Dr.NutrizioNino.Api.Models.Configurations;
 
-public partial class FoodConfiguration
+public partial class BrandConfiguration
 {
-    partial void OnConfigurePartial(EntityTypeBuilder<Food> entity)
+    partial void OnConfigurePartial(EntityTypeBuilder<Brand> entity)
     {
-        // IsDish rimosso: i piatti sono ora nella tabella separata Dishes
-
         entity.HasOne(e => e.Owner)
               .WithMany()
               .HasForeignKey(e => e.OwnerId)
               .OnDelete(DeleteBehavior.SetNull)
-              .HasConstraintName("FK_Foods_Owner");
+              .HasConstraintName("FK_Brands_Owner");
     }
 }

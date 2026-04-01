@@ -1,3 +1,4 @@
+using System.Text;
 using Asp.Versioning;
 using Dr.NutrizioNino.Api.dto;
 using Dr.NutrizioNino.Api.Endopints;
@@ -6,7 +7,10 @@ using Dr.NutrizioNino.Api.Middleware;
 using Dr.NutrizioNino.Api.Models;
 using Dr.NutrizioNino.Api.Services;
 using Dr.NutrizioNino.Api.Transformers;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using Serilog;
 using TinyHelpers.AspNetCore.Extensions;
@@ -70,6 +74,37 @@ try
         }
     });
 
+    // Identity
+    builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(opt =>
+    {
+        opt.Password.RequiredLength = 8;
+        opt.Password.RequireNonAlphanumeric = false;
+        opt.Password.RequireUppercase = false;
+    })
+    .AddEntityFrameworkStores<DrNutrizioNinoContext>()
+    .AddDefaultTokenProviders();
+
+    // JWT Bearer
+    var jwtSecret = builder.Configuration["Jwt:Secret"]!;
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(opt =>
+        {
+            opt.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                ClockSkew = TimeSpan.FromMinutes(5)
+            };
+        });
+
+    // Authorization
+    builder.Services.AddAuthorization(opt =>
+    {
+        opt.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
+    });
+
     builder.Services.AddScoped<DrRepository>();
     builder.Services.AddScoped<BrandService>();
     builder.Services.AddScoped<FoodService>();
@@ -77,6 +112,9 @@ try
     builder.Services.AddScoped<NutrientService>();
     builder.Services.AddScoped<UnitsOfMeasureService>();
     builder.Services.AddScoped<SupermarketService>();
+    builder.Services.AddScoped<AuthService>();
+    builder.Services.AddScoped<AdminUserService>();
+    builder.Services.AddScoped<UserProfileService>();
 
     builder.Services.AddCors(options =>
     {
@@ -114,6 +152,8 @@ try
     app.UseHttpsRedirection();
     app.UseExceptionHandler();
     app.UseStatusCodePages();
+    app.UseAuthentication();
+    app.UseAuthorization();
 
     //aggiungi gli endpoint
     app.MapsFoodsEndpoints(versionSet);
@@ -122,6 +162,9 @@ try
     app.MapsNutrientsEndpoints(versionSet);
     app.MapUnitsOfMeasureEndpoints(versionSet);
     app.MapsSupermarketsEndpoints(versionSet);
+    app.MapsAuthEndpoints(versionSet);
+    app.MapsAdminEndpoints(versionSet);
+    app.MapsUserProfileEndpoints(versionSet);
 
     //carica i middleware
     app.UseMiddleware<HttpContextLogger>();

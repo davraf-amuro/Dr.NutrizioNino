@@ -59,6 +59,14 @@ public partial class DrRepository
         return true;
     }
 
+    public async Task<Guid?> GetBrandOwnerIdAsync(Guid id, CancellationToken ct = default) =>
+        await drContext.Brands
+            .AsNoTracking()
+            .Where(b => b.Id == id)
+            .Select(b => b.OwnerId)
+            .FirstOrDefaultAsync(ct)
+            .ConfigureAwait(false);
+
     public async Task<bool> IsBrandInUseAsync(Guid id, CancellationToken ct = default) =>
         await drContext.Foods.AsNoTracking().AnyAsync(f => f.BrandId == id, ct).ConfigureAwait(false);
 

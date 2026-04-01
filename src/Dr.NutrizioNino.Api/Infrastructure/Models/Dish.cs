@@ -10,6 +10,9 @@ public class Dish
     public bool IsNutritionStale { get; set; }
     public DateTime? NutrientsCalculatedAt { get; set; }
 
+    public Guid? OwnerId { get; set; }
+
+    public virtual ApplicationUser? Owner { get; set; }
     public virtual UnitOfMeasure UnitOfMeasure { get; set; } = null!;
     public virtual ICollection<DishNutrient> DishNutrients { get; set; } = [];
     public virtual ICollection<DishIngredient> DishIngredients { get; set; } = [];

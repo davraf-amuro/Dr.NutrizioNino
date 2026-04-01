@@ -1,5 +1,7 @@
+using System.Security.Claims;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
+using Dr.NutrizioNino.Api.Helpers;
 using Dr.NutrizioNino.Api.Infrastructure.Models;
 using Dr.NutrizioNino.Api.Services;
 using Dr.NutrizioNino.Models.Dto;
@@ -46,7 +48,7 @@ public static class DishEndpoints
             .Produces<DishDetailDto>(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 
-        group.MapPost("", async (DishService service, CreateDishDto dto, CancellationToken ct) =>
+        group.MapPost("", async (DishService service, CreateDishDto dto, ClaimsPrincipal user, CancellationToken ct) =>
         {
             if (await service.IsDishNameTakenAsync(dto.Name, ct))
             {
@@ -58,7 +60,8 @@ public static class DishEndpoints
                 });
             }
 
-            var (detail, error) = await service.CreateDishAsync(dto, ct);
+            var ownerId = user.GetUserId();
+            var (detail, error) = await service.CreateDishAsync(dto, ownerId, ct);
             if (error is not null)
             {
                 return TypedResults.Problem(new ProblemDetails
@@ -75,17 +78,51 @@ public static class DishEndpoints
             .WithSummary("Create a dish")
             .WithDescription("Creates a dish by combining existing foods. Returns the complete dish detail including calculated nutrients.")
             .Produces<DishDetailDto>(StatusCodes.Status200OK)
-            .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict);
+            .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict)
+            .RequireAuthorization();
 
-        group.MapDelete("{id}", async (DishService service, Guid id, CancellationToken ct) =>
+        group.MapDelete("{id}", async (DishService service, Guid id, ClaimsPrincipal user, CancellationToken ct) =>
         {
+            var ownerId = await service.GetOwnerIdAsync(id, ct);
+            var callerId = user.GetUserId();
+            if (ownerId.HasValue && ownerId != callerId)
+                return Results.Forbid();
+
             await service.DeleteDishAsync(id, ct);
             return Results.Ok();
         })
             .WithName("DeleteDish")
             .WithSummary("Delete a dish")
             .WithDescription("Deletes a dish and its ingredient list.")
-            .Produces(StatusCodes.Status200OK);
+            .Produces(StatusCodes.Status200OK)
+            .ProducesDefaultProblem(StatusCodes.Status403Forbidden)
+            .RequireAuthorization();
+
+        group.MapPost("{id}/clone", async (DishService service, Guid id, ClaimsPrincipal user, CancellationToken ct) =>
+        {
+            var original = await service.GetDishDetailAsync(id, ct);
+            if (original is null)
+                return TypedResults.Problem(new ProblemDetails
+                {
+                    Title = "Data Not Found",
+                    Status = StatusCodes.Status404NotFound,
+                    Detail = "Dish not found for clone."
+                });
+
+            var ownerId = user.GetUserId();
+            var cloneDto = new CreateDishDto($"{original.Name} (copia)", original.Ingredients.Select(i => new DishIngredientDto(i.FoodId, i.QuantityGrams)).ToList());
+            var (detail, error) = await service.CreateDishAsync(cloneDto, ownerId, ct);
+            if (error is not null)
+                return TypedResults.Problem(new ProblemDetails { Title = "Errore clone", Status = StatusCodes.Status400BadRequest, Detail = error });
+
+            return Results.Created($"api/v1/dishes/{detail!.Id}", detail);
+        })
+            .WithName("CloneDish")
+            .WithSummary("Clone a dish")
+            .WithDescription("Creates a copy of an existing dish assigned to the current user.")
+            .Produces<DishDetailDto>(StatusCodes.Status201Created)
+            .ProducesDefaultProblem(StatusCodes.Status404NotFound)
+            .RequireAuthorization();
 
         group.MapPost("{id}/recalculate", async (DishService service, Guid id, CancellationToken ct) =>
         {

@@ -111,6 +111,14 @@ public partial class DrRepository
         return food.Id;
     }
 
+    public async Task<Guid?> GetFoodOwnerIdAsync(Guid id, CancellationToken ct = default) =>
+        await drContext.Foods
+            .AsNoTracking()
+            .Where(f => f.Id == id)
+            .Select(f => f.OwnerId)
+            .FirstOrDefaultAsync(ct)
+            .ConfigureAwait(false);
+
     public async Task<bool> IsFoodNameTakenAsync(string name, Guid? excludeId = null, CancellationToken ct = default) =>
         await drContext.Foods
             .AnyAsync(f => f.Name.ToLower() == name.ToLower() && (!excludeId.HasValue || f.Id != excludeId.Value), ct)

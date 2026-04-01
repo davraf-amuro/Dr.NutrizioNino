@@ -57,6 +57,14 @@ public partial class DrRepository
             .FirstOrDefaultAsync(d => d.Id == id, ct)
             .ConfigureAwait(false);
 
+    public async Task<Guid?> GetDishOwnerIdAsync(Guid id, CancellationToken ct = default) =>
+        await drContext.Dishes
+            .AsNoTracking()
+            .Where(d => d.Id == id)
+            .Select(d => d.OwnerId)
+            .FirstOrDefaultAsync(ct)
+            .ConfigureAwait(false);
+
     public async Task<bool> IsDishNameTakenAsync(string name, CancellationToken ct = default) =>
         await drContext.Dishes
             .AnyAsync(d => d.Name.ToLower() == name.ToLower(), ct)

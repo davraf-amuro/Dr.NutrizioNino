@@ -1,11 +1,16 @@
 using Dr.NutrizioNino.Api.Infrastructure.Models;
+using Dr.NutrizioNino.Api.Infrastructure.Models.Configurations;
+using Dr.NutrizioNino.Api.Models;
+using Dr.NutrizioNino.Api.Models.Configurations;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Dr.NutrizioNino.Api.Models;
 
 public partial class DrNutrizioNinoContext(
     DbContextOptions<DrNutrizioNinoContext> options,
-    ILoggerFactory loggerFactory) : DbContext(options)
+    ILoggerFactory loggerFactory) : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(options)
 {
     public virtual DbSet<Brand> Brands { get; set; }
 
@@ -23,6 +28,8 @@ public partial class DrNutrizioNinoContext(
 
     public virtual DbSet<NutrientInfo> NutrientInfoes { get; set; }
 
+    public virtual DbSet<UserProfileEntry> UserProfileEntries { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured && loggerFactory != null)
@@ -35,13 +42,15 @@ public partial class DrNutrizioNinoContext(
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.ApplyConfiguration(new Configurations.BrandConfiguration());
-        modelBuilder.ApplyConfiguration(new Configurations.FoodConfiguration());
-        modelBuilder.ApplyConfiguration(new Configurations.FoodsNutrientConfiguration());
-        modelBuilder.ApplyConfiguration(new Configurations.NutrientConfiguration());
-        modelBuilder.ApplyConfiguration(new Configurations.UnitsOfMeasureConfiguration());
-        //modelBuilder.ApplyConfiguration(new Configurations.NutrientsGetForFoodCreatingInfoConfiguration());
-        modelBuilder.ApplyConfiguration(new Dr.NutrizioNino.Api.Infrastructure.Models.Configurations.FoodDashboardConfiguration());
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.ApplyConfiguration(new BrandConfiguration());
+        modelBuilder.ApplyConfiguration(new FoodConfiguration());
+        modelBuilder.ApplyConfiguration(new FoodsNutrientConfiguration());
+        modelBuilder.ApplyConfiguration(new NutrientConfiguration());
+        modelBuilder.ApplyConfiguration(new UnitsOfMeasureConfiguration());
+        modelBuilder.ApplyConfiguration(new FoodDashboardConfiguration());
+        modelBuilder.ApplyConfiguration(new UserProfileEntryConfiguration());
 
         OnModelCreatingPartial(modelBuilder);
     }

@@ -14,12 +14,16 @@ public class BrandService(DrRepository drRepository)
     public async Task<BrandDto?> GetBrandAsync(Guid id, CancellationToken ct = default) =>
         await drRepository.GetBrandAsync(id, BrandExtensions.ToBrandDto, ct).ConfigureAwait(false);
 
-    public async Task<BrandDto> CreateBrandAsync(CreateBrandDto newBrandDto, CancellationToken ct = default)
+    public async Task<BrandDto> CreateBrandAsync(CreateBrandDto newBrandDto, Guid? ownerId = null, CancellationToken ct = default)
     {
         var brand = await ModelsFactory.CreateBrand(newBrandDto);
+        brand.OwnerId = ownerId;
         var created = await drRepository.CreateBrandAsync(brand, ct).ConfigureAwait(false);
         return BrandExtensions.ToBrandDto.Compile()(created);
     }
+
+    public async Task<Guid?> GetOwnerIdAsync(Guid id, CancellationToken ct = default) =>
+        await drRepository.GetBrandOwnerIdAsync(id, ct).ConfigureAwait(false);
 
     public async Task<bool> UpdateBrandAsync(Brand brand, CancellationToken ct = default) =>
         await drRepository.UpdateBrandAsync(brand, ct).ConfigureAwait(false);

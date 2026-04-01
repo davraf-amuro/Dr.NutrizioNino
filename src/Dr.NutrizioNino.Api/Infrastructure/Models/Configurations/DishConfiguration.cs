@@ -23,5 +23,11 @@ public class DishConfiguration : IEntityTypeConfiguration<Dish>
             .HasForeignKey(d => d.UnitOfMeasureId)
             .OnDelete(DeleteBehavior.ClientSetNull)
             .HasConstraintName("FK_Dishes_UnitsOfMeasures");
+
+        entity.HasOne(d => d.Owner)
+            .WithMany()
+            .HasForeignKey(d => d.OwnerId)
+            .OnDelete(DeleteBehavior.SetNull)
+            .HasConstraintName("FK_Dishes_Owner");
     }
 }
