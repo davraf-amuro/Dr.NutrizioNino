@@ -17,7 +17,7 @@ public class SupermarketService(DrRepository drRepository)
     {
         var supermarket = new Supermarket { Id = Guid.NewGuid(), Name = dto.Name };
         var created = await drRepository.CreateSupermarketAsync(supermarket, ct).ConfigureAwait(false);
-        return new SupermarketDto(created.Id, created.Name);
+        return SupermarketExtensions.ToSupermarketDto.Compile()(created);
     }
 
     public async Task<bool> UpdateSupermarketAsync(Supermarket supermarket, CancellationToken ct = default) =>

@@ -28,7 +28,7 @@ public class NutrientService(DrRepository drRepository)
 
         var nutrient = await ModelsFactory.CreateNutrient(newNutrientDto);
         var created = await drRepository.CreateNutrientAsync(nutrient, ct).ConfigureAwait(false);
-        return new NutrientInfo(created.Id, created.Name, created.PositionOrder, created.DefaultUnitOfMeasureId, created.DefaultQuantity);
+        return NutrientExtensions.ToNutrientInfo.Compile()(created);
     }
 
     public async Task<NutrientOperationResult> UpdateNutrientAsync(Nutrient nutrient, CancellationToken ct = default)

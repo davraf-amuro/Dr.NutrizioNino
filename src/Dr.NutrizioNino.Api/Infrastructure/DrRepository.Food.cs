@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Dr.NutrizioNino.Api.Helpers;
 using Dr.NutrizioNino.Api.Infrastructure.Models;
 using Dr.NutrizioNino.Api.Models;
@@ -36,8 +37,25 @@ public partial class DrRepository
         await transaction.CommitAsync(ct).ConfigureAwait(false);
     }
 
-    public async Task<IEnumerable<Food>> GetFoodsAsync(CancellationToken ct = default) =>
-        await drContext.Foods.AsNoTracking().ToListAsync(ct).ConfigureAwait(false);
+    public async Task<IList<TResult>> GetFoodsAsync<TResult>(
+        Expression<Func<Food, TResult>> selector,
+        CancellationToken ct = default) =>
+        await drContext.Foods
+            .AsNoTracking()
+            .Select(selector)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+
+    public async Task<TResult?> GetFoodAsync<TResult>(
+        Guid id,
+        Expression<Func<Food, TResult>> selector,
+        CancellationToken ct = default) =>
+        await drContext.Foods
+            .AsNoTracking()
+            .Where(f => f.Id == id)
+            .Select(selector)
+            .FirstOrDefaultAsync(ct)
+            .ConfigureAwait(false);
 
     internal async Task<Food?> GetFoodAsync(Guid id, CancellationToken ct = default) =>
         await drContext.Foods

@@ -18,7 +18,7 @@ public class BrandService(DrRepository drRepository)
     {
         var brand = await ModelsFactory.CreateBrand(newBrandDto);
         var created = await drRepository.CreateBrandAsync(brand, ct).ConfigureAwait(false);
-        return new BrandDto(created.Id, created.Name);
+        return BrandExtensions.ToBrandDto.Compile()(created);
     }
 
     public async Task<bool> UpdateBrandAsync(Brand brand, CancellationToken ct = default) =>

@@ -30,7 +30,7 @@ public class UnitsOfMeasureService(DrRepository drRepository)
 
         var unitOfMeasure = await ModelsFactory.CreateUnitOfMeasure(newUnitOfMeasure).ConfigureAwait(false);
         var entity = await drRepository.CreateUnitOfMeasureAsync(unitOfMeasure, ct).ConfigureAwait(false);
-        return (UomOperationResult.Success, new UnitOfMeasureDto(entity.Id, entity.Name, entity.Abbreviation));
+        return (UomOperationResult.Success, UnitOfMeasureExtensions.ToUnitOfMeasureDto.Compile()(entity));
     }
 
     public async Task<UomOperationResult> UpdateUnitOfMeasureAsync(UnitOfMeasure unitOfMeasure, CancellationToken ct = default)
