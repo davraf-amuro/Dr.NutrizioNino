@@ -50,7 +50,7 @@ public static class UnitsOfMeasureEndpoints
             .WithName("GetUnitOfMeasureById")
             .WithSummary("Get unit of measure by id")
             .WithDescription("Returns a unit of measure for the specified identifier.")
-            .Produces<UnitOfMeasure>(StatusCodes.Status200OK)
+            .Produces<UnitOfMeasureDto>(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 
         group.MapPost("", async (UnitsOfMeasureService service, CreateUnitOfMeasureDto newUnitOfMeasure, CancellationToken ct) =>
@@ -76,7 +76,7 @@ public static class UnitsOfMeasureEndpoints
             .WithName("CreateUnitOfMeasure")
             .WithSummary("Create unit of measure")
             .WithDescription("Creates a unit of measure and returns the created entity.")
-            .Produces<UnitOfMeasure>(StatusCodes.Status200OK)
+            .Produces<UnitOfMeasureDto>(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict);
 
         group.MapPut("{id}", async (UnitsOfMeasureService service, Guid id, UnitOfMeasure unitOfMeasure, CancellationToken ct) =>

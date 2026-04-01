@@ -34,8 +34,8 @@ public static class NutrientsEndpoints
             .WithSummary("Get all nutrients")
             .WithDescription("Returns all available nutrients ordered by display position.")
             .Produces<IList<NutrientInfo>>(StatusCodes.Status200OK)
-            .ProducesDefaultProblem(StatusCodes.Status404NotFound)
-        ;
+            .ProducesDefaultProblem(StatusCodes.Status404NotFound);
+
         group.MapGet("{id}", async (NutrientService service, Guid id, CancellationToken ct) =>
         {
             var result = await service.GetNutrientAsync(id, ct);
@@ -51,9 +51,9 @@ public static class NutrientsEndpoints
             .WithName("GetNutrientById")
             .WithSummary("Get nutrient by id")
             .WithDescription("Returns the nutrient associated with the specified identifier.")
-            .Produces<Nutrient>(StatusCodes.Status200OK)
-            .ProducesDefaultProblem(StatusCodes.Status404NotFound)
-            ;
+            .Produces<NutrientInfo>(StatusCodes.Status200OK)
+            .ProducesDefaultProblem(StatusCodes.Status404NotFound);
+
         group.MapPost("", async (NutrientService service, CreateNutrientDto newNutrient, CancellationToken ct) =>
         {
             var result = await service.CreateNutrientAsync(newNutrient, ct);
@@ -69,9 +69,9 @@ public static class NutrientsEndpoints
             .WithName("CreateNutrient")
             .WithSummary("Create nutrient")
             .WithDescription("Creates a nutrient and returns the created entity.")
-            .Produces<Nutrient>(StatusCodes.Status200OK)
-            .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict)
-            ;
+            .Produces<NutrientInfo>(StatusCodes.Status200OK)
+            .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict);
+
         group.MapPut("{id}", async (NutrientService service, Guid id, Nutrient nutrient, CancellationToken ct) =>
         {
             var result = await service.UpdateNutrientAsync(nutrient, ct);
@@ -117,8 +117,8 @@ public static class NutrientsEndpoints
             .WithSummary("Update nutrient")
             .WithDescription("Updates an existing nutrient by identifier.")
             .Produces(StatusCodes.Status200OK)
-            .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound, StatusCodes.Status409Conflict)
-            ;
+            .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound, StatusCodes.Status409Conflict);
+
         group.MapDelete("{id}", async (NutrientService service, Guid id, CancellationToken ct) =>
         {
             var result = await service.DeleteNutrientAsync(id, ct);
@@ -143,8 +143,7 @@ public static class NutrientsEndpoints
             .WithSummary("Delete nutrient")
             .WithDescription("Deletes a nutrient by identifier.")
             .Produces(StatusCodes.Status200OK)
-            .ProducesDefaultProblem(StatusCodes.Status404NotFound, StatusCodes.Status409Conflict)
-            ;
+            .ProducesDefaultProblem(StatusCodes.Status404NotFound, StatusCodes.Status409Conflict);
 
         return endpoints;
     }

@@ -58,7 +58,7 @@ public static class DishEndpoints
                 });
             }
 
-            var (id, error) = await service.CreateDishAsync(dto, ct);
+            var (detail, error) = await service.CreateDishAsync(dto, ct);
             if (error is not null)
             {
                 return TypedResults.Problem(new ProblemDetails
@@ -69,12 +69,12 @@ public static class DishEndpoints
                 });
             }
 
-            return Results.Ok(id);
+            return Results.Ok(detail);
         })
             .WithName("CreateDish")
             .WithSummary("Create a dish")
-            .WithDescription("Creates a dish by combining existing foods. Nutrients are calculated on the real dish weight (WeightGrams = sum of ingredient grams).")
-            .Produces<Guid>(StatusCodes.Status200OK)
+            .WithDescription("Creates a dish by combining existing foods. Returns the complete dish detail including calculated nutrients.")
+            .Produces<DishDetailDto>(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict);
 
         group.MapDelete("{id}", async (DishService service, Guid id, CancellationToken ct) =>

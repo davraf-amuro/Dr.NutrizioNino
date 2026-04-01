@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Dr.NutrizioNino.Api.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -25,14 +26,25 @@ public partial class DrRepository
         return true;
     }
 
-    public async Task<UnitOfMeasure?> GetUnitOfMeasureAsync(Guid id, CancellationToken ct = default) =>
+    public async Task<TResult?> GetUnitOfMeasureAsync<TResult>(
+        Guid id,
+        Expression<Func<UnitOfMeasure, TResult>> selector,
+        CancellationToken ct = default) =>
         await drContext.UnitsOfMeasures
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == id, ct)
+            .Where(u => u.Id == id)
+            .Select(selector)
+            .FirstOrDefaultAsync(ct)
             .ConfigureAwait(false);
 
-    public async Task<IEnumerable<UnitOfMeasure>> GetUnitsOfMeasuresAsync(CancellationToken ct = default) =>
-        await drContext.UnitsOfMeasures.AsNoTracking().ToListAsync(ct).ConfigureAwait(false);
+    public async Task<IList<TResult>> GetUnitsOfMeasuresAsync<TResult>(
+        Expression<Func<UnitOfMeasure, TResult>> selector,
+        CancellationToken ct = default) =>
+        await drContext.UnitsOfMeasures
+            .AsNoTracking()
+            .Select(selector)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
 
     public async Task<UnitOfMeasure?> UpdateUnitOfMeasureAsync(UnitOfMeasure unitOfMeasure, CancellationToken ct = default)
     {
@@ -50,16 +62,18 @@ public partial class DrRepository
 
     public async Task<bool> UomNameExistsAsync(string name, Guid? excludeId = null, CancellationToken ct = default) =>
         await drContext.UnitsOfMeasures
+            .AsNoTracking()
             .AnyAsync(u => u.Name == name && (excludeId == null || u.Id != excludeId), ct)
             .ConfigureAwait(false);
 
     public async Task<bool> UomAbbreviationExistsAsync(string abbreviation, Guid? excludeId = null, CancellationToken ct = default) =>
         await drContext.UnitsOfMeasures
+            .AsNoTracking()
             .AnyAsync(u => u.Abbreviation == abbreviation && (excludeId == null || u.Id != excludeId), ct)
             .ConfigureAwait(false);
 
     public async Task<bool> IsUomInUseAsync(Guid id, CancellationToken ct = default) =>
-        await drContext.Foods.AnyAsync(f => f.UnitOfMeasureId == id, ct).ConfigureAwait(false)
-        || await drContext.FoodsNutrients.AnyAsync(fn => fn.UnitOfMeasureId == id, ct).ConfigureAwait(false)
-        || await drContext.Nutrients.AnyAsync(n => n.DefaultUnitOfMeasureId == id, ct).ConfigureAwait(false);
+        await drContext.Foods.AsNoTracking().AnyAsync(f => f.UnitOfMeasureId == id, ct).ConfigureAwait(false)
+        || await drContext.FoodsNutrients.AsNoTracking().AnyAsync(fn => fn.UnitOfMeasureId == id, ct).ConfigureAwait(false)
+        || await drContext.Nutrients.AsNoTracking().AnyAsync(n => n.DefaultUnitOfMeasureId == id, ct).ConfigureAwait(false);
 }

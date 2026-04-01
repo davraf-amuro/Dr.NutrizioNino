@@ -1,5 +1,6 @@
 using Dr.NutrizioNino.Api.Helpers;
 using Dr.NutrizioNino.Api.Infrastructure;
+using Dr.NutrizioNino.Api.Infrastructure.Extensions;
 using Dr.NutrizioNino.Api.Models;
 using Dr.NutrizioNino.Models.Dto;
 
@@ -9,16 +10,13 @@ public enum UomOperationResult { Success, NotFound, DuplicateName, DuplicateAbbr
 
 public class UnitsOfMeasureService(DrRepository drRepository)
 {
-    public async Task<IList<UnitOfMeasureDto>> GetUnitsOfMeasuresAsync(CancellationToken ct = default)
-    {
-        var uom = await drRepository.GetUnitsOfMeasuresAsync(ct).ConfigureAwait(false);
-        return uom.Select(x => x.AsDto()).ToList();
-    }
+    public async Task<IList<UnitOfMeasureDto>> GetUnitsOfMeasuresAsync(CancellationToken ct = default) =>
+        await drRepository.GetUnitsOfMeasuresAsync(UnitOfMeasureExtensions.ToUnitOfMeasureDto, ct).ConfigureAwait(false);
 
-    public async Task<UnitOfMeasure?> GetUnitOfMeasureAsync(Guid id, CancellationToken ct = default) =>
-        await drRepository.GetUnitOfMeasureAsync(id, ct).ConfigureAwait(false);
+    public async Task<UnitOfMeasureDto?> GetUnitOfMeasureAsync(Guid id, CancellationToken ct = default) =>
+        await drRepository.GetUnitOfMeasureAsync(id, UnitOfMeasureExtensions.ToUnitOfMeasureDto, ct).ConfigureAwait(false);
 
-    public async Task<(UomOperationResult Result, UnitOfMeasure? Entity)> CreateUnitOfMeasureAsync(CreateUnitOfMeasureDto newUnitOfMeasure, CancellationToken ct = default)
+    public async Task<(UomOperationResult Result, UnitOfMeasureDto? Entity)> CreateUnitOfMeasureAsync(CreateUnitOfMeasureDto newUnitOfMeasure, CancellationToken ct = default)
     {
         if (await drRepository.UomNameExistsAsync(newUnitOfMeasure.Name, ct: ct).ConfigureAwait(false))
         {
@@ -32,7 +30,7 @@ public class UnitsOfMeasureService(DrRepository drRepository)
 
         var unitOfMeasure = await ModelsFactory.CreateUnitOfMeasure(newUnitOfMeasure).ConfigureAwait(false);
         var entity = await drRepository.CreateUnitOfMeasureAsync(unitOfMeasure, ct).ConfigureAwait(false);
-        return (UomOperationResult.Success, entity);
+        return (UomOperationResult.Success, new UnitOfMeasureDto(entity.Id, entity.Name, entity.Abbreviation));
     }
 
     public async Task<UomOperationResult> UpdateUnitOfMeasureAsync(UnitOfMeasure unitOfMeasure, CancellationToken ct = default)

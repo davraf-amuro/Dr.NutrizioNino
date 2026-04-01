@@ -14,7 +14,7 @@ public class DishService(DrRepository drRepository)
     public async Task<bool> IsDishNameTakenAsync(string name, CancellationToken ct = default) =>
         await drRepository.IsDishNameTakenAsync(name, ct).ConfigureAwait(false);
 
-    public async Task<(Guid? Id, string? Error)> CreateDishAsync(CreateDishDto dto, CancellationToken ct = default)
+    public async Task<(DishDetailDto? Dto, string? Error)> CreateDishAsync(CreateDishDto dto, CancellationToken ct = default)
     {
         if (dto.Ingredients.Count == 0)
         {
@@ -82,7 +82,8 @@ public class DishService(DrRepository drRepository)
         }).ToList();
 
         await drRepository.CreateDishAsync(dish, ingredients, ct).ConfigureAwait(false);
-        return (dishId, null);
+        var detail = await drRepository.GetDishByIdAsync(dishId, ct).ConfigureAwait(false);
+        return (detail, null);
     }
 
     public async Task<IList<DishDashboardInfo>> GetDishesDashboardAsync(CancellationToken ct = default) =>

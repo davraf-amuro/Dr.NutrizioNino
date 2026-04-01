@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Dr.NutrizioNino.Api.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -25,14 +26,25 @@ public partial class DrRepository
         return true;
     }
 
-    public async Task<Brand?> GetBrandAsync(Guid id, CancellationToken ct = default) =>
+    public async Task<TResult?> GetBrandAsync<TResult>(
+        Guid id,
+        Expression<Func<Brand, TResult>> selector,
+        CancellationToken ct = default) =>
         await drContext.Brands
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == id, ct)
+            .Where(b => b.Id == id)
+            .Select(selector)
+            .FirstOrDefaultAsync(ct)
             .ConfigureAwait(false);
 
-    public async Task<IEnumerable<Brand>> GetBrandsAsync(CancellationToken ct = default) =>
-        await drContext.Brands.AsNoTracking().ToListAsync(ct).ConfigureAwait(false);
+    public async Task<IList<TResult>> GetBrandsAsync<TResult>(
+        Expression<Func<Brand, TResult>> selector,
+        CancellationToken ct = default) =>
+        await drContext.Brands
+            .AsNoTracking()
+            .Select(selector)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
 
     public async Task<bool> UpdateBrandAsync(Brand brand, CancellationToken ct = default)
     {
@@ -48,10 +60,11 @@ public partial class DrRepository
     }
 
     public async Task<bool> IsBrandInUseAsync(Guid id, CancellationToken ct = default) =>
-        await drContext.Foods.AnyAsync(f => f.BrandId == id, ct).ConfigureAwait(false);
+        await drContext.Foods.AsNoTracking().AnyAsync(f => f.BrandId == id, ct).ConfigureAwait(false);
 
     public async Task<bool> IsBrandNameTakenAsync(string name, Guid? excludeId = null, CancellationToken ct = default) =>
         await drContext.Brands
+            .AsNoTracking()
             .AnyAsync(b => b.Name.ToLower() == name.ToLower() && (!excludeId.HasValue || b.Id != excludeId.Value), ct)
             .ConfigureAwait(false);
 }

@@ -39,7 +39,7 @@ public static class SupermarketsEndpoints
         {
             var result = await service.GetSupermarketAsync(id, ct);
             return result is not null
-                ? Results.Ok(new SupermarketDto(result.Id, result.Name))
+                ? Results.Ok(result)
                 : TypedResults.Problem(new ProblemDetails
                 {
                     Title = "Data Not Found",
@@ -66,7 +66,7 @@ public static class SupermarketsEndpoints
             }
 
             var result = await service.CreateSupermarketAsync(dto, ct);
-            return Results.Ok(new SupermarketDto(result.Id, result.Name));
+            return Results.Ok(result);
         })
             .WithName("CreateSupermarket")
             .WithSummary("Create a new supermarket")

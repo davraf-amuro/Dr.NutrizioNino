@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Dr.NutrizioNino.Api.Infrastructure.Models;
 using Dr.NutrizioNino.Api.Models;
 using Dr.NutrizioNino.Models.Dto;
@@ -29,21 +30,34 @@ public partial class DrRepository
 
     public async Task<bool> NutrientNameExistsAsync(string name, Guid? excludeId = null, CancellationToken ct = default) =>
         await drContext.Nutrients
+            .AsNoTracking()
             .AnyAsync(n => n.Name == name && (excludeId == null || n.Id != excludeId), ct)
             .ConfigureAwait(false);
 
     public async Task<bool> IsNutrientInUseAsync(Guid id, CancellationToken ct = default) =>
         await drContext.FoodsNutrients
+            .AsNoTracking()
             .AnyAsync(fn => fn.NutrientId == id, ct)
             .ConfigureAwait(false);
 
-    public async Task<IEnumerable<Nutrient>> GetNutrientsAsync(CancellationToken ct = default) =>
-        await drContext.Nutrients.AsNoTracking().ToListAsync(ct).ConfigureAwait(false);
-
-    public async Task<Nutrient?> GetNutrientAsync(Guid id, CancellationToken ct = default) =>
+    public async Task<TResult?> GetNutrientAsync<TResult>(
+        Guid id,
+        Expression<Func<Nutrient, TResult>> selector,
+        CancellationToken ct = default) =>
         await drContext.Nutrients
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == id, ct)
+            .Where(n => n.Id == id)
+            .Select(selector)
+            .FirstOrDefaultAsync(ct)
+            .ConfigureAwait(false);
+
+    public async Task<IList<TResult>> GetNutrientsAsync<TResult>(
+        Expression<Func<Nutrient, TResult>> selector,
+        CancellationToken ct = default) =>
+        await drContext.Nutrients
+            .AsNoTracking()
+            .Select(selector)
+            .ToListAsync(ct)
             .ConfigureAwait(false);
 
     public async Task<bool> UpdateNutrientAsync(Nutrient nutrient, CancellationToken ct = default)

@@ -1,5 +1,6 @@
 using Dr.NutrizioNino.Api.Helpers;
 using Dr.NutrizioNino.Api.Infrastructure;
+using Dr.NutrizioNino.Api.Infrastructure.Extensions;
 using Dr.NutrizioNino.Api.Infrastructure.Models;
 using Dr.NutrizioNino.Api.Models;
 using Dr.NutrizioNino.Models.Dto;
@@ -10,16 +11,14 @@ public enum NutrientOperationResult { Success, NotFound, Conflict }
 
 public class NutrientService(DrRepository drRepository)
 {
-    public async Task<IList<NutrientInfo>> GetNutrientsAsync(CancellationToken ct = default)
-    {
-        var nutrients = await drRepository.GetNutrientsAsync(ct).ConfigureAwait(false);
-        return nutrients.OrderBy(x => x.Name).Select(x => x.AsDto()).ToList();
-    }
+    public async Task<IList<NutrientInfo>> GetNutrientsAsync(CancellationToken ct = default) =>
+        (await drRepository.GetNutrientsAsync(NutrientExtensions.ToNutrientInfo, ct).ConfigureAwait(false))
+            .OrderBy(x => x.Name).ToList();
 
-    public async Task<Nutrient?> GetNutrientAsync(Guid id, CancellationToken ct = default) =>
-        await drRepository.GetNutrientAsync(id, ct).ConfigureAwait(false);
+    public async Task<NutrientInfo?> GetNutrientAsync(Guid id, CancellationToken ct = default) =>
+        await drRepository.GetNutrientAsync(id, NutrientExtensions.ToNutrientInfo, ct).ConfigureAwait(false);
 
-    public async Task<Nutrient?> CreateNutrientAsync(CreateNutrientDto newNutrientDto, CancellationToken ct = default)
+    public async Task<NutrientInfo?> CreateNutrientAsync(CreateNutrientDto newNutrientDto, CancellationToken ct = default)
     {
         var exists = await drRepository.NutrientNameExistsAsync(newNutrientDto.Name, ct: ct).ConfigureAwait(false);
         if (exists)
@@ -28,7 +27,8 @@ public class NutrientService(DrRepository drRepository)
         }
 
         var nutrient = await ModelsFactory.CreateNutrient(newNutrientDto);
-        return await drRepository.CreateNutrientAsync(nutrient, ct).ConfigureAwait(false);
+        var created = await drRepository.CreateNutrientAsync(nutrient, ct).ConfigureAwait(false);
+        return new NutrientInfo(created.Id, created.Name, created.PositionOrder, created.DefaultUnitOfMeasureId, created.DefaultQuantity);
     }
 
     public async Task<NutrientOperationResult> UpdateNutrientAsync(Nutrient nutrient, CancellationToken ct = default)
