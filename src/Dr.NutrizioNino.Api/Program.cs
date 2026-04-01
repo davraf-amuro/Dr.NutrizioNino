@@ -63,7 +63,6 @@ try
     {
         options.UseSqlServer(builder.Configuration.GetConnectionString("DrNutrizioNinoSql"));
         options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
-        options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
         if (builder.Environment.IsDevelopment())
         {
             options.EnableSensitiveDataLogging();
