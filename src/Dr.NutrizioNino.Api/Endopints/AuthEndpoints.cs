@@ -26,8 +26,8 @@ public static class AuthEndpoints
             httpResponse.Cookies.Append("auth_token", result.RawToken, new CookieOptions
             {
                 HttpOnly = true,
-                Secure   = !env.IsDevelopment(),
-                SameSite = SameSiteMode.Strict,
+                Secure   = true,
+                SameSite = env.IsDevelopment() ? SameSiteMode.None : SameSiteMode.Strict,
                 Expires  = result.ExpiresAt
             });
 
