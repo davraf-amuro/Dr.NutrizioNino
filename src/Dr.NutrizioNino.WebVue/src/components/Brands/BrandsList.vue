@@ -21,7 +21,7 @@
 <script setup lang="ts">
 import { h } from 'vue'
 import type { Brand } from '@/Interfaces/Brand'
-import { NButton, NDataTable, NInput, NSpace, type DataTableColumns } from 'naive-ui'
+import { NButton, NDataTable, NInput, NSpace, NTag, type DataTableColumns } from 'naive-ui'
 import { useTableSearch } from '@/core/composables/useTableSearch'
 
 const props = defineProps<{
@@ -36,6 +36,14 @@ const emit = defineEmits<{
 const { searchQuery, filteredData } = useTableSearch(() => props.brands, 'name')
 
 const columns: DataTableColumns<Brand> = [
+  {
+    title: 'Prop.',
+    key: 'isOwner',
+    width: 60,
+    render: (row) => row.isOwner
+      ? h(NTag, { size: 'small', type: 'success', round: true }, { default: () => '★' })
+      : h('span', { style: 'color:#ccc' }, '—')
+  },
   { title: 'Nome', key: 'name', sorter: 'default' },
   {
     title: 'Azioni',

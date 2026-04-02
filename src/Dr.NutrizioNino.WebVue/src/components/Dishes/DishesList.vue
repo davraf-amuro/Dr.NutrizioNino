@@ -21,7 +21,7 @@
 <script setup lang="ts">
 import { h } from 'vue'
 import type { FoodDashboardDto } from '@/Interfaces/foods/FoodDashboardDto'
-import { NButton, NDataTable, NInput, NSpace, type DataTableColumns } from 'naive-ui'
+import { NButton, NDataTable, NInput, NSpace, NTag, type DataTableColumns } from 'naive-ui'
 import { useTableSearch } from '@/core/composables/useTableSearch'
 
 const props = defineProps<{ dishes: FoodDashboardDto[] }>()
@@ -33,6 +33,14 @@ const emit = defineEmits<{
 const { searchQuery, filteredData } = useTableSearch(() => props.dishes, 'name')
 
 const columns: DataTableColumns<FoodDashboardDto> = [
+  {
+    title: 'Prop.',
+    key: 'isOwner',
+    width: 60,
+    render: (row) => row.isOwner
+      ? h(NTag, { size: 'small', type: 'success', round: true }, { default: () => '★' })
+      : h('span', { style: 'color:#ccc' }, '—')
+  },
   { title: 'Nome', key: 'name', sorter: 'default' },
   { title: 'Kcal/100g', key: 'calorie', width: 110, sorter: (a, b) => (a.calorie ?? 0) - (b.calorie ?? 0) },
   {

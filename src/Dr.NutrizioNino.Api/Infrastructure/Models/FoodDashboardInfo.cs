@@ -28,4 +28,6 @@ public class FoodDashboardInfo
     public bool IsNutritionStale { get; set; }
 
     public DateTime? NutrientsCalculatedAt { get; set; }
+
+    public Guid? OwnerId { get; set; }
 }

@@ -8,4 +8,5 @@ export interface FoodDashboardDto {
   unitOfMeasureDescription: string
   abbreviation: string
   supermarketsText: string | null
+  isOwner: boolean
 }

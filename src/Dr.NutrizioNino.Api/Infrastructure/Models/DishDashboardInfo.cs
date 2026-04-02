@@ -20,4 +20,6 @@ public class DishDashboardInfo
     public bool IsNutritionStale { get; set; }
 
     public DateTime? NutrientsCalculatedAt { get; set; }
+
+    public Guid? OwnerId { get; set; }
 }

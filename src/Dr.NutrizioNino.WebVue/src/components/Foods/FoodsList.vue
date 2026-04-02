@@ -36,6 +36,14 @@ const emit = defineEmits<{
 const { searchQuery, filteredData } = useTableSearch(() => props.foods, 'name')
 
 const columns: DataTableColumns<FoodDashboardDto> = [
+  {
+    title: 'Prop.',
+    key: 'isOwner',
+    width: 60,
+    render: (row) => row.isOwner
+      ? h(NTag, { size: 'small', type: 'success', round: true }, { default: () => '★' })
+      : h('span', { style: 'color:#ccc' }, '—')
+  },
   { title: 'Nome', key: 'name', sorter: 'default' },
   { title: 'Marca', key: 'brandDescription', sorter: 'default' },
   { title: 'Kcal', key: 'calorie', width: 80, sorter: (a, b) => (a.calorie ?? 0) - (b.calorie ?? 0) },

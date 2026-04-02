@@ -9,6 +9,7 @@ Backend .NET 10 Minimal API · Frontend Vue 3.
 |-------|------------|
 | Backend | .NET 10 · C# 14 · Minimal API · EF Core 10 |
 | Database | SQL Server |
+| Autenticazione | ASP.NET Core Identity · JWT Bearer · Cookie httpOnly |
 | Frontend | Vue 3 · TypeScript · Vite 8 · Naive UI |
 | HTTP client | Axios |
 | Logging | Serilog (console + file rotante) |
@@ -104,6 +105,8 @@ Dr.NutrizioNino/
 | Chiave | File | Descrizione |
 |--------|------|-------------|
 | `ConnectionStrings:DrNutrizioNinoSql` | `appsettings.local.json` | Connection string SQL Server |
+| `Jwt:Secret` | `appsettings.local.json` | Chiave segreta HMAC-SHA256 per la firma del JWT |
+| `AllowedOrigins` | `appsettings.local.json` | Origini CORS ammesse (es. `http://localhost:5173`) |
 
 ### Frontend
 
@@ -125,8 +128,20 @@ Versione attiva: **v1**
 | Unità di misura | `/api/v1/unitsOfMeasures` |
 | Marche | `/api/v1/brands` |
 | Piatti | `/api/v1/dishes` |
+| Autenticazione | `/api/v1/auth` |
+| Amministrazione utenti | `/api/v1/admin/users` |
 
 Documentazione interattiva completa: `http://localhost:5083/scalar/v1`
+
+---
+
+## Autenticazione
+
+Il sistema usa JWT trasportato tramite **cookie httpOnly**. Il token è firmato con HMAC-SHA256 e ha una durata di 8 ore. Il frontend non legge mai il token: il browser lo invia automaticamente a ogni richiesta.
+
+Due ruoli disponibili: `User` e `Admin`. Gli endpoint amministrativi richiedono la policy `AdminOnly`.
+
+Documentazione dettagliata: [`docs/authentication.md`](docs/authentication.md)
 
 ---
 
@@ -138,4 +153,4 @@ Configurato in `.mcp.json`. Vedi [`tools/mcp-db-schema/README.md`](tools/mcp-db-
 
 ---
 
-*Aggiornato il: 2026-03-25*
+*Aggiornato il: 2026-04-02*

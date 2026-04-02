@@ -12,6 +12,8 @@ namespace Dr.NutrizioNino.Api.Endopints;
 
 public static class BrandsEndpoints
 {
+    private record BrandListItem(Guid Id, string Name, bool IsOwner);
+
     public static IEndpointRouteBuilder MapsBrandsEndpoints(this IEndpointRouteBuilder endpoints, ApiVersionSet versionSet)
     {
         var group = endpoints.MapGroup("api/v{version:apiVersion}/brands")
@@ -19,9 +21,11 @@ public static class BrandsEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(ApiVersionFactory.Version1);
 
-        group.MapGet("", async (BrandService service, CancellationToken ct) =>
+        group.MapGet("", async (BrandService service, ClaimsPrincipal user, CancellationToken ct) =>
         {
-            var result = await service.GetBrandsAsync(ct);
+            var userId = user.GetUserId();
+            var raw = await service.GetBrandsAsync(b => new { b.Id, b.Name, b.OwnerId }, ct);
+            var result = raw.Select(b => new BrandListItem(b.Id, b.Name, userId.HasValue && b.OwnerId.HasValue && b.OwnerId == userId)).ToList();
             return result.Count > 0
                 ? Results.Ok(result)
                 : TypedResults.Problem(new ProblemDetails
@@ -34,7 +38,7 @@ public static class BrandsEndpoints
             .WithName("GetBrands")
             .WithSummary("Get all brands")
             .WithDescription("Returns all available brands.")
-            .Produces<IList<BrandDto>>(StatusCodes.Status200OK)
+            .Produces<IList<BrandListItem>>(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 
         group.MapGet("{id}", async (BrandService service, Guid id, CancellationToken ct) =>
@@ -69,12 +73,12 @@ public static class BrandsEndpoints
 
             var ownerId = user.GetUserId();
             var result = await service.CreateBrandAsync(newBrand, ownerId, ct);
-            return Results.Ok(result);
+            return Results.Ok(new BrandListItem(result.Id, result.Name, IsOwner: true));
         })
             .WithName("CreateBrand")
             .WithSummary("Create a new brand")
             .WithDescription("Creates a new brand and returns the created entity.")
-            .Produces<BrandDto>(StatusCodes.Status200OK)
+            .Produces<BrandListItem>(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict)
             .RequireAuthorization();
 

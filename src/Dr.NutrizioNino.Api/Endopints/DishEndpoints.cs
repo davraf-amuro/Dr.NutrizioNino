@@ -13,6 +13,12 @@ namespace Dr.NutrizioNino.Api.Endopints;
 
 public static class DishEndpoints
 {
+    private record DishDashboardResponse(
+        Guid Id, string? Name, decimal Quantity, decimal Calorie,
+        string? UnitOfMeasureDescription, string? Abbreviation,
+        bool IsNutritionStale, DateTime? NutrientsCalculatedAt,
+        bool IsOwner);
+
     public static IEndpointRouteBuilder MapsDishesEndpoints(this IEndpointRouteBuilder endpoints, ApiVersionSet versionSet)
     {
         var group = endpoints.MapGroup("api/v{version:apiVersion}/dishes")
@@ -20,9 +26,15 @@ public static class DishEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(ApiVersionFactory.Version1);
 
-        group.MapGet("dashboard", async (DishService service, CancellationToken ct) =>
+        group.MapGet("dashboard", async (DishService service, ClaimsPrincipal user, CancellationToken ct) =>
         {
-            var result = await service.GetDishesDashboardAsync(ct);
+            var items = await service.GetDishesDashboardAsync(ct);
+            var userId = user.GetUserId();
+            var result = items.Select(d => new DishDashboardResponse(
+                d.Id, d.Name, d.Quantity, d.Calorie,
+                d.UnitOfMeasureDescription, d.Abbreviation,
+                d.IsNutritionStale, d.NutrientsCalculatedAt,
+                IsOwner: userId.HasValue && d.OwnerId.HasValue && d.OwnerId == userId)).ToList();
             return Results.Ok(result);
         })
             .WithName("GetDishesDashboard")

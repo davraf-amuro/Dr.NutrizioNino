@@ -12,6 +12,14 @@ namespace Dr.NutrizioNino.Api.Endopints;
 
 public static class FoodEndpoints
 {
+    private record FoodDashboardResponse(
+        Guid Id, string? Name, string? Barcode, decimal Quantity,
+        string? BrandDescription, decimal Calorie,
+        string? UnitOfMeasureDescription, string? Abbreviation,
+        bool IsDish, string? SupermarketsText,
+        bool IsNutritionStale, DateTime? NutrientsCalculatedAt,
+        bool IsOwner);
+
     public static IEndpointRouteBuilder MapsFoodsEndpoints(this IEndpointRouteBuilder endpoints, ApiVersionSet versionSet)
     {
         var group = endpoints.MapGroup("api/v{version:apiVersion}/foods")
@@ -37,9 +45,15 @@ public static class FoodEndpoints
             .Produces<FoodInfo>(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 
-        group.MapGet("dashboard", async (FoodService service, string? name, CancellationToken ct) =>
+        group.MapGet("dashboard", async (FoodService service, string? name, ClaimsPrincipal user, CancellationToken ct) =>
         {
-            var result = await service.GetFoodsDashboardAsync(name, ct);
+            var items = await service.GetFoodsDashboardAsync(name, ct);
+            var userId = user.GetUserId();
+            var result = items.Select(f => new FoodDashboardResponse(
+                f.Id, f.Name, f.Barcode, f.Quantity, f.BrandDescription, f.Calorie,
+                f.UnitOfMeasureDescription, f.Abbreviation, f.IsDish, f.SupermarketsText,
+                f.IsNutritionStale, f.NutrientsCalculatedAt,
+                IsOwner: userId.HasValue && f.OwnerId.HasValue && f.OwnerId == userId)).ToList();
             return result.Count > 0
                 ? Results.Ok(result)
                 : TypedResults.Problem(new ProblemDetails
@@ -55,17 +69,23 @@ public static class FoodEndpoints
             .Produces<IList<FoodDashboardInfo>>(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 
-        group.MapGet("dashboard/{id}", async (FoodService service, Guid id, CancellationToken ct) =>
+        group.MapGet("dashboard/{id}", async (FoodService service, Guid id, ClaimsPrincipal user, CancellationToken ct) =>
         {
-            var result = await service.GetFoodDashboardAsync(id, ct);
-            return result is not null
-                ? Results.Ok(result)
-                : TypedResults.Problem(new ProblemDetails
+            var item = await service.GetFoodDashboardAsync(id, ct);
+            if (item is null)
+                return TypedResults.Problem(new ProblemDetails
                 {
                     Title = "Data Not Found",
                     Status = StatusCodes.Status404NotFound,
                     Detail = "Dashboard item not found."
                 });
+            var userId = user.GetUserId();
+            var result = new FoodDashboardResponse(
+                item.Id, item.Name, item.Barcode, item.Quantity, item.BrandDescription, item.Calorie,
+                item.UnitOfMeasureDescription, item.Abbreviation, item.IsDish, item.SupermarketsText,
+                item.IsNutritionStale, item.NutrientsCalculatedAt,
+                IsOwner: userId.HasValue && item.OwnerId.HasValue && item.OwnerId == userId);
+            return Results.Ok(result);
         })
             .WithName("GetFoodDashboardById")
             .WithSummary("Get food dashboard item")

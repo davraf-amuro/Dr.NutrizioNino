@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Dr.NutrizioNino.Api.Helpers;
 using Dr.NutrizioNino.Api.Infrastructure;
 using Dr.NutrizioNino.Api.Infrastructure.Extensions;
@@ -10,6 +11,11 @@ public class BrandService(DrRepository drRepository)
 {
     public async Task<IList<BrandDto>> GetBrandsAsync(CancellationToken ct = default) =>
         await drRepository.GetBrandsAsync(BrandExtensions.ToBrandDto, ct).ConfigureAwait(false);
+
+    public async Task<IList<TResult>> GetBrandsAsync<TResult>(
+        Expression<Func<Brand, TResult>> selector,
+        CancellationToken ct = default) =>
+        await drRepository.GetBrandsAsync(selector, ct).ConfigureAwait(false);
 
     public async Task<BrandDto?> GetBrandAsync(Guid id, CancellationToken ct = default) =>
         await drRepository.GetBrandAsync(id, BrandExtensions.ToBrandDto, ct).ConfigureAwait(false);
