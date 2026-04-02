@@ -1,6 +1,7 @@
 import axios, { AxiosError } from 'axios'
 import { ApiError } from '@/core/http/ApiError'
 import router from '@/router'
+import { useAuth } from '@/modules/auth/composables/useAuth'
 
 const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '')
 
@@ -22,7 +23,15 @@ apiClient.interceptors.response.use(
     const message = payload?.detail ?? payload?.message ?? error.message ?? defaultMessage
 
     if (status === 401 && router.currentRoute.value.name !== 'login') {
-      router.push({ name: 'login', query: { redirect: router.currentRoute.value.fullPath } })
+      const { resetAuth } = useAuth()
+      resetAuth()
+      router.push({
+        name: 'login',
+        query: {
+          redirect: router.currentRoute.value.fullPath,
+          reason: 'session_expired'
+        }
+      })
     }
 
     return Promise.reject(

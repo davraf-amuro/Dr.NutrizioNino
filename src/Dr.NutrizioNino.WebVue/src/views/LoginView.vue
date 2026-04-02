@@ -14,6 +14,8 @@ const password = ref('')
 const errorMessage = ref<string | null>(null)
 const isLoading = ref(false)
 
+const sessionExpired = route.query.reason === 'session_expired'
+
 async function handleSubmit() {
   errorMessage.value = null
   isLoading.value = true
@@ -32,6 +34,9 @@ async function handleSubmit() {
 <template>
   <div class="login-page">
     <NCard title="Dr. NutrizioNino — Accesso" style="max-width: 400px; width: 100%">
+      <NAlert v-if="sessionExpired" type="warning" style="margin-bottom: 16px">
+        Sessione scaduta. Effettua nuovamente il login.
+      </NAlert>
       <NForm @submit.prevent="handleSubmit" autocomplete="on">
         <NFormItem label="Nome utente" :label-props="{ for: 'username' }">
           <NInput

@@ -42,5 +42,10 @@ export function useAuth() {
     checked.value = false
   }
 
-  return { user, isAuthenticated, isAdmin, checked, checkAuth, login, logout }
+  function resetAuth(): void {
+    user.value = null
+    checked.value = false
+  }
+
+  return { user, isAuthenticated, isAdmin, checked, checkAuth, login, logout, resetAuth }
 }

@@ -27,7 +27,7 @@ public static class AuthEndpoints
             {
                 HttpOnly = true,
                 Secure   = true,
-                SameSite = env.IsDevelopment() ? SameSiteMode.None : SameSiteMode.Strict,
+                SameSite = SameSiteMode.Strict,
                 Expires  = result.ExpiresAt
             });
 
