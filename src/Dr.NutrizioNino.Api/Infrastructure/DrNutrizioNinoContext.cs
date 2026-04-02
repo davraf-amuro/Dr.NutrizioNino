@@ -52,6 +52,11 @@ public partial class DrNutrizioNinoContext(
         modelBuilder.ApplyConfiguration(new FoodDashboardConfiguration());
         modelBuilder.ApplyConfiguration(new UserProfileEntryConfiguration());
 
+        modelBuilder.Entity<ApplicationUser>()
+            .HasIndex(u => u.NormalizedEmail)
+            .IsUnique()
+            .HasDatabaseName("IX_AspNetUsers_NormalizedEmail_Unique");
+
         OnModelCreatingPartial(modelBuilder);
     }
 

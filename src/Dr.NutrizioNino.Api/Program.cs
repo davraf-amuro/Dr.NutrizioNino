@@ -66,7 +66,6 @@ try
     builder.Services.AddDbContext<DrNutrizioNinoContext>(options =>
     {
         options.UseSqlServer(builder.Configuration.GetConnectionString("DrNutrizioNinoSql"));
-        options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
         if (builder.Environment.IsDevelopment())
         {
             options.EnableSensitiveDataLogging();
@@ -80,9 +79,25 @@ try
         opt.Password.RequiredLength = 8;
         opt.Password.RequireNonAlphanumeric = false;
         opt.Password.RequireUppercase = false;
+        opt.User.RequireUniqueEmail = true;
     })
     .AddEntityFrameworkStores<DrNutrizioNinoContext>()
     .AddDefaultTokenProviders();
+
+    // Sopprime il redirect di Identity verso /Account/Login — usiamo JWT, non cookie Identity
+    builder.Services.ConfigureApplicationCookie(opt =>
+    {
+        opt.Events.OnRedirectToLogin = ctx =>
+        {
+            ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
+        };
+        opt.Events.OnRedirectToAccessDenied = ctx =>
+        {
+            ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return Task.CompletedTask;
+        };
+    });
 
     // JWT Bearer
     var jwtSecret = builder.Configuration["Jwt:Secret"]!;
@@ -96,6 +111,15 @@ try
                 ValidateIssuer = false,
                 ValidateAudience = false,
                 ClockSkew = TimeSpan.FromMinutes(5)
+            };
+            // legge il token dall'httpOnly cookie invece che dall'header Authorization
+            opt.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+            {
+                OnMessageReceived = ctx =>
+                {
+                    ctx.Token = ctx.Request.Cookies["auth_token"];
+                    return Task.CompletedTask;
+                }
             };
         });
 
@@ -116,14 +140,16 @@ try
     builder.Services.AddScoped<AdminUserService>();
     builder.Services.AddScoped<UserProfileService>();
 
+    var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? [];
     builder.Services.AddCors(options =>
     {
         options.AddPolicy(name: permitGetPost
             , policy =>
             {
-                policy.AllowAnyOrigin();
-                policy.AllowAnyHeader();
-                policy.WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS");
+                policy.WithOrigins(allowedOrigins)
+                      .AllowAnyHeader()
+                      .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                      .AllowCredentials();
             });
     });
 
@@ -162,13 +188,42 @@ try
     app.MapsNutrientsEndpoints(versionSet);
     app.MapUnitsOfMeasureEndpoints(versionSet);
     app.MapsSupermarketsEndpoints(versionSet);
-    app.MapsAuthEndpoints(versionSet);
+    app.MapsAuthEndpoints(versionSet, app.Environment);
     app.MapsAdminEndpoints(versionSet);
     app.MapsUserProfileEndpoints(versionSet);
 
     //carica i middleware
     app.UseMiddleware<HttpContextLogger>();
     app.UseMiddleware<ValidatorMiddleware>();
+
+    // SEED: crea admin iniziale se non esiste — RIMUOVI dopo il primo avvio in produzione
+    using (var seedScope = app.Services.CreateScope())
+    {
+        var adminService = seedScope.ServiceProvider.GetRequiredService<AdminUserService>();
+        await adminService.EnsureRolesExistAsync();
+
+        var userManager = seedScope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        /* if (await userManager.FindByNameAsync("davraf") is null)
+        {
+            var adminUser = new ApplicationUser
+            {
+                UserName = "admin",
+                Email = "admin@gmail.com",
+                EmailConfirmed = true,
+                DateOfBirth = new DateOnly(1975, 04, 09)
+            };
+            var result = await userManager.CreateAsync(adminUser, "superman");
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(adminUser, "Admin");
+                Log.Warning(">>> SEED: utente 'admin' creato con ruolo Admin");
+            }
+            else
+            {
+                Log.Error(">>> SEED FALLITO: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
+            }
+        } */
+    }
 
     //Log.Information($"Security Protocols Allowed: {ServicePointManager.SecurityProtocol}");
     Log.Information("Application running..................");

@@ -57,7 +57,7 @@ public class AdminUserService(UserManager<ApplicationUser> userManager, RoleMana
             : (false, result.Errors.Select(e => e.Description));
     }
 
-    private async Task EnsureRolesExistAsync()
+    internal async Task EnsureRolesExistAsync()
     {
         foreach (var role in new[] { "User", "Admin" })
         {

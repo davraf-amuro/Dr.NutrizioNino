@@ -10,24 +10,43 @@ namespace Dr.NutrizioNino.Api.Endopints;
 
 public static class AuthEndpoints
 {
-    public static IEndpointRouteBuilder MapsAuthEndpoints(this IEndpointRouteBuilder endpoints, ApiVersionSet versionSet)
+    public static IEndpointRouteBuilder MapsAuthEndpoints(this IEndpointRouteBuilder endpoints, ApiVersionSet versionSet, IWebHostEnvironment env)
     {
         var group = endpoints.MapGroup("api/v{version:apiVersion}/auth")
             .WithTags("Auth")
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(ApiVersionFactory.Version1);
 
-        group.MapPost("login", async (AuthService service, [FromBody] LoginRequest request) =>
+        group.MapPost("login", async (AuthService service, HttpResponse httpResponse, [FromBody] LoginRequest request) =>
         {
-            var response = await service.LoginAsync(request);
-            if (response is null)
+            var result = await service.LoginAsync(request);
+            if (result is null)
                 return Results.Problem("Credenziali non valide.", statusCode: StatusCodes.Status401Unauthorized);
-            return Results.Ok(response);
+
+            httpResponse.Cookies.Append("auth_token", result.RawToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure   = !env.IsDevelopment(),
+                SameSite = SameSiteMode.Strict,
+                Expires  = result.ExpiresAt
+            });
+
+            return Results.Ok(new LoginResponse(result.UserName, result.Role));
         })
         .WithName("Login")
-        .WithSummary("Esegui il login e ottieni il JWT")
+        .WithSummary("Esegui il login e imposta il cookie di autenticazione")
         .Produces<LoginResponse>(StatusCodes.Status200OK)
         .ProducesDefaultProblem(StatusCodes.Status401Unauthorized)
+        .AllowAnonymous();
+
+        group.MapPost("logout", (HttpResponse httpResponse) =>
+        {
+            httpResponse.Cookies.Delete("auth_token");
+            return Results.NoContent();
+        })
+        .WithName("Logout")
+        .WithSummary("Cancella il cookie di autenticazione")
+        .Produces(StatusCodes.Status204NoContent)
         .AllowAnonymous();
 
         group.MapGet("me", async (AuthService service, ClaimsPrincipal user) =>

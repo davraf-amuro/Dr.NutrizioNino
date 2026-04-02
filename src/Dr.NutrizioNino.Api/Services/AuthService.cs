@@ -12,7 +12,7 @@ public class AuthService(
     UserManager<ApplicationUser> userManager,
     IConfiguration configuration)
 {
-    public async Task<LoginResponse?> LoginAsync(LoginRequest request)
+    public async Task<LoginResult?> LoginAsync(LoginRequest request)
     {
         var user = await userManager.FindByNameAsync(request.UserName);
         if (user is null || !await userManager.CheckPasswordAsync(user, request.Password))
@@ -22,7 +22,7 @@ public class AuthService(
         var role = roles.FirstOrDefault() ?? "User";
 
         var (token, expiresAt) = GenerateJwt(user, role);
-        return new LoginResponse(token, expiresAt, user.UserName!, role);
+        return new LoginResult(token, expiresAt, user.UserName!, role);
     }
 
     public async Task<MeResponse?> GetMeAsync(Guid userId)
@@ -71,3 +71,5 @@ public class AuthService(
         return (new JwtSecurityTokenHandler().WriteToken(token), expiresAt);
     }
 }
+
+public record LoginResult(string RawToken, DateTime ExpiresAt, string UserName, string Role);

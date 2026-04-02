@@ -1,8 +1,15 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuth } from '@/modules/auth/composables/useAuth'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('../views/LoginView.vue'),
+      meta: { public: true }
+    },
     {
       path: '/',
       name: 'home',
@@ -39,6 +46,19 @@ const router = createRouter({
       component: () => import('../views/SupermarketsView.vue')
     }
   ]
+})
+
+router.beforeEach(async (to) => {
+  if (to.meta.public) return true
+
+  const { isAuthenticated, checkAuth } = useAuth()
+  await checkAuth()
+
+  if (!isAuthenticated.value) {
+    return { name: 'login', query: { redirect: to.fullPath } }
+  }
+
+  return true
 })
 
 export default router
