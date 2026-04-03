@@ -1,20 +1,7 @@
 import { ref, computed } from 'vue'
 import { authApi } from '@/modules/auth/api/auth.api'
 import type { MeResponse } from '@/Interfaces/auth/AuthDto'
-
-const TOKEN_KEY = 'auth_token'
-
-function saveToken(token: string): void {
-  localStorage.setItem(TOKEN_KEY, token)
-}
-
-export function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY)
-}
-
-function removeToken(): void {
-  localStorage.removeItem(TOKEN_KEY)
-}
+import { saveToken, getToken, removeToken } from '@/core/http/tokenStorage'
 
 function isTokenValid(token: string): boolean {
   try {

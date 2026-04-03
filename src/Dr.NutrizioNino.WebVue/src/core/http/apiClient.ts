@@ -1,7 +1,8 @@
 import axios, { AxiosError } from 'axios'
 import { ApiError } from '@/core/http/ApiError'
 import router from '@/router'
-import { useAuth, getToken } from '@/modules/auth/composables/useAuth'
+import { getToken } from '@/core/http/tokenStorage'
+import { useAuth } from '@/modules/auth/composables/useAuth'
 
 const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '')
 

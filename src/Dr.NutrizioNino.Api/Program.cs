@@ -84,20 +84,24 @@ try
     .AddEntityFrameworkStores<DrNutrizioNinoContext>()
     .AddDefaultTokenProviders();
 
-    // JWT Bearer — legge il token dall'header Authorization: Bearer <token>
+    // JWT Bearer — sovrascrive esplicitamente gli scheme default impostati da AddIdentity
     var jwtSecret = builder.Configuration["Jwt:Secret"]!;
-    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-        .AddJwtBearer(opt =>
+    builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme    = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(opt =>
+    {
+        opt.TokenValidationParameters = new TokenValidationParameters
         {
-            opt.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
-                ValidateIssuer = false,
-                ValidateAudience = false,
-                ClockSkew = TimeSpan.FromMinutes(5)
-            };
-        });
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ClockSkew = TimeSpan.FromMinutes(5)
+        };
+    });
 
     // Authorization
     builder.Services.AddAuthorization(opt =>
