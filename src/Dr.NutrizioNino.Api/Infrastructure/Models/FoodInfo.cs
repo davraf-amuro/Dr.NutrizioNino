@@ -22,5 +22,6 @@ public record FoodInfo(
     , Guid UnitOfMeasureId
     , IList<NutrientsGetForFoodCreatingInfo> Nutrients
     , IList<Guid>? SupermarketIds = null
+    , IList<Guid>? CategoryIds = null
     )
 { }

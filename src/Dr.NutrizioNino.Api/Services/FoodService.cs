@@ -50,6 +50,15 @@ public class FoodService(DrRepository drRepository)
             });
         }
 
+        foreach (var categoryId in foodInfo.CategoryIds ?? [])
+        {
+            food.FoodCategories.Add(new FoodCategory
+            {
+                FoodId = food.Id,
+                CategoryId = categoryId
+            });
+        }
+
         return await drRepository.UpdateFullFoodAsync(food, ct).ConfigureAwait(false);
     }
 
@@ -78,17 +87,19 @@ public class FoodService(DrRepository drRepository)
         }
 
         var supermarketIds = food?.FoodSupermarkets.Select(fs => fs.SupermarketId).ToList();
+        var categoryIds = food?.FoodCategories.Select(fc => fc.CategoryId).ToList();
 
         return new FoodInfo(
             food?.Id ?? Guid.Empty,
-            food?.Name ?? "Empty Food",
+            food?.Name ?? string.Empty,
             food?.Quantity ?? Constants.GetDefaultQuantity(),
             food?.Barcode,
             food?.BrandId ?? Constants.GetDefaultBrandId(),
             food?.Calorie ?? Constants.GetDefaultCalories(),
             food?.UnitOfMeasureId ?? Constants.GetDefaultUnitOfMeasure(),
             nutrients,
-            supermarketIds);
+            supermarketIds,
+            categoryIds);
     }
 
     public async Task<Guid> InsertFullFood(FoodInfo foodInfo, Guid? ownerId = null, CancellationToken ct = default)
@@ -122,6 +133,15 @@ public class FoodService(DrRepository drRepository)
             {
                 FoodId = food.Id,
                 SupermarketId = supermarketId
+            });
+        }
+
+        foreach (var categoryId in foodInfo.CategoryIds ?? [])
+        {
+            food.FoodCategories.Add(new FoodCategory
+            {
+                FoodId = food.Id,
+                CategoryId = categoryId
             });
         }
 

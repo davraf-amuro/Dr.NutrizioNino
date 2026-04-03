@@ -61,6 +61,7 @@ public partial class DrRepository
         await drContext.Foods
             .AsNoTracking()
             .Include(f => f.FoodSupermarkets)
+            .Include(f => f.FoodCategories)
             .FirstOrDefaultAsync(x => x.Id == id, ct)
             .ConfigureAwait(false);
 
@@ -129,6 +130,7 @@ public partial class DrRepository
         var record = await drContext.Foods
             .Include(f => f.FoodsNutrients)
             .Include(f => f.FoodSupermarkets)
+            .Include(f => f.FoodCategories)
             .FirstOrDefaultAsync(f => f.Id == food.Id, ct)
             .ConfigureAwait(false);
 
@@ -156,6 +158,9 @@ public partial class DrRepository
 
         drContext.FoodSupermarkets.RemoveRange(record.FoodSupermarkets);
         drContext.FoodSupermarkets.AddRange(food.FoodSupermarkets);
+
+        drContext.FoodCategories.RemoveRange(record.FoodCategories);
+        drContext.FoodCategories.AddRange(food.FoodCategories);
 
         await drContext.SaveChangesAsync(ct).ConfigureAwait(false);
         await transaction.CommitAsync(ct).ConfigureAwait(false);

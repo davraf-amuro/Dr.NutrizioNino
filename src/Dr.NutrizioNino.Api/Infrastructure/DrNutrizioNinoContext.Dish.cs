@@ -3,6 +3,7 @@ using Dr.NutrizioNino.Api.Infrastructure.Models.Configurations;
 using Dr.NutrizioNino.Api.Models.Configurations;
 using Microsoft.EntityFrameworkCore;
 
+
 namespace Dr.NutrizioNino.Api.Models;
 
 public partial class DrNutrizioNinoContext
@@ -20,5 +21,7 @@ public partial class DrNutrizioNinoContext
         modelBuilder.ApplyConfiguration(new SupermarketConfiguration());
         modelBuilder.ApplyConfiguration(new FoodSupermarketConfiguration());
         modelBuilder.ApplyConfiguration(new DishDashboardConfiguration());
+        modelBuilder.ApplyConfiguration(new CategoryConfiguration());
+        modelBuilder.ApplyConfiguration(new FoodCategoryConfiguration());
     }
 }

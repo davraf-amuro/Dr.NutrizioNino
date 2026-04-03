@@ -116,6 +116,7 @@ try
     builder.Services.AddScoped<NutrientService>();
     builder.Services.AddScoped<UnitsOfMeasureService>();
     builder.Services.AddScoped<SupermarketService>();
+    builder.Services.AddScoped<CategoryService>();
     builder.Services.AddScoped<AuthService>();
     builder.Services.AddScoped<AdminUserService>();
     builder.Services.AddScoped<UserProfileService>();
@@ -168,6 +169,7 @@ try
     app.MapsNutrientsEndpoints(versionSet);
     app.MapUnitsOfMeasureEndpoints(versionSet);
     app.MapsSupermarketsEndpoints(versionSet);
+    app.MapsCategoriesEndpoints(versionSet);
     app.MapsAuthEndpoints(versionSet, app.Environment);
     app.MapsAdminEndpoints(versionSet);
     app.MapsUserProfileEndpoints(versionSet);
