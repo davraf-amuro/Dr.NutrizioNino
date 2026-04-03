@@ -51,6 +51,26 @@
           </n-input-group>
         </n-form-item>
 
+        <n-form-item label="Categorie" path="categoryIds">
+          <n-input-group>
+            <n-select
+              v-model:value="localFood.categoryIds"
+              :options="categoryOptions"
+              placeholder="-seleziona-"
+              multiple
+              clearable
+              filterable
+              :disabled="isSubmitting"
+              style="flex: 1; min-width: 0"
+            />
+            <n-button
+              :disabled="isSubmitting"
+              aria-label="Aggiungi nuova categoria"
+              @click="showCategoryModal = true"
+            >+</n-button>
+          </n-input-group>
+        </n-form-item>
+
         <n-grid :cols="2" :x-gap="12">
           <n-gi>
             <n-form-item label="Unità di misura" path="unitOfMeasureId">
@@ -104,6 +124,7 @@
     <BrandQuickAddModal v-model:show="showBrandModal" @created="onBrandCreated" />
     <UnitQuickAddModal v-model:show="showUnitModal" @created="onUnitCreated" />
     <SupermarketQuickAddModal v-model:show="showSupermarketModal" @created="onSupermarketCreated" />
+    <CategoryQuickAddModal v-model:show="showCategoryModal" @created="onCategoryCreated" />
 
     <n-space justify="space-between">
       <n-button type="error" @click="cancelHandler" :disabled="isSubmitting">Annulla</n-button>
@@ -139,10 +160,12 @@ import type { FoodDto } from '@/Interfaces/foods/FoodDto'
 import type { UnitOfMeasureDto } from '@/Interfaces/UnitOfMeasureDto'
 import type { Brand } from '@/Interfaces/Brand'
 import type { Supermarket } from '@/Interfaces/Supermarket'
+import type { Category } from '@/Interfaces/Category'
 import FoodNutrientInput from './FoodNutrientInput.vue'
 import BrandQuickAddModal from './BrandQuickAddModal.vue'
 import UnitQuickAddModal from './UnitQuickAddModal.vue'
 import SupermarketQuickAddModal from './SupermarketQuickAddModal.vue'
+import CategoryQuickAddModal from './CategoryQuickAddModal.vue'
 
 const props = defineProps<{
   food: FoodDto
@@ -150,6 +173,7 @@ const props = defineProps<{
   brands: Brand[]
   unitsOfMeasures: UnitOfMeasureDto[]
   supermarkets: Supermarket[]
+  categories: Category[]
   isSubmitting?: boolean
 }>()
 
@@ -159,6 +183,7 @@ const emit = defineEmits<{
   'brand-created': [brand: Brand]
   'unit-created': [unit: UnitOfMeasureDto]
   'supermarket-created': [supermarket: Supermarket]
+  'category-created': [category: Category]
 }>()
 
 const formRef = ref<FormInst | null>(null)
@@ -190,6 +215,12 @@ const supermarketOptions = computed<SelectOption[]>(() =>
     .map((s) => ({ label: s.name, value: s.id }))
 )
 
+const categoryOptions = computed<SelectOption[]>(() =>
+  [...props.categories]
+    .sort((a, b) => a.name.localeCompare(b.name, 'it'))
+    .map((c) => ({ label: c.name, value: c.id }))
+)
+
 const cloneFood = (food: FoodDto): FoodDto => ({
   ...food,
   nutrients: food.nutrients.map((nutrient) => ({ ...nutrient }))
@@ -215,6 +246,7 @@ watch(() => props.brands, () => ensureBrandSelection(), { immediate: true })
 const showBrandModal = ref(false)
 const showUnitModal = ref(false)
 const showSupermarketModal = ref(false)
+const showCategoryModal = ref(false)
 
 const onBrandCreated = (brand: Brand) => {
   localFood.value.brandId = brand.id
@@ -229,6 +261,11 @@ const onUnitCreated = (unit: UnitOfMeasureDto) => {
 const onSupermarketCreated = (supermarket: Supermarket) => {
   localFood.value.supermarketIds = [...(localFood.value.supermarketIds ?? []), supermarket.id]
   emit('supermarket-created', supermarket)
+}
+
+const onCategoryCreated = (category: Category) => {
+  localFood.value.categoryIds = [...(localFood.value.categoryIds ?? []), category.id]
+  emit('category-created', category)
 }
 
 const cancelHandler = () => emit('cancel')

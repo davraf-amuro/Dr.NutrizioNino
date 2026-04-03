@@ -1,12 +1,14 @@
 import { ref } from 'vue'
 import type { Brand } from '@/Interfaces/Brand'
 import type { Supermarket } from '@/Interfaces/Supermarket'
+import type { Category } from '@/Interfaces/Category'
 import type { UnitOfMeasureDto } from '@/Interfaces/UnitOfMeasureDto'
 import type { FoodDashboardDto } from '@/Interfaces/foods/FoodDashboardDto'
 import type { FoodDto } from '@/Interfaces/foods/FoodDto'
 import { useAsyncState } from '@/core/composables/useAsyncState'
 import { getBrands } from '@/modules/brands/api/brands.api'
 import { getSupermarkets } from '@/modules/supermarkets/api/supermarkets.api'
+import { getCategories } from '@/modules/categories/api/categories.api'
 import {
   createFood,
   deleteFood,
@@ -24,6 +26,7 @@ let dashboardCacheAt = 0
 let brandsCache: Brand[] | null = null
 let unitsCache: UnitOfMeasureDto[] | null = null
 let supermarketsCache: Supermarket[] | null = null
+let categoriesCache: Category[] | null = null
 let lookupsCacheAt = 0
 type FoodFormMode = 'create' | 'edit'
 
@@ -34,6 +37,7 @@ export const useFoods = () => {
   const brands = ref<Brand[]>([])
   const unitsOfMeasures = ref<UnitOfMeasureDto[]>([])
   const supermarkets = ref<Supermarket[]>([])
+  const categories = ref<Category[]>([])
   const isCreating = ref(false)
   const formMode = ref<FoodFormMode>('create')
 
@@ -42,10 +46,11 @@ export const useFoods = () => {
     dashboardCacheAt = Date.now()
   }
 
-  const updateLookupsCache = (newBrands: Brand[], newUnits: UnitOfMeasureDto[], newSupermarkets: Supermarket[]) => {
+  const updateLookupsCache = (newBrands: Brand[], newUnits: UnitOfMeasureDto[], newSupermarkets: Supermarket[], newCategories: Category[]) => {
     brandsCache = [...newBrands]
     unitsCache = [...newUnits]
     supermarketsCache = [...newSupermarkets]
+    categoriesCache = [...newCategories]
     lookupsCacheAt = Date.now()
   }
 
@@ -64,26 +69,29 @@ export const useFoods = () => {
   }
 
   const loadLookups = async (force = false) => {
-    const hasValidCache = !force && brandsCache && unitsCache && supermarketsCache && Date.now() - lookupsCacheAt < cacheTtlMs
-    if (hasValidCache && brandsCache && unitsCache && supermarketsCache) {
+    const hasValidCache = !force && brandsCache && unitsCache && supermarketsCache && categoriesCache && Date.now() - lookupsCacheAt < cacheTtlMs
+    if (hasValidCache && brandsCache && unitsCache && supermarketsCache && categoriesCache) {
       brands.value = [...brandsCache]
       unitsOfMeasures.value = [...unitsCache]
       supermarkets.value = [...supermarketsCache]
+      categories.value = [...categoriesCache]
       return
     }
 
-    const [brandsData, unitsData, supermarketsData] = await Promise.all([
+    const [brandsData, unitsData, supermarketsData, categoriesData] = await Promise.all([
       run(() => getBrands()),
       run(() => getUnitsOfMeasures()),
-      run(() => getSupermarkets())
+      run(() => getSupermarkets()),
+      run(() => getCategories())
     ])
 
     if (brandsData) brands.value = brandsData
     if (unitsData) unitsOfMeasures.value = unitsData
     if (supermarketsData) supermarkets.value = supermarketsData
+    if (categoriesData) categories.value = categoriesData
 
-    if (brandsData && unitsData && supermarketsData) {
-      updateLookupsCache(brandsData, unitsData, supermarketsData)
+    if (brandsData && unitsData && supermarketsData && categoriesData) {
+      updateLookupsCache(brandsData, unitsData, supermarketsData, categoriesData)
     }
   }
 
@@ -175,6 +183,11 @@ export const useFoods = () => {
     if (supermarketsCache) supermarketsCache.push(supermarket)
   }
 
+  const addCategoryLookup = (category: Category) => {
+    categories.value.push(category)
+    if (categoriesCache) categoriesCache.push(category)
+  }
+
   const removeFood = async (food: FoodDashboardDto) => {
     const removed = await run(async () => {
       await deleteFood(food.id)
@@ -193,6 +206,7 @@ export const useFoods = () => {
     brands,
     unitsOfMeasures,
     supermarkets,
+    categories,
     isCreating,
     formMode,
     isLoading,
@@ -206,6 +220,7 @@ export const useFoods = () => {
     removeFood,
     addBrandLookup,
     addUnitLookup,
-    addSupermarketLookup
+    addSupermarketLookup,
+    addCategoryLookup
   }
 }
