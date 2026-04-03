@@ -49,6 +49,12 @@ const router = createRouter({
       path: '/categories',
       name: 'categories',
       component: () => import('../views/CategoriesView.vue')
+    },
+    {
+      path: '/admin/users',
+      name: 'admin-users',
+      component: () => import('../views/AdminUsersView.vue'),
+      meta: { requiresAdmin: true }
     }
   ]
 })
@@ -56,11 +62,15 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   if (to.meta.public) return true
 
-  const { isAuthenticated, checkAuth } = useAuth()
+  const { isAuthenticated, isAdmin, checkAuth } = useAuth()
   await checkAuth()
 
   if (!isAuthenticated.value) {
     return { name: 'login', query: { redirect: to.fullPath } }
+  }
+
+  if (to.meta.requiresAdmin && !isAdmin.value) {
+    return { name: 'home' }
   }
 
   return true

@@ -11,19 +11,27 @@ import {
   NText,
   type MenuOption
 } from 'naive-ui'
+import { useAuth } from '@/modules/auth/composables/useAuth'
 
 const route = useRoute()
 const router = useRouter()
+const { isAdmin, user } = useAuth()
 
-const menuOptions: MenuOption[] = [
-  { label: 'Alimenti', key: '/foods' },
-  { label: 'Piatti', key: '/dishes' },
-  { label: 'Nutrienti', key: '/nutrients' },
-  { label: 'Marche', key: '/brands' },
-  { label: 'Unità di misura', key: '/units' },
-  { label: 'Supermercati', key: '/supermarkets' },
-  { label: 'Categorie', key: '/categories' }
-]
+const menuOptions = computed<MenuOption[]>(() => {
+  const items: MenuOption[] = [
+    { label: 'Alimenti', key: '/foods' },
+    { label: 'Piatti', key: '/dishes' },
+    { label: 'Nutrienti', key: '/nutrients' },
+    { label: 'Marche', key: '/brands' },
+    { label: 'Unità di misura', key: '/units' },
+    { label: 'Supermercati', key: '/supermarkets' },
+    { label: 'Categorie', key: '/categories' }
+  ]
+  if (isAdmin.value) {
+    items.push({ label: 'Utenti', key: '/admin/users' })
+  }
+  return items
+})
 
 const activeKey = computed(() => {
   if (route.path.startsWith('/dishes')) return '/dishes'
@@ -32,6 +40,7 @@ const activeKey = computed(() => {
   if (route.path.startsWith('/units')) return '/units'
   if (route.path.startsWith('/supermarkets')) return '/supermarkets'
   if (route.path.startsWith('/categories')) return '/categories'
+  if (route.path.startsWith('/admin')) return '/admin/users'
   return '/foods'
 })
 </script>
@@ -49,6 +58,7 @@ const activeKey = computed(() => {
             @update:value="(key) => router.push(key)"
             class="app-nav"
           />
+          <n-text v-if="user" depth="3" class="app-username">{{ user.userName }}</n-text>
         </n-layout-header>
 
         <n-layout-content class="app-content">
@@ -84,6 +94,11 @@ const activeKey = computed(() => {
 
 .app-nav {
   flex: 1;
+}
+
+.app-username {
+  white-space: nowrap;
+  font-size: 13px;
 }
 
 .app-content {
