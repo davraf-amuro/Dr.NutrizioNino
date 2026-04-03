@@ -41,6 +41,40 @@ public class AdminUserService(UserManager<ApplicationUser> userManager, RoleMana
         return (true, []);
     }
 
+    public async Task<UserListItem?> GetUserByIdAsync(Guid userId)
+    {
+        var user = await userManager.FindByIdAsync(userId.ToString());
+        if (user is null) return null;
+        var roles = await userManager.GetRolesAsync(user);
+        return new UserListItem(user.Id, user.UserName!, user.Email!, user.DateOfBirth, roles.FirstOrDefault() ?? "User");
+    }
+
+    public async Task<(bool Success, IEnumerable<string> Errors)> UpdateUserAsync(Guid userId, UpdateUserRequest request)
+    {
+        var user = await userManager.FindByIdAsync(userId.ToString());
+        if (user is null) return (false, ["Utente non trovato."]);
+
+        user.UserName = request.UserName;
+        user.Email = request.Email;
+        user.DateOfBirth = request.DateOfBirth;
+
+        var result = await userManager.UpdateAsync(user);
+        return result.Succeeded
+            ? (true, [])
+            : (false, result.Errors.Select(e => e.Description));
+    }
+
+    public async Task<(bool Success, IEnumerable<string> Errors)> DeleteUserAsync(Guid userId)
+    {
+        var user = await userManager.FindByIdAsync(userId.ToString());
+        if (user is null) return (false, ["Utente non trovato."]);
+
+        var result = await userManager.DeleteAsync(user);
+        return result.Succeeded
+            ? (true, [])
+            : (false, result.Errors.Select(e => e.Description));
+    }
+
     public async Task<(bool Success, IEnumerable<string> Errors)> ChangeRoleAsync(Guid userId, string newRole)
     {
         await EnsureRolesExistAsync();

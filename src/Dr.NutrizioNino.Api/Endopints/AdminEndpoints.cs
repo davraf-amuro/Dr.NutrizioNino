@@ -38,6 +38,42 @@ public static class AdminEndpoints
         .Produces(StatusCodes.Status201Created)
         .ProducesDefaultProblem(StatusCodes.Status400BadRequest);
 
+        group.MapGet("{id:guid}", async (AdminUserService service, Guid id) =>
+        {
+            var user = await service.GetUserByIdAsync(id);
+            return user is not null
+                ? Results.Ok(user)
+                : Results.Problem("Utente non trovato.", statusCode: StatusCodes.Status404NotFound);
+        })
+        .WithName("GetUserById")
+        .WithSummary("Restituisce un utente per id")
+        .Produces<UserListItem>(StatusCodes.Status200OK)
+        .ProducesDefaultProblem(StatusCodes.Status404NotFound);
+
+        group.MapPut("{id:guid}", async (AdminUserService service, Guid id, [FromBody] UpdateUserRequest request) =>
+        {
+            var (success, errors) = await service.UpdateUserAsync(id, request);
+            if (!success)
+                return Results.Problem(string.Join("; ", errors), statusCode: StatusCodes.Status400BadRequest);
+            return Results.NoContent();
+        })
+        .WithName("UpdateUser")
+        .WithSummary("Aggiorna username, email e data di nascita di un utente")
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesDefaultProblem(StatusCodes.Status400BadRequest);
+
+        group.MapDelete("{id:guid}", async (AdminUserService service, Guid id) =>
+        {
+            var (success, errors) = await service.DeleteUserAsync(id);
+            if (!success)
+                return Results.Problem(string.Join("; ", errors), statusCode: StatusCodes.Status400BadRequest);
+            return Results.NoContent();
+        })
+        .WithName("DeleteUser")
+        .WithSummary("Elimina un utente")
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesDefaultProblem(StatusCodes.Status400BadRequest);
+
         group.MapPatch("{id:guid}/role", async (AdminUserService service, Guid id, [FromBody] ChangeRoleRequest request) =>
         {
             var (success, errors) = await service.ChangeRoleAsync(id, request.Role);
