@@ -42,10 +42,12 @@ import type { FoodDashboardDto } from '@/Interfaces/foods/FoodDashboardDto'
 import type { FoodDto } from '@/Interfaces/foods/FoodDto'
 import type { FoodNutrientDto } from '@/Interfaces/foods/FoodNutrientDto'
 import { getFoodById } from '@/modules/foods/api/foods.api'
+import { sortNutrients } from '@/core/utils/sortNutrients'
 
 interface NutrientRow {
   nutrientId: string
   name: string
+  positionOrder: number
   values: Record<string, number | null>
 }
 
@@ -76,7 +78,7 @@ watch(
     for (const food of details) {
       for (const n of food.nutrients ?? []) {
         if (!nutrientMap.has(n.nutrientId)) {
-          nutrientMap.set(n.nutrientId, { nutrientId: n.nutrientId, name: n.name, values: {} })
+          nutrientMap.set(n.nutrientId, { nutrientId: n.nutrientId, name: n.name, positionOrder: n.positionOrder, values: {} })
         }
         nutrientMap.get(n.nutrientId)!.values[food.id] = n.quantity
       }
@@ -88,7 +90,7 @@ watch(
       }
     }
 
-    rows.value = [...nutrientMap.values()].sort((a, b) => a.name.localeCompare(b.name, 'it'))
+    rows.value = sortNutrients([...nutrientMap.values()])
     loading.value = false
   }
 )
