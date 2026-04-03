@@ -1,68 +1,71 @@
-# Frontend Architecture Intervention Plan
+# Frontend Architecture — Piano interventi
 
 ## Obiettivi
 
-- Eliminare watcher deep nei form Foods.
-- Completare o rimuovere l'evento `select` morto in FoodsList.
+- Risolvere il watcher deep nei form Foods.
 - Rimuovere i residui scaffold starter.
-- Uniformare naming delle interfacce.
-- Introdurre baseline test su composable e componenti critici.
+- Convergere il naming delle interfacce su PascalCase.
+- Introdurre test su composable e componenti critici.
 
-## Backlog interventi
+---
 
-| ID | Intervento | Pattern/Approccio | Effort | Impatto (1-5) | Stato |
-|----|------------|-------------------|--------|---------------|-------|
-| FW-01 | `useAsyncState` condiviso | `pendingCount`, `errorMessage`, `run()` | S | 5 | ✅ Completato |
-| FW-02 | `ApiError` tipizzato | Interceptor con `status`, `title`, `detail` | S | 5 | ✅ Completato |
-| FW-03 | Cache per dominio | Cache in-memory 60s con `load(force?)` | M | 4 | ✅ Completato |
-| FW-04 | Refactor reattività form Foods | Watch su singoli valori, no watcher deep | M | 4 | ⚠️ Da fare |
-| FW-05 | Completare/rimuovere `select` in Foods | Evento rimosso da `FoodsList.vue` | S | 3 | ✅ Completato |
-| FW-06 | Standardizzare controlli UI | Tutti i form usano Naive UI | S | 2 | ✅ Completato (nuovi moduli) |
-| FW-07 | Rimuovere scaffold starter | Eliminare `HomeView.vue`, `TheWelcome.vue` | S | 3 | ⚠️ Parziale |
-| FW-08 | Naming consistency | Convergere `Interfaces/foods/` → `Interfaces/Foods/` | M | 3 | ⚠️ Da fare |
-| FW-09 | Test frontend | Unit composable + interaction componenti | M | 4 | ⚠️ Da fare |
-| FW-10 | Ricerca e sort tabelle | `useTableSearch` composable + `sorter` su tutte le colonne | S | 3 | ✅ Completato |
-| FW-11 | Quick-add Marca/UdM nel form Alimento | `BrandQuickAddModal` + `UnitQuickAddModal` inline | M | 4 | 🔄 In lavorazione |
+## Backlog
 
-## Piano per fasi aggiornato
+| ID | Intervento | Effort | Stato |
+|----|------------|--------|-------|
+| FW-01 | `useAsyncState` condiviso | S | ✅ Completato |
+| FW-02 | `ApiError` tipizzato con interceptor | S | ✅ Completato |
+| FW-03 | Cache in-memory 60s per dominio | M | ✅ Completato |
+| FW-04 | Refactor reattività form Foods — watch mirati | M | ⚠️ Da fare |
+| FW-05 | Evento `select` morto rimosso da `FoodsList` | S | ✅ Completato |
+| FW-06 | Tutti i form usano Naive UI | S | ✅ Completato |
+| FW-07 | Rimuovere scaffold starter (`HomeView`, `TheWelcome`) | S | ⚠️ Parziale |
+| FW-08 | Naming `Interfaces/` uniformato su PascalCase | M | ⚠️ Da fare |
+| FW-09 | Test frontend — composable + componenti | M | ⚠️ Da fare |
+| FW-10 | Ricerca e sort tabelle (`useTableSearch`) | S | ✅ Completato |
+| FW-11 | Quick-add Marca / UdM / Supermercato nel form Alimento | M | ✅ Completato |
+| FW-12 | Dominio Piatti completo | M | ✅ Completato |
+| FW-14 | Ordinamento nutrienti centralizzato (`sortNutrients`) | S | ✅ Completato |
+| FW-15 | Dominio Supermercati completo | M | ✅ Completato |
+| FW-17 | Dettaglio piatto read-only | S | ✅ Completato |
+| FW-18 | Auth migrata a localStorage + header Bearer | S | ✅ Completato |
+| FW-19 | Nutrienti — default grammi + campi allineati | M | ✅ Completato |
+| FW-20 | Dashboard — colonne Kcal e Barcode rimosse | S | ✅ Completato |
+| FW-21 | Dominio Categorie completo + quick-add nel form | M | ✅ Completato |
+| FW-22 | Admin utenti (CRUD UI + guard rotta) | M | ✅ Completato |
+| FW-23 | App shell — menu condizionale admin + username header | S | ✅ Completato |
+| FW-24 | Confronto alimenti — selezione multipla + modale griglia | M | ✅ Completato |
+| FW-25 | Dropdown filtrabili + ordine alfabetico | S | ✅ Completato |
 
-### Quick Wins (prossimo sprint)
+---
 
-- **FW-07**: rimuovere `HomeView.vue`, `TheWelcome.vue` e relativo routing se non usati
-- **FW-11**: completare `BrandQuickAddModal` e `UnitQuickAddModal` e integrarli in `FoodDetail.vue`
+## Prossime priorità
 
-### Mid-term (1-2 sprint)
+### Quick Wins
 
-- **FW-04**: refactor `FoodDetail.vue` e `FoodNutrientInput.vue` — sostituire watcher deep con watch mirati su valori singoli
-- **FW-08**: rinominare `Interfaces/foods/` → `Interfaces/Foods/` e aggiornare gli import
-- **FW-09**: aggiungere test per almeno `useNutrients`, `useUnits`, `useBrands` (caricamento, cache, errori)
+- **FW-07**: verificare se `HomeView.vue` e `TheWelcome.vue` sono raggiungibili dall'utente; rimuoverli se inutilizzati.
 
-### Strategic
+### Mid-term
 
-- Convergenza naming completa su tutti i moduli.
-- Test harness per i componenti Forms critici.
+- **FW-04**: refactor `FoodDetail.vue` — sostituire il watcher deep sull'object prop con watch mirati sui singoli campi o computed.
+- **FW-08**: rinominare `Interfaces/foods/` → `Interfaces/Foods/` e aggiornare gli import.
+- **FW-09**: aggiungere test per `useNutrients`, `useUnits`, `useBrands` — scenari: caricamento, cache, errori.
 
-## KPI tecnici
+---
+
+## KPI
 
 | KPI | Target | Stato |
 |-----|--------|-------|
-| Blocchi async/error duplicati | 0 | ✅ Risolto |
-| Refetch per revisit stessa sessione | 0 (cache 60s) | ✅ Risolto |
-| Evento emesso senza consumer | 0 | ✅ Risolto |
-| Ricerca e sort su tutte le tabelle | ✅ | ✅ Completato |
-| Quick-add Marca/UdM nel form Alimento | ✅ | 🔄 In lavorazione |
-| Watcher deep su object props | 0 | ⚠️ FW-04 pending |
+| Blocchi async/error duplicati | 0 | ✅ |
+| Refetch per revisit stessa sessione | 0 (cache 60s) | ✅ |
+| Evento emesso senza consumer | 0 | ✅ |
+| Ricerca e sort su tutte le tabelle | ✅ | ✅ |
+| Watcher deep su object props | 0 | ⚠️ FW-04 aperto |
 | Scaffold starter nel flusso utente | 0 | ⚠️ FW-07 parziale |
-| Test composable | ≥ 8 | ⚠️ FW-09 pending |
-| Cartelle `Interfaces/` con naming coerente | 100% PascalCase | ⚠️ FW-08 pending |
-
-## Criteri di accettazione aperti
-
-- Nessun watcher deep su full object props nei form core.
-- Nessun evento emesso resta senza consumer nel parent.
-- Nessun componente scaffold rimane nel flusso utente primario.
-- Tutte le cartelle `Interfaces/` usano naming PascalCase.
-- Suite test copre almeno i composable principali con scenari di caricamento, cache e gestione errori.
+| Cartelle `Interfaces/` naming PascalCase | 100% | ⚠️ FW-08 aperto |
+| Test composable | ≥ 8 | ⚠️ FW-09 aperto |
 
 ---
-*Ultima revisione: 2026-03-24 | Focus: Frontend WebVue*
+
+*Ultima revisione: 2026-04-03 — modello `claude-sonnet-4-6`*

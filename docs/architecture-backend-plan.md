@@ -1,64 +1,62 @@
-# Backend Architecture Intervention Plan
+# Backend Architecture — Piano interventi
 
-## 1) Obiettivi
+## Obiettivi
 
-- Allineare `ValidatorMiddleware` alle route business reali.
 - Uniformare `CancellationToken` su tutti i metodi repository I/O.
-- Ridurre logging ad alto rischio (body, header, sensitive data).
-- Introdurre suite di integration test minima sui path CRUD principali.
-- Introdurre baseline metriche di latenza.
+- Rimuovere `EnableSensitiveDataLogging` dalla configurazione di produzione.
+- Introdurre suite di integration test sui path CRUD principali.
+- Baseline metriche di latenza endpoint.
 
-## 2) Backlog interventi
+---
 
-| ID | Intervento | Pattern/Approccio | Effort | Impatto (1-5) | Stato |
-|----|------------|-------------------|--------|---------------|-------|
-| B01 | Standardizzare route su `api/v{version:apiVersion}/...` | Route Groups versionati | M | 5 | ✅ Completato |
-| B02 | Allineare `ValidatorMiddleware` alle route reali | Prefix coerente + ProblemDetails 401 | S | 5 | ✅ Completato |
-| B03 | Correggere CORS per `PUT`, `DELETE` | Policy CORS allineata ai metodi esposti | S | 4 | ✅ Completato |
-| B04 | Completare CRUD repository + validazioni | CRUD completo, duplicate check, FK protection | M | 5 | ✅ Completato |
-| B05 | Uniformare async/EF Core | `SaveChangesAsync`, `CancellationToken` uniforme | M | 4 | ⚠️ Parziale |
-| B06 | Ridurre logging body/header | Structured logging con redaction | S | 4 | ⚠️ Parziale |
-| B07 | Rafforzare OpenAPI metadata | `Produces`, `WithName`, `WithSummary` uniformi | M | 3 | ✅ Completato |
-| B08 | Integration test endpoint core | Happy-path + not-found + conflict | M | 4 | ⚠️ Da fare |
-| B09 | Baseline metriche backend | Logging latenza endpoint + query count | M | 3 | ⚠️ Da fare |
+## Backlog
 
-## 3) Piano per fasi aggiornato
+| ID | Intervento | Effort | Stato |
+|----|------------|--------|-------|
+| B01 | Versioning URL `api/v{version}/...` su tutti gli endpoint | M | ✅ Completato |
+| B02 | `ValidatorMiddleware` allineato alle route reali | S | ✅ Completato |
+| B03 | CORS per `PUT`, `DELETE` | S | ✅ Completato |
+| B04 | CRUD completo, validazioni duplicati, FK protection | M | ✅ Completato |
+| B05 | `CancellationToken` uniforme nei repository | M | ⚠️ Parziale |
+| B06 | Logging: disabilitare `EnableSensitiveDataLogging` in prod | S | ⚠️ Parziale |
+| B07 | OpenAPI metadata uniformi (`Produces`, `WithName`, `WithSummary`) | M | ✅ Completato |
+| B08 | Integration test — happy-path + 404 + 409 per endpoint CRUD | M | ⚠️ Da fare |
+| B09 | Baseline metriche latenza P95 | M | ⚠️ Da fare |
 
-### Quick Wins (prossimo sprint)
+---
 
-- **B05**: completare `CancellationToken` nei metodi repository mancanti
-- **B06**: disabilitare `EnableSensitiveDataLogging` in produzione (header già filtrati, manca solo questo)
+## Prossime priorità
 
-### Mid-term (1-2 sprint)
+### Quick Wins
 
-- **B08**: integration test per endpoint Foods, Nutrients, UnitsOfMeasures, Brands
-  - happy-path GET/POST/PUT/DELETE
+- **B05**: aggiungere `CancellationToken` ai metodi repository che ne sono privi.
+- **B06**: rimuovere o condizionare `EnableSensitiveDataLogging` all'ambiente di sviluppo.
+
+### Mid-term
+
+- **B08**: integration test per endpoint Foods, Nutrients, Categories, Supermarkets:
+  - happy-path GET / POST / PUT / DELETE
   - not-found (404)
-  - conflict (409) su duplicate e FK violation
+  - conflict (409) su duplicati e FK in uso
 
 ### Strategic
 
-- **B09**: baseline metriche P95 latenza endpoint principali
-- Hardening continuo osservabilità e sicurezza
-
-## 4) KPI tecnici
-
-| KPI | Target |
-|-----|--------|
-| % endpoint con route versionata | 100% ✅ |
-| % endpoint con metadata OpenAPI completa | 100% ✅ |
-| Errori runtime da metodi non implementati | 0 ✅ |
-| Middleware allineato alle route reali | ✅ |
-| % metodi repository con `CancellationToken` | < 100% — da completare |
-| Copertura integration test endpoint core | Da misurare |
-| `EnableSensitiveDataLogging` disabilitato in prod | ⚠️ Da fare |
-
-## 5) Criteri di accettazione aperti
-
-- `ValidatorMiddleware` protegge effettivamente le route business `/api/v{version}/...`. ✅
-- Tutti i metodi repository I/O accettano `CancellationToken`.
-- Nessun log in produzione contiene body request o header di autenticazione raw.
-- Suite integration test copre almeno i path CRUD principali con scenari happy-path, not-found e conflict.
+- **B09**: misurare P95 latenza e query-count per i path principali.
 
 ---
-*Ultima revisione: 2026-03-24 | Focus: Backend API*
+
+## KPI
+
+| KPI | Target | Stato |
+|-----|--------|-------|
+| Endpoint con route versionata | 100% | ✅ |
+| Endpoint con metadata OpenAPI completa | 100% | ✅ |
+| Errori runtime da metodi non implementati | 0 | ✅ |
+| Middleware allineato alle route reali | ✅ | ✅ |
+| Metodi repository con `CancellationToken` | 100% | ⚠️ Parziale |
+| `EnableSensitiveDataLogging` disabilitato in prod | ✅ | ⚠️ Da fare |
+| Copertura integration test endpoint core | ≥ happy-path + 404 + 409 | ⚠️ Da fare |
+
+---
+
+*Ultima revisione: 2026-04-03 — modello `claude-sonnet-4-6`*

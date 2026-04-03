@@ -1,122 +1,194 @@
 # Autenticazione in Dr.NutrizioNino
 
-## 1. Panoramica
+## Panoramica
 
-Il sistema di autenticazione si basa su **JWT (JSON Web Token)** trasportato tramite **cookie httpOnly**.
+Il sistema di autenticazione si basa su **JWT (JSON Web Token)** trasportato via **localStorage** e inviato come header `Authorization: Bearer <token>` a ogni richiesta.
 
-Il frontend non tocca mai il token direttamente. Il browser lo invia automaticamente a ogni richiesta, proteggendo l'applicazione da attacchi XSS.
+L'autorizzazione è basata su **ruoli**: `User` e `Admin`. Gli endpoint protetti usano `.RequireAuthorization()` o la policy `AdminOnly`.
 
-L'autorizzazione è basata su **ruoli**: `User` e `Admin`. Gli endpoint protetti usano `RequireAuthorization()` o la policy `AdminOnly`.
+> **Nota:** La versione precedente usava cookie `httpOnly`. Il sistema è stato migrato a localStorage + header per semplificare il flusso cross-origin in sviluppo. Le implicazioni di sicurezza sono descritte in fondo.
 
 ---
 
-## 2. Stack tecnologico
+## Stack tecnologico
 
 | Componente | Tecnologia |
 |---|---|
 | Identity | ASP.NET Core Identity + `UserManager<ApplicationUser>` |
 | Ruoli | `IdentityRole<Guid>`, due ruoli: `User` e `Admin` |
 | Token | JWT firmato con HMAC-SHA256 |
-| Trasporto token | Cookie `auth_token` (httpOnly) |
-| Autenticazione backend | `JwtBearer` con lettura da cookie |
-| HTTP client frontend | Axios con `withCredentials: true` |
-| State management auth | Composable Vue `useAuth` (singleton a livello modulo) |
+| Trasporto token | `localStorage` (chiave: `auth_token`) |
+| Invio token | Header `Authorization: Bearer <token>` via interceptor Axios |
+| Autenticazione backend | Middleware `JwtBearer` standard |
+| State management auth | Composable `useAuth` (singleton a livello modulo) |
 | Routing guard | `router.beforeEach` in Vue Router |
 
 ---
 
-## 3. Flusso di login passo per passo
+## Flusso di login
 
 ```
-Client (Vue)                  Backend (.NET)
-     |                               |
-     |  POST /api/v1/auth/login      |
-     |  { userName, password }       |
-     |------------------------------>|
-     |                               | 1. UserManager.FindByNameAsync()
-     |                               | 2. CheckPasswordAsync()
-     |                               | 3. GetRolesAsync()
-     |                               | 4. GenerateJwt() → token HMAC-SHA256
-     |                               |    Scadenza: 8 ore
-     |  200 OK                       |
-     |  Set-Cookie: auth_token=...   |
-     |  { userName, role }           |
-     |<------------------------------|
-     |                               |
-     | (stato locale aggiornato)     |
-     | user = { userName, role, ... }|
-     |                               |
-     | GET /api/v1/foods  (richiesta |
-     |   successiva — cookie inviato |
-     |   automaticamente dal browser)|
-     |------------------------------>|
-     |                               | JwtBearerEvents.OnMessageReceived:
-     |                               |   ctx.Token = cookie["auth_token"]
-     |                               | Validazione firma e scadenza
-     |  200 OK                       |
-     |<------------------------------|
+Client (Vue)                      Backend (.NET)
+     |                                   |
+     |  POST /api/v1/auth/login          |
+     |  { userName, password }           |
+     |---------------------------------->|
+     |                                   | 1. UserManager.FindByNameAsync()
+     |                                   | 2. CheckPasswordAsync()
+     |                                   | 3. GetRolesAsync()
+     |                                   | 4. GenerateJwt() → token HMAC-SHA256
+     |                                   |    Claim: sub, email, name, role, jti
+     |                                   |    Scadenza: 8 ore
+     |  200 OK                           |
+     |  { token, userName, role }        |
+     |<----------------------------------|
+     |                                   |
+     | saveToken(token)                  |
+     | → localStorage["auth_token"]      |
+     | user = { userName, role, ... }    |
+     |                                   |
+     | GET /api/v1/foods                 |
+     | Authorization: Bearer <token>     |
+     |---------------------------------->|
+     |                                   | Validazione firma e scadenza
+     |  200 OK                           |
+     |<----------------------------------|
 ```
 
-### Dettaglio passi
+### Passi in dettaglio
 
 1. Il client invia `POST /api/v1/auth/login` con `{ userName, password }`.
-2. `AuthService.LoginAsync` cerca l'utente tramite `UserManager` e verifica la password.
-3. Se le credenziali sono valide, genera un JWT con i claim: `sub`, `email`, `name`, `role`, `jti`.
-4. Il token viene scritto nel cookie `auth_token` con `HttpOnly = true`. In produzione, `Secure = true`.
-5. La risposta restituisce al client solo `{ userName, role }` — il token rimane opaco.
-6. `useAuth.login()` popola lo stato locale minimo senza fare una seconda chiamata a `/me`.
-7. Ogni richiesta successiva invia il cookie automaticamente. Il middleware `JwtBearer` lo legge dall'evento `OnMessageReceived`.
+2. `AuthService.LoginAsync` verifica le credenziali tramite `UserManager`.
+3. Se valide, genera un JWT con i claim: `sub`, `email`, `name`, `role`, `jti`.
+4. La risposta restituisce `{ token, userName, role }`.
+5. `useAuth.login()` chiama `saveToken(token)` → `localStorage["auth_token"]`.
+6. Ogni richiesta successiva invia `Authorization: Bearer <token>` via interceptor Axios.
+7. Il middleware `JwtBearer` valida firma e scadenza del token.
 
 ---
 
-## 4. Come funziona il cookie httpOnly
+## Gestione del token nel frontend
 
-Il cookie `auth_token` viene impostato dal backend con le seguenti opzioni:
+### `tokenStorage.ts`
 
-| Opzione | Valore |
-|---|---|
-| `HttpOnly` | `true` — JavaScript nel browser non può leggerlo |
-| `Secure` | `true` in produzione, `false` in sviluppo |
-| `SameSite` | `Strict` — il cookie non viene inviato in richieste cross-site |
-| `Expires` | Stessa scadenza del JWT (8 ore) |
+```typescript
+const TOKEN_KEY = 'auth_token'
 
-Il backend legge il cookie nell'evento `OnMessageReceived` di `JwtBearerEvents`, prima della validazione standard. Non è necessario un header `Authorization` nel client.
-
-Il client Axios è configurato con `withCredentials: true` per includere i cookie nelle richieste cross-origin (necessario quando frontend e backend girano su porte diverse in sviluppo).
-
-Per il **logout**, il backend chiama `Response.Cookies.Delete("auth_token")`. Il cookie viene rimosso e le richieste successive risultano non autenticate.
-
----
-
-## 5. Protezione degli endpoint
-
-### Endpoint che richiedono autenticazione
-
-Usano `.RequireAuthorization()` senza policy specifica. Qualsiasi utente autenticato (ruolo `User` o `Admin`) può accedere.
-
-| Endpoint | Protezione |
-|---|---|
-| `GET /api/v1/auth/me` | `RequireAuthorization()` |
-| `PATCH /api/v1/auth/me/birthdate` | `RequireAuthorization()` |
-
-### Endpoint con policy AdminOnly
-
-Usano `.RequireAuthorization("AdminOnly")`. Solo gli utenti con ruolo `Admin` possono accedere.
-
-La policy è definita in `Program.cs`:
-
-```csharp
-builder.Services.AddAuthorization(opt =>
-{
-    opt.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
-});
+export const saveToken   = (token: string): void => localStorage.setItem(TOKEN_KEY, token)
+export const getToken    = (): string | null       => localStorage.getItem(TOKEN_KEY)
+export const removeToken = (): void                => localStorage.removeItem(TOKEN_KEY)
 ```
 
-| Endpoint | Protezione |
+### Interceptor Axios (`apiClient.ts`)
+
+L'interceptor di request legge il token e lo aggiunge all'header:
+
+```typescript
+apiClient.interceptors.request.use((config) => {
+  const token = getToken()
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+```
+
+### Validazione locale della scadenza
+
+`useAuth.checkAuth()` decodifica il payload JWT prima di chiamare `/me`:
+
+```typescript
+function isTokenValid(token: string): boolean {
+  const payload = JSON.parse(atob(token.split('.')[1]))
+  return typeof payload.exp === 'number' && payload.exp * 1000 > Date.now()
+}
+```
+
+Se il token è scaduto, viene rimosso dal localStorage senza fare una chiamata API.
+
+---
+
+## Logout
+
+Il backend restituisce `204 No Content` senza logica server-side: il token JWT non viene revocato (vedi limitazioni).
+
+Il frontend gestisce il logout in `useAuth.logout()`:
+1. Chiama `POST /api/v1/auth/logout` (per compatibilità futura).
+2. Chiama `removeToken()` → rimuove `localStorage["auth_token"]`.
+3. Azzera `user` e il flag `checked`.
+
+---
+
+## Composable `useAuth`
+
+Mantiene uno stato **singleton a livello modulo** (ref condivisi fuori dalla funzione), persistente per tutta la sessione del browser.
+
+| Proprietà/Metodo | Descrizione |
 |---|---|
-| `GET /api/v1/admin/users` | `AdminOnly` |
-| `POST /api/v1/admin/users` | `AdminOnly` |
-| `PATCH /api/v1/admin/users/{id}/role` | `AdminOnly` |
+| `user` | Oggetto utente corrente (`MeResponse` o `null`) |
+| `isAuthenticated` | `computed` — `true` se `user !== null` |
+| `isAdmin` | `computed` — `true` se `user.role === 'Admin'` |
+| `checked` | Flag: la verifica iniziale è già avvenuta |
+| `checkAuth()` | Valida il token localmente; chiama `GET /me` una sola volta |
+| `login()` | Chiama `POST /login`, salva il token, popola lo stato |
+| `logout()` | Chiama `POST /logout`, rimuove il token, azzera lo stato |
+| `resetAuth()` | Rimuove il token e azzera lo stato senza chiamate API (usato dall'interceptor 401) |
+
+---
+
+## Navigation guard
+
+Il file `src/router/index.ts` registra un `beforeEach` che protegge le rotte non pubbliche.
+
+```
+Navigazione verso rotta protetta
+        |
+        | to.meta.public? → true → accesso libero
+        |
+        | false → checkAuth()
+               |
+               | token valido + già verificato? → usa stato in memoria
+               |
+               | token valido + non verificato → GET /api/v1/auth/me
+               |        200 OK → accesso
+               |        errore  → redirect a /login?redirect=<path>
+               |
+               | to.meta.requiresAdmin? → isAdmin? no → redirect a /
+               |
+               | token assente o scaduto → redirect a /login
+```
+
+La rotta `/login` è l'unica marcata `meta: { public: true }`.
+La rotta `/admin/users` è marcata `meta: { requiresAdmin: true }`.
+
+---
+
+## Protezione degli endpoint backend
+
+### Autenticazione standard
+
+Qualsiasi utente con token valido (`User` o `Admin`).
+
+| Endpoint | Metodo | Note |
+|---|---|---|
+| `GET /api/v1/auth/me` | `RequireAuthorization()` | Dati utente corrente |
+| `PATCH /api/v1/auth/me/birthdate` | `RequireAuthorization()` | Aggiorna data di nascita |
+
+### Policy AdminOnly
+
+Solo `Admin`. Definita in `Program.cs`:
+```csharp
+opt.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
+```
+
+| Endpoint | Metodo |
+|---|---|
+| `GET /api/v1/admin/users` | Elenco utenti |
+| `POST /api/v1/admin/users` | Crea utente |
+| `GET /api/v1/admin/users/{id}` | Dettaglio utente |
+| `PUT /api/v1/admin/users/{id}` | Aggiorna utente |
+| `DELETE /api/v1/admin/users/{id}` | Elimina utente |
+| `PATCH /api/v1/admin/users/{id}/role` | Cambia ruolo |
 
 ### Endpoint pubblici
 
@@ -127,97 +199,47 @@ builder.Services.AddAuthorization(opt =>
 
 ### Comportamento su 401 e 403
 
-Il middleware Identity è configurato per **non** redirigere a `/Account/Login`. Restituisce direttamente `401 Unauthorized` o `403 Forbidden`. Questo evita conflitti con il flusso JWT.
+Il middleware Identity non redirige a `/Account/Login`. Restituisce `401` o `403` direttamente.
+
+L'interceptor Axios su 401 chiama `resetAuth()` e redirige a `/login?redirect=<path>&reason=session_expired`.
 
 ---
 
-## 6. Frontend: routing guard e gestione sessione
-
-### Navigation guard
-
-Il file `src/router/index.ts` registra un `beforeEach` che protegge tutte le rotte non marcate con `meta: { public: true }`.
-
-```
-Navigazione verso rotta protetta
-        |
-        | to.meta.public? → true → accesso libero
-        |
-        | false → checkAuth()
-               |
-               | già verificato? → usa stato in memoria
-               |
-               | no → GET /api/v1/auth/me
-                      | 200 OK → utente autenticato → accesso
-                      | errore → redirect a /login?redirect=<path>
-```
-
-La rotta `/login` è l'unica marcata `meta: { public: true }`.
-
-### Composable `useAuth`
-
-`useAuth` mantiene uno stato **singleton a livello modulo** (non reattivo globale tramite Pinia, ma un `ref` condiviso fuori dalla funzione). Questo significa che lo stato persiste per tutta la durata della sessione del browser senza reinizializzarsi a ogni navigazione.
-
-| Proprietà/Metodo | Descrizione |
-|---|---|
-| `user` | Oggetto utente corrente (`MeResponse` o `null`) |
-| `isAuthenticated` | `computed` — `true` se `user !== null` |
-| `isAdmin` | `computed` — `true` se `user.role === 'Admin'` |
-| `checked` | Flag che indica se la verifica iniziale è già avvenuta |
-| `checkAuth()` | Chiama `GET /me` una sola volta; usa la cache nelle chiamate successive |
-| `login()` | Chiama `POST /login` e popola lo stato locale dalla risposta |
-| `logout()` | Chiama `POST /logout`, azzera `user` e `checked` |
-
-### Intercettore Axios (401)
-
-Se il backend risponde con `401` su una rotta che non è `/login`, l'intercettore in `apiClient.ts` reindirizza automaticamente a `/login`, preservando il percorso corrente nel parametro `?redirect=`.
-
----
-
-## 7. Configurazione
+## Configurazione
 
 ### Backend — `appsettings.json` / `appsettings.local.json`
 
 | Chiave | Descrizione | Sensibile |
 |---|---|---|
-| `Jwt:Secret` | Chiave simmetrica per la firma HMAC-SHA256 del JWT | Sì — non committare |
-| `AllowedOrigins` | Array di origini CORS ammesse (es. `http://localhost:5173`) | No |
-| `ConnectionStrings:DrNutrizioNinoSql` | Connection string SQL Server | Sì — non committare |
+| `Jwt:Secret` | Chiave simmetrica HMAC-SHA256 (min. 32 caratteri) | **Sì** |
+| `AllowedOrigins` | Array origini CORS (es. `http://localhost:5173`) | No |
+| `ConnectionStrings:DrNutrizioNinoSql` | Connection string SQL Server | **Sì** |
 
-Il file `appsettings.local.json` non viene committato (ignorato da `.gitignore`). Usarlo per i valori locali sensibili.
-
-Esempio di sezione JWT nel file locale:
-
-```json
-{
-  "Jwt": {
-    "Secret": "<stringa-segreta-lunga-almeno-32-caratteri>"
-  }
-}
-```
+Il file `appsettings.local.json` non viene committato.
 
 ### Frontend — `.env.development`
 
-| Variabile | Valore default | Descrizione |
+| Variabile | Default | Descrizione |
 |---|---|---|
-| `VITE_API_BASE_URL` | `http://localhost:5083/api/v1` | URL base delle API |
+| `VITE_API_BASE_URL` | `http://localhost:5083/api/v1` | URL base API |
 
 ### CORS
 
-La policy CORS `permitGetPost` ammette solo le origini in `AllowedOrigins` e richiede `.AllowCredentials()` per consentire l'invio dei cookie cross-origin in sviluppo.
+La policy CORS ammette le origini in `AllowedOrigins`. Non richiede più `.AllowCredentials()` perché i cookie non sono in uso.
 
 ---
 
-## 8. Possibili Miglioramenti
+## Considerazioni di sicurezza
 
-- **Refresh token**: il JWT scade dopo 8 ore senza possibilità di rinnovo silenzioso. Un refresh token separato permetterebbe sessioni più lunghe senza obbligare al re-login.
-- **Revoca token**: i JWT emessi non sono revocabili prima della scadenza. Una blocklist in cache (Redis o in-memory) consentirebbe il logout immediato lato server.
-- **Rotazione secret JWT**: attualmente il secret è statico. Una rotazione periodica della chiave aumenterebbe la sicurezza in caso di compromissione.
-- **SameSite in modalità sviluppo**: il cookie è `SameSite=Strict`; in sviluppo con domini diversi (es. HTTPS con certificato self-signed) potrebbe essere necessario abbassarlo a `Lax`.
-- **Validazione Issuer/Audience**: `ValidateIssuer` e `ValidateAudience` sono disabilitati. Abilitarli riduce il rischio di token accettati da più applicazioni.
-- **Rate limiting sul login**: nessuna protezione contro attacchi brute-force sull'endpoint `/login`.
-- **Audit log**: le operazioni di login, logout e cambio ruolo non vengono tracciate in un log strutturato dedicato.
-- **Multi-ruolo**: l'implementazione attuale assegna un solo ruolo per utente. Supportare più ruoli simultanei richiede modifiche a `GetRolesAsync` e ai claim JWT.
+| Aspetto | Stato attuale | Impatto |
+|---|---|---|
+| XSS e localStorage | Token leggibile da JS — rischio se XSS presente | Medio |
+| Revoca token | I JWT emessi non sono revocabili prima della scadenza | Medio |
+| Refresh token | Nessuno — re-login manuale dopo 8 ore | Basso |
+| Brute-force login | Nessun rate limiting sull'endpoint `/login` | Medio |
+| Issuer/Audience | `ValidateIssuer` e `ValidateAudience` disabilitati | Basso |
+| Audit log | Login/logout/cambio ruolo non tracciati separatamente | Basso |
 
 ---
 
-*Documento generato il 2026-04-02 — modello `claude-sonnet-4-6`*
+*Documento aggiornato il 2026-04-03 — modello `claude-sonnet-4-6`*
