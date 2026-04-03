@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { NAlert, NButton, NCard, NSpace, useDialog } from 'naive-ui'
 import foodList from '../components/Foods/FoodsList.vue'
 import foodDetail from '../components/Foods/FoodDetail.vue'
+import FoodCompareModal from '../components/Foods/FoodCompareModal.vue'
 import { useFoods } from '@/modules/foods/composables/useFoods'
 import type { FoodDashboardDto } from '@/Interfaces/foods/FoodDashboardDto'
 
@@ -31,6 +32,14 @@ const {
 } = useFoods()
 
 const dialog = useDialog()
+
+const compareShow = ref(false)
+const compareFoods = ref<FoodDashboardDto[]>([])
+
+const handleCompare = (foods: FoodDashboardDto[]) => {
+  compareFoods.value = foods
+  compareShow.value = true
+}
 
 const handleDeleteFood = (food: FoodDashboardDto) => {
   dialog.warning({
@@ -71,6 +80,7 @@ onMounted(async () => {
           :foods="dashboard"
           @edit="(food) => startEditFood(food.id)"
           @delete="handleDeleteFood"
+          @compare="handleCompare"
         />
 
         <foodDetail
@@ -92,6 +102,12 @@ onMounted(async () => {
       </n-space>
     </n-card>
   </n-space>
+
+  <FoodCompareModal
+    :show="compareShow"
+    :foods="compareFoods"
+    @close="compareShow = false"
+  />
 </template>
 
 <style scoped>

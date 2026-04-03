@@ -1,25 +1,37 @@
 <template>
   <n-space vertical>
-    <n-input
-      v-model:value="searchQuery"
-      placeholder="Cerca per nome..."
-      clearable
-      aria-label="Cerca per nome"
-    />
+    <n-space justify="space-between" align="center">
+      <n-input
+        v-model:value="searchQuery"
+        placeholder="Cerca per nome..."
+        clearable
+        aria-label="Cerca per nome"
+        style="width: 300px"
+      />
+      <n-button
+        type="info"
+        :disabled="checkedRowKeys.length < 2"
+        @click="onCompare"
+      >
+        Confronta ({{ checkedRowKeys.length }})
+      </n-button>
+    </n-space>
     <n-data-table
       :columns="columns"
       :data="filteredData"
       :row-key="(row: FoodDashboardDto) => row.id"
+      :checked-row-keys="checkedRowKeys"
       :single-line="false"
       :bordered="true"
       :pagination="false"
       aria-label="Lista alimenti"
+      @update:checked-row-keys="checkedRowKeys = $event as string[]"
     />
   </n-space>
 </template>
 
 <script setup lang="ts">
-import { h } from 'vue'
+import { h, ref } from 'vue'
 import type { FoodDashboardDto } from '@/Interfaces/foods/FoodDashboardDto'
 import { NButton, NDataTable, NInput, NSpace, NTag, type DataTableColumns } from 'naive-ui'
 import { useTableSearch } from '@/core/composables/useTableSearch'
@@ -31,11 +43,20 @@ const props = defineProps<{
 const emit = defineEmits<{
   edit: [food: FoodDashboardDto]
   delete: [food: FoodDashboardDto]
+  compare: [foods: FoodDashboardDto[]]
 }>()
 
 const { searchQuery, filteredData } = useTableSearch(() => props.foods, 'name')
 
+const checkedRowKeys = ref<string[]>([])
+
+function onCompare() {
+  const selected = props.foods.filter((f) => checkedRowKeys.value.includes(f.id))
+  emit('compare', selected)
+}
+
 const columns: DataTableColumns<FoodDashboardDto> = [
+  { type: 'selection' },
   {
     title: 'Prop.',
     key: 'isOwner',
