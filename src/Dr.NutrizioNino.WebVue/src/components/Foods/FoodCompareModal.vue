@@ -14,7 +14,10 @@
           </thead>
           <tbody>
             <tr v-for="row in rows" :key="row.nutrientId">
-              <td class="nutrient-col">{{ row.name }}</td>
+              <td class="nutrient-col">
+                {{ row.name }}
+                <span v-if="row.unitAbbreviation" class="unit-abbr">({{ row.unitAbbreviation }})</span>
+              </td>
               <td
                 v-for="food in foodDetails"
                 :key="food.id"
@@ -40,14 +43,15 @@ import { ref, watch } from 'vue'
 import { NModal, NSpin } from 'naive-ui'
 import type { FoodDashboardDto } from '@/Interfaces/foods/FoodDashboardDto'
 import type { FoodDto } from '@/Interfaces/foods/FoodDto'
-import type { FoodNutrientDto } from '@/Interfaces/foods/FoodNutrientDto'
 import { getFoodById } from '@/modules/foods/api/foods.api'
+import { getUnitsOfMeasures } from '@/modules/units/api/units.api'
 import { sortNutrients } from '@/core/utils/sortNutrients'
 
 interface NutrientRow {
   nutrientId: string
   name: string
   positionOrder: number
+  unitAbbreviation: string
   values: Record<string, number | null>
 }
 
@@ -70,15 +74,25 @@ watch(
     foodDetails.value = []
     rows.value = []
 
-    const details = await Promise.all(props.foods.map((f) => getFoodById(f.id)))
+    const [details, units] = await Promise.all([
+      Promise.all(props.foods.map((f) => getFoodById(f.id))),
+      getUnitsOfMeasures()
+    ])
     foodDetails.value = details
 
+    const unitMap = new Map(units.map((u) => [u.id, u.abbreviation]))
     const nutrientMap = new Map<string, NutrientRow>()
 
     for (const food of details) {
       for (const n of food.nutrients ?? []) {
         if (!nutrientMap.has(n.nutrientId)) {
-          nutrientMap.set(n.nutrientId, { nutrientId: n.nutrientId, name: n.name, positionOrder: n.positionOrder, values: {} })
+          nutrientMap.set(n.nutrientId, {
+            nutrientId: n.nutrientId,
+            name: n.name,
+            positionOrder: n.positionOrder,
+            unitAbbreviation: unitMap.get(n.unitOfMeasureId) ?? '',
+            values: {}
+          })
         }
         nutrientMap.get(n.nutrientId)!.values[food.id] = n.quantity
       }
@@ -153,7 +167,13 @@ function cellClass(row: NutrientRow, foodId: string): string {
 .nutrient-col {
   text-align: left !important;
   white-space: nowrap;
-  min-width: 140px;
+  min-width: 160px;
+}
+
+.unit-abbr {
+  color: #999;
+  font-size: 11px;
+  margin-left: 4px;
 }
 
 .cell-max {
