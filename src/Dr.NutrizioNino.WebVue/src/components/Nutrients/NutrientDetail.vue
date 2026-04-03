@@ -7,23 +7,21 @@
         <n-input v-model:value="localName" :maxlength="50" :disabled="isSubmitting" />
       </n-form-item>
 
-      <template v-if="isEditMode">
-        <n-form-item label="Ordine" path="positionOrder">
-          <n-input-number v-model:value="localPositionOrder" :min="0" :disabled="isSubmitting" style="width: 100%" />
-        </n-form-item>
+      <n-form-item label="Ordine" path="positionOrder">
+        <n-input-number v-model:value="localPositionOrder" :min="0" :disabled="isSubmitting" style="width: 100%" />
+      </n-form-item>
 
-        <n-form-item label="Quantità default" path="defaultQuantity">
-          <n-input-number v-model:value="localDefaultQuantity" :min="0" :precision="2" :disabled="isSubmitting" style="width: 100%" />
-        </n-form-item>
+      <n-form-item label="Quantità default" path="defaultQuantity">
+        <n-input-number v-model:value="localDefaultQuantity" :min="0" :precision="2" :disabled="isSubmitting" style="width: 100%" />
+      </n-form-item>
 
-        <n-form-item label="Unità di misura default" path="defaultUnitOfMeasureId">
-          <n-select
-            v-model:value="localDefaultUnitOfMeasureId"
-            :options="unitOptions"
-            :disabled="isSubmitting"
-          />
-        </n-form-item>
-      </template>
+      <n-form-item label="Unità di misura default" path="defaultUnitOfMeasureId">
+        <n-select
+          v-model:value="localDefaultUnitOfMeasureId"
+          :options="unitOptions"
+          :disabled="isSubmitting"
+        />
+      </n-form-item>
     </n-form>
 
     <n-space justify="end" size="small">
@@ -49,7 +47,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  save: [payload: { name: string } | Nutrient]
+  save: [payload: { name: string; defaultUnitOfMeasureId?: string | null; positionOrder?: number; defaultQuantity?: number } | Nutrient]
   cancel: []
 }>()
 
@@ -64,16 +62,26 @@ const unitOptions = computed(() =>
   (props.unitsOfMeasures ?? []).map((u) => ({ label: `${u.name} (${u.abbreviation})`, value: u.id }))
 )
 
+const gramsUnitId = computed(() =>
+  (props.unitsOfMeasures ?? []).find((u) => u.abbreviation === 'g')?.id ?? null
+)
+
 watch(
   () => props.nutrient,
   (n) => {
     localName.value = n?.name ?? ''
     localPositionOrder.value = n?.positionOrder ?? 0
     localDefaultQuantity.value = n?.defaultQuantity ?? 0
-    localDefaultUnitOfMeasureId.value = n?.defaultUnitOfMeasureId ?? null
+    localDefaultUnitOfMeasureId.value = n?.defaultUnitOfMeasureId ?? gramsUnitId.value
   },
   { immediate: true }
 )
+
+watch(gramsUnitId, (id) => {
+  if (!isEditMode.value && localDefaultUnitOfMeasureId.value === null && id !== null) {
+    localDefaultUnitOfMeasureId.value = id
+  }
+})
 
 function save() {
   if (isEditMode.value && props.nutrient) {
@@ -85,7 +93,12 @@ function save() {
       defaultUnitOfMeasureId: localDefaultUnitOfMeasureId.value ?? props.nutrient.defaultUnitOfMeasureId
     } as Nutrient)
   } else {
-    emit('save', { name: localName.value.trim() })
+    emit('save', {
+      name: localName.value.trim(),
+      positionOrder: localPositionOrder.value,
+      defaultQuantity: localDefaultQuantity.value,
+      defaultUnitOfMeasureId: localDefaultUnitOfMeasureId.value
+    })
   }
 }
 

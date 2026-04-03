@@ -27,6 +27,9 @@ internal static class ModelsFactory
         {
             Id = Guid.NewGuid(),
             Name = newNutrientDto.Name,
+            PositionOrder = newNutrientDto.PositionOrder,
+            DefaultQuantity = newNutrientDto.DefaultQuantity,
+            DefaultUnitOfMeasureId = newNutrientDto.DefaultUnitOfMeasureId ?? Guid.Empty,
         };
     }
 

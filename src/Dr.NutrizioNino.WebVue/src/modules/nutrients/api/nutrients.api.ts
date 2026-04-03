@@ -3,6 +3,9 @@ import type { Nutrient } from '@/Interfaces/Nutrients/Nutrient'
 
 export interface CreateNutrientRequest {
   name: string
+  defaultUnitOfMeasureId?: string | null
+  positionOrder?: number
+  defaultQuantity?: number
 }
 
 export const getNutrients = async (): Promise<Nutrient[]> => {

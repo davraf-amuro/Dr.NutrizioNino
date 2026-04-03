@@ -50,6 +50,11 @@ export const useNutrients = () => {
     await base.startEdit(nutrient)
   }
 
+  const startCreateNutrient = async () => {
+    await loadUnits()
+    base.startCreate()
+  }
+
   return {
     nutrients: base.items,
     unitsOfMeasures,
@@ -59,7 +64,7 @@ export const useNutrients = () => {
     isLoading: base.isLoading,
     errorMessage: base.errorMessage,
     loadNutrients: base.load,
-    startCreateNutrient: base.startCreate,
+    startCreateNutrient,
     startEditNutrient,
     cancelEdit: base.cancelEdit,
     submitNutrient: base.submit,
