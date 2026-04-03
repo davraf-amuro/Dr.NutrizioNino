@@ -120,12 +120,12 @@ public static class FoodEndpoints
 
             var ownerId = user.GetUserId();
             var newFoodId = await service.InsertFullFood(foodInfo, ownerId, ct);
-            return Results.Ok(foodInfo with { Id = newFoodId });
+            return Results.Ok(newFoodId);
         })
             .WithName("CreateFood")
             .WithSummary("Create a food")
             .WithDescription("Creates a food with related nutrients and returns the created food with its assigned identifier.")
-            .Produces<FoodInfo>(StatusCodes.Status200OK)
+            .Produces<Guid>(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status409Conflict)
             .RequireAuthorization();
 
