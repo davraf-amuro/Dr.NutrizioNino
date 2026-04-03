@@ -5,7 +5,7 @@
     <n-spin :show="isSubmitting">
       <n-form ref="formRef" :model="localFood" :rules="rules" label-placement="left" label-width="140" label-align="right">
         <n-form-item label="Nome" path="name">
-          <n-input v-model:value="localFood.name" :maxlength="50" :disabled="isSubmitting" />
+          <n-input v-model:value="localFood.name" :maxlength="50" :disabled="isSubmitting" placeholder="Inserisci il nome dell'alimento" />
         </n-form-item>
 
         <n-form-item label="Barcode" path="barcode">
@@ -19,6 +19,7 @@
               :options="brandOptions"
               placeholder="-seleziona-"
               clearable
+              filterable
               :disabled="isSubmitting"
               style="flex: 1; min-width: 0"
             />
@@ -38,6 +39,7 @@
               placeholder="-seleziona-"
               multiple
               clearable
+              filterable
               :disabled="isSubmitting"
               style="flex: 1; min-width: 0"
             />
@@ -56,6 +58,7 @@
                 <n-select
                   v-model:value="localFood.unitOfMeasureId"
                   :options="unitOptions"
+                  filterable
                   :disabled="isSubmitting"
                   style="flex: 1; min-width: 0"
                 />
@@ -170,15 +173,21 @@ const rules: FormRules = {
 }
 
 const brandOptions = computed<SelectOption[]>(() =>
-  props.brands.map((brand) => ({ label: brand.name, value: brand.id }))
+  [...props.brands]
+    .sort((a, b) => a.name.localeCompare(b.name, 'it'))
+    .map((brand) => ({ label: brand.name, value: brand.id }))
 )
 
 const unitOptions = computed<SelectOption[]>(() =>
-  props.unitsOfMeasures.map((unit) => ({ label: unit.name, value: unit.id }))
+  [...props.unitsOfMeasures]
+    .sort((a, b) => a.name.localeCompare(b.name, 'it'))
+    .map((unit) => ({ label: unit.name, value: unit.id }))
 )
 
 const supermarketOptions = computed<SelectOption[]>(() =>
-  props.supermarkets.map((s) => ({ label: s.name, value: s.id }))
+  [...props.supermarkets]
+    .sort((a, b) => a.name.localeCompare(b.name, 'it'))
+    .map((s) => ({ label: s.name, value: s.id }))
 )
 
 const cloneFood = (food: FoodDto): FoodDto => ({
