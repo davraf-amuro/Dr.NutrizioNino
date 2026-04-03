@@ -82,17 +82,7 @@
           </n-gi>
         </n-grid>
 
-        <n-form-item label="Calorie (kcal)" path="calorie">
-          <n-input-number
-            v-model:value="localFood.calorie"
-            :min="0"
-            :max="99999"
-            :precision="1"
-            :show-button="false"
-            :disabled="isSubmitting"
-            style="width: 100%"
-          />
-        </n-form-item>
+
       </n-form>
 
       <n-divider title-placement="left">Nutrienti</n-divider>

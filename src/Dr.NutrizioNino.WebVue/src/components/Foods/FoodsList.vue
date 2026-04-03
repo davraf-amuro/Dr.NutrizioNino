@@ -46,10 +46,8 @@ const columns: DataTableColumns<FoodDashboardDto> = [
   },
   { title: 'Nome', key: 'name', sorter: 'default' },
   { title: 'Marca', key: 'brandDescription', sorter: 'default' },
-  { title: 'Kcal', key: 'calorie', width: 80, sorter: (a, b) => (a.calorie ?? 0) - (b.calorie ?? 0) },
   { title: 'UdM', key: 'abbreviation', width: 80, sorter: 'default' },
   { title: 'Quantità', key: 'quantity', width: 100, sorter: (a, b) => (a.quantity ?? 0) - (b.quantity ?? 0) },
-  { title: 'Barcode', key: 'barcode', sorter: 'default' },
   {
     title: 'Supermercati',
     key: 'supermarketsText',
