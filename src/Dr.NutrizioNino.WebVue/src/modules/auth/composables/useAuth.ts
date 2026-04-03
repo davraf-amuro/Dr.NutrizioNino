@@ -2,6 +2,29 @@ import { ref, computed } from 'vue'
 import { authApi } from '@/modules/auth/api/auth.api'
 import type { MeResponse } from '@/Interfaces/auth/AuthDto'
 
+const TOKEN_KEY = 'auth_token'
+
+function saveToken(token: string): void {
+  localStorage.setItem(TOKEN_KEY, token)
+}
+
+export function getToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY)
+}
+
+function removeToken(): void {
+  localStorage.removeItem(TOKEN_KEY)
+}
+
+function isTokenValid(token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    return typeof payload.exp === 'number' && payload.exp * 1000 > Date.now()
+  } catch {
+    return false
+  }
+}
+
 // stato condiviso a livello modulo — un'unica istanza per tutta l'app
 const user = ref<MeResponse | null>(null)
 const checked = ref(false)
@@ -12,9 +35,16 @@ export function useAuth() {
 
   async function checkAuth(): Promise<void> {
     if (checked.value) return
+    const token = getToken()
+    if (!token || !isTokenValid(token)) {
+      user.value = null
+      checked.value = true
+      return
+    }
     try {
       user.value = await authApi.me()
     } catch {
+      removeToken()
       user.value = null
     } finally {
       checked.value = true
@@ -23,9 +53,7 @@ export function useAuth() {
 
   async function login(userName: string, password: string): Promise<void> {
     const response = await authApi.login({ userName, password })
-    // il cookie è settato nella risposta — non chiamiamo /me subito perché
-    // il browser potrebbe non averlo ancora disponibile nella richiesta sincrona successiva.
-    // Usiamo i dati già presenti nella LoginResponse per popolare lo stato minimo.
+    saveToken(response.token)
     user.value = {
       id: '',
       userName: response.userName,
@@ -38,11 +66,13 @@ export function useAuth() {
 
   async function logout(): Promise<void> {
     await authApi.logout()
+    removeToken()
     user.value = null
     checked.value = false
   }
 
   function resetAuth(): void {
+    removeToken()
     user.value = null
     checked.value = false
   }

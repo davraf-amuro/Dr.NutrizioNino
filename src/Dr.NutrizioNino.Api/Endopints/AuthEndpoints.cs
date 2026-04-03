@@ -17,21 +17,13 @@ public static class AuthEndpoints
             .WithApiVersionSet(versionSet)
             .MapToApiVersion(ApiVersionFactory.Version1);
 
-        group.MapPost("login", async (AuthService service, HttpResponse httpResponse, [FromBody] LoginRequest request) =>
+        group.MapPost("login", async (AuthService service, [FromBody] LoginRequest request) =>
         {
             var result = await service.LoginAsync(request);
             if (result is null)
                 return Results.Problem("Credenziali non valide.", statusCode: StatusCodes.Status401Unauthorized);
 
-            httpResponse.Cookies.Append("auth_token", result.RawToken, new CookieOptions
-            {
-                HttpOnly = true,
-                Secure   = true,
-                SameSite = SameSiteMode.Strict,
-                Expires  = result.ExpiresAt
-            });
-
-            return Results.Ok(new LoginResponse(result.UserName, result.Role));
+            return Results.Ok(new LoginResponse(result.RawToken, result.UserName, result.Role));
         })
         .WithName("Login")
         .WithSummary("Esegui il login e imposta il cookie di autenticazione")
@@ -39,9 +31,8 @@ public static class AuthEndpoints
         .ProducesDefaultProblem(StatusCodes.Status401Unauthorized)
         .AllowAnonymous();
 
-        group.MapPost("logout", (HttpResponse httpResponse) =>
+        group.MapPost("logout", () =>
         {
-            httpResponse.Cookies.Delete("auth_token");
             return Results.NoContent();
         })
         .WithName("Logout")

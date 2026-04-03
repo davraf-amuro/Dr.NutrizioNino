@@ -84,22 +84,7 @@ try
     .AddEntityFrameworkStores<DrNutrizioNinoContext>()
     .AddDefaultTokenProviders();
 
-    // Sopprime il redirect di Identity verso /Account/Login — usiamo JWT, non cookie Identity
-    builder.Services.ConfigureApplicationCookie(opt =>
-    {
-        opt.Events.OnRedirectToLogin = ctx =>
-        {
-            ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            return Task.CompletedTask;
-        };
-        opt.Events.OnRedirectToAccessDenied = ctx =>
-        {
-            ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
-            return Task.CompletedTask;
-        };
-    });
-
-    // JWT Bearer
+    // JWT Bearer — legge il token dall'header Authorization: Bearer <token>
     var jwtSecret = builder.Configuration["Jwt:Secret"]!;
     builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         .AddJwtBearer(opt =>
@@ -111,15 +96,6 @@ try
                 ValidateIssuer = false,
                 ValidateAudience = false,
                 ClockSkew = TimeSpan.FromMinutes(5)
-            };
-            // legge il token dall'httpOnly cookie invece che dall'header Authorization
-            opt.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
-            {
-                OnMessageReceived = ctx =>
-                {
-                    ctx.Token = ctx.Request.Cookies["auth_token"];
-                    return Task.CompletedTask;
-                }
             };
         });
 

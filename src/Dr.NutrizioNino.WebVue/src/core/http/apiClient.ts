@@ -1,17 +1,24 @@
 import axios, { AxiosError } from 'axios'
 import { ApiError } from '@/core/http/ApiError'
 import router from '@/router'
-import { useAuth } from '@/modules/auth/composables/useAuth'
+import { useAuth, getToken } from '@/modules/auth/composables/useAuth'
 
 const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '')
 
 export const apiClient = axios.create({
   baseURL: apiBaseUrl,
   timeout: 10000,
-  withCredentials: true,
   headers: {
     'Content-Type': 'application/json'
   }
+})
+
+apiClient.interceptors.request.use((config) => {
+  const token = getToken()
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
 })
 
 apiClient.interceptors.response.use(
