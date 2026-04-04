@@ -39,7 +39,6 @@ public partial class DrRepository
             dish.Id,
             dish.Name,
             dish.WeightGrams,
-            dish.Calorie,
             dish.DishIngredients
                 .Select(di => new DishDetailIngredientDto(di.FoodId, di.Food.Name, di.QuantityGrams))
                 .ToList(),
@@ -107,8 +106,8 @@ public partial class DrRepository
             .ToListAsync(ct)
             .ConfigureAwait(false);
 
-    /// <summary>Aggiorna calorie, peso e nutrienti del piatto in un'unica transazione; azzera il flag stale.</summary>
-    public async Task<bool> UpdateDishNutrientsAsync(Guid dishId, decimal newWeightGrams, decimal newCalorie, IList<DishNutrient> newNutrients, CancellationToken ct = default)
+    /// <summary>Aggiorna peso e nutrienti del piatto in un'unica transazione; azzera il flag stale.</summary>
+    public async Task<bool> UpdateDishNutrientsAsync(Guid dishId, decimal newWeightGrams, IList<DishNutrient> newNutrients, CancellationToken ct = default)
     {
         var record = await drContext.Dishes
             .Include(d => d.DishNutrients)
@@ -123,7 +122,6 @@ public partial class DrRepository
         await using var transaction = await drContext.Database.BeginTransactionAsync(ct).ConfigureAwait(false);
 
         record.WeightGrams = newWeightGrams;
-        record.Calorie = newCalorie;
         record.IsNutritionStale = false;
         record.NutrientsCalculatedAt = DateTime.UtcNow;
 
@@ -157,7 +155,6 @@ public partial class DrRepository
 
         await using var transaction = await drContext.Database.BeginTransactionAsync(ct).ConfigureAwait(false);
 
-        record.Calorie = Math.Round(record.Calorie * ratio, 2);
         record.WeightGrams = newWeightGrams;
 
         foreach (var dn in record.DishNutrients)

@@ -132,6 +132,14 @@ public static class CategoriesEndpoints
 
         group.MapDelete("{id}", async (CategoryService service, Guid id, CancellationToken ct) =>
         {
+            if (await service.IsCategoryInUseAsync(id, ct))
+                return TypedResults.Problem(new ProblemDetails
+                {
+                    Title = "Conflict",
+                    Status = StatusCodes.Status409Conflict,
+                    Detail = "La categoria è in uso e non può essere eliminata."
+                });
+
             var deleted = await service.DeleteCategoryAsync(id, ct);
             return deleted
                 ? Results.Ok()
@@ -146,7 +154,7 @@ public static class CategoriesEndpoints
             .WithSummary("Delete a category")
             .WithDescription("Deletes an existing category by identifier.")
             .Produces(StatusCodes.Status200OK)
-            .ProducesDefaultProblem(StatusCodes.Status404NotFound);
+            .ProducesDefaultProblem(StatusCodes.Status404NotFound, StatusCodes.Status409Conflict);
 
         return endpoints;
     }

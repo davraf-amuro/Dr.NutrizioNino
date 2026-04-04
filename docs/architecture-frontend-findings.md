@@ -8,6 +8,8 @@ I problemi principali di async duplicato, re-fetch su navigazione e eventi morti
 
 Feature aggiunte (2026-04-03): dominio Categorie completo, gestione utenti admin (CRUD UI), miglioramenti ai Nutrienti (default grammi, campi visibili sia in create che in edit), confronto alimenti con modale griglia, aggiornamento App shell (menu admin condizionale, indicatore utente).
 
+Feature aggiunte (2026-04-04): menu "Configurazione" raggruppato con dropdown, bottoni azioni uniformati nelle liste, peso totale piatto in footer griglia ingredienti, colonne dashboard piatti allineate, calorie rimosse dai DTO (mantenute nelle view via nutriente Energia).
+
 Rimangono aperti: watcher deep in FoodDetail, test frontend, convergenza naming interfacce.
 
 ---
@@ -60,6 +62,16 @@ Rimangono aperti: watcher deep in FoodDetail, test frontend, convergenza naming 
 | FW-15 | Dominio Supermercati | `SupermarketsView`, CRUD completo. `FoodsList` con colonna tag supermercati |
 | FW-17 | Dettaglio piatto read-only | `DishDetail.vue`: tabella ingredienti + preview nutrienti |
 
+### Sessione 2026-04-04
+
+| ID | Feature | Descrizione |
+|----|---------|-------------|
+| FW-26 | Menu "Configurazione" raggruppato | Le 5 anagrafiche (Nutrienti, Marche, Unità, Supermercati, Categorie) sono raggruppate sotto un dropdown orizzontale "Configurazione". `activeKey` gestisce l'evidenziazione automatica dei sotto-item |
+| FW-27 | Bottoni azioni uniformati | `DishesList.vue`: bottone Dettaglio → `secondary`, Elimina → `error tertiary`. Allineato al visual weight di `FoodsList`. Larghezza colonna 160→180 |
+| FW-28 | Peso totale in footer griglia | `DishDetail.vue` e `DishIngredientList.vue`: riga "Totale" rimossa come label separata, spostata nel footer della `n-data-table` tramite prop `:summary` |
+| FW-29 | Dashboard piatti — colonne allineate | `DishesList.vue`: colonna `Kcal/100g` → `Kcal`; aggiunta colonna `Qta` (`quantity + abbreviation`) |
+| FW-30 | Calorie rimossa dai DTO | `FoodDto`, `DishDetailDto`, `useDishCalculator` non espongono più `calorie`. `FoodDashboardDto` mantiene `calorie: number` perché la view `Foods_Dashboard` la calcola dal nutriente "Energia" |
+
 ### Sessione 2026-04-03
 
 | ID | Feature | Descrizione |
@@ -99,4 +111,4 @@ Rimangono aperti: watcher deep in FoodDetail, test frontend, convergenza naming 
 
 ---
 
-*Ultima revisione: 2026-04-03 — modello `claude-sonnet-4-6`*
+*Ultima revisione: 2026-04-04 — modello `claude-sonnet-4-6`*

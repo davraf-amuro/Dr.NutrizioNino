@@ -54,14 +54,5 @@ export const useDishCalculator = (ingredients: Ref<DishIngredient[]>) => {
     )
   })
 
-  const calorie = computed(() => {
-    if (totalWeight.value === 0) return 0
-    const total = ingredients.value.reduce(
-      (sum, { food, quantityGrams }) => sum + Number(food.calorie) * (quantityGrams / 100),
-      0
-    )
-    return Math.round(total * 100) / 100
-  })
-
-  return { nutrients, calorie, totalWeight }
+  return { nutrients, totalWeight }
 }

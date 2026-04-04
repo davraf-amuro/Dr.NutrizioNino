@@ -1,8 +1,5 @@
 <template>
   <n-card size="small" :title="title">
-    <n-space :size="4" align="center" style="margin-bottom: 8px">
-      <n-text strong>Kcal: {{ calorie }}</n-text>
-    </n-space>
     <n-data-table
       v-if="nutrients.length > 0"
       :columns="columns"
@@ -17,12 +14,11 @@
 </template>
 
 <script setup lang="ts">
-import { NCard, NDataTable, NSpace, NText, type DataTableColumns } from 'naive-ui'
+import { NCard, NDataTable, NText, type DataTableColumns } from 'naive-ui'
 import type { CalculatedNutrient } from '@/core/composables/useDishCalculator'
 
 withDefaults(defineProps<{
   nutrients: CalculatedNutrient[]
-  calorie: number
   title?: string
 }>(), {
   title: 'Valori nutrizionali'

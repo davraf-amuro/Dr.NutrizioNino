@@ -21,11 +21,17 @@ const menuOptions = computed<MenuOption[]>(() => {
   const items: MenuOption[] = [
     { label: 'Alimenti', key: '/foods' },
     { label: 'Piatti', key: '/dishes' },
-    { label: 'Nutrienti', key: '/nutrients' },
-    { label: 'Marche', key: '/brands' },
-    { label: 'Unità di misura', key: '/units' },
-    { label: 'Supermercati', key: '/supermarkets' },
-    { label: 'Categorie', key: '/categories' }
+    {
+      label: 'Configurazione',
+      key: 'configurazione',
+      children: [
+        { label: 'Nutrienti', key: '/nutrients' },
+        { label: 'Marche', key: '/brands' },
+        { label: 'Unità di misura', key: '/units' },
+        { label: 'Supermercati', key: '/supermarkets' },
+        { label: 'Categorie', key: '/categories' }
+      ]
+    }
   ]
   if (isAdmin.value) {
     items.push({ label: 'Utenti', key: '/admin/users' })

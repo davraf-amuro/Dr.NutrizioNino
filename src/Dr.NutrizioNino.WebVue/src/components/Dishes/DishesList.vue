@@ -42,16 +42,17 @@ const columns: DataTableColumns<FoodDashboardDto> = [
       : h('span', { style: 'color:#ccc' }, '—')
   },
   { title: 'Nome', key: 'name', sorter: 'default' },
-  { title: 'Kcal/100g', key: 'calorie', width: 110, sorter: (a, b) => (a.calorie ?? 0) - (b.calorie ?? 0) },
+  { title: 'Kcal', key: 'calorie', width: 90, sorter: (a, b) => (a.calorie ?? 0) - (b.calorie ?? 0) },
+  { title: 'Qta', key: 'quantity', width: 90, render: (row) => `${row.quantity} ${row.abbreviation ?? 'g'}` },
   {
     title: 'Azioni',
     key: 'actions',
-    width: 160,
+    width: 180,
     render: (row) =>
       h(NSpace, { size: 'small' }, {
         default: () => [
-          h(NButton, { size: 'small', onClick: () => emit('detail', row) }, { default: () => 'Dettaglio' }),
-          h(NButton, { size: 'small', type: 'error', onClick: () => emit('delete', row) }, { default: () => 'Elimina' })
+          h(NButton, { size: 'small', secondary: true, onClick: () => emit('detail', row) }, { default: () => 'Dettaglio' }),
+          h(NButton, { size: 'small', type: 'error', tertiary: true, onClick: () => emit('delete', row) }, { default: () => 'Elimina' })
         ]
       })
   }

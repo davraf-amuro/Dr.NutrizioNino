@@ -12,7 +12,6 @@ public record FoodDto(
     , decimal Quantity
     , string? Barcode
     , Guid? BrandId
-    , int Calorie
     , IList<NutrientDto> Nutrients
     )
 { }

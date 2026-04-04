@@ -154,6 +154,14 @@ public static class BrandsEndpoints
             if (ownerId.HasValue && ownerId != callerId)
                 return Results.Forbid();
 
+            if (await service.IsBrandInUseAsync(id, ct))
+                return TypedResults.Problem(new ProblemDetails
+                {
+                    Title = "Conflict",
+                    Status = StatusCodes.Status409Conflict,
+                    Detail = "La marca è in uso e non può essere eliminata."
+                });
+
             var deleted = await service.DeleteBrandAsync(id, ct);
             return deleted
                 ? Results.Ok()
@@ -168,7 +176,7 @@ public static class BrandsEndpoints
             .WithSummary("Delete a brand")
             .WithDescription("Deletes an existing brand by identifier.")
             .Produces(StatusCodes.Status200OK)
-            .ProducesDefaultProblem(StatusCodes.Status403Forbidden, StatusCodes.Status404NotFound)
+            .ProducesDefaultProblem(StatusCodes.Status403Forbidden, StatusCodes.Status404NotFound, StatusCodes.Status409Conflict)
             .RequireAuthorization();
 
         group.MapPost("{id}/clone", async (BrandService service, Guid id, ClaimsPrincipal user, CancellationToken ct) =>

@@ -8,6 +8,8 @@ I problemi principali di versioning, CRUD incompleto e metadata OpenAPI sono sta
 
 Feature aggiunte (2026-04-03): dominio Categorie con relazione M:N `FoodCategory`, gestione utenti admin completa (CRUD + cambio ruolo), autenticazione migrata da cookie httpOnly a localStorage + header Bearer.
 
+Feature aggiunte (2026-04-04): gestione errori DB con 503, rimozione colonna `Calorie` da `Foods` e `Dishes` (ora calcolata nelle view da nutriente "Energia"), FK pre-check DELETE esteso a Categories/Brands/Supermarkets, fix `Foods.BrandId` nullable.
+
 Rimangono aperti: uniformità `CancellationToken`, logging con redaction, integration test, baseline metriche.
 
 ---
@@ -56,6 +58,16 @@ Rimangono aperti: uniformità `CancellationToken`, logging con redaction, integr
 | B14 | Dettaglio piatto | `GET /api/v1/dishes/{id}` → `DishDetailDto` con ingredienti e nutrienti |
 | B15 | Dominio Supermercati | Tabella `Supermarkets` + join `FoodSupermarket` (M:N). CRUD con 409 su nome duplicato. 9 catene italiane in seed |
 
+### Sessione 2026-04-04
+
+| ID | Area | Descrizione |
+|----|------|-------------|
+| B23 | Gestione errori DB | `DatabaseExceptionHandler` (IExceptionHandler): intercetta `SqlException` e `InvalidOperationException` con messaggi SQL-correlati, restituisce 503 `"Base Dati non pronta"` invece di 500 |
+| B24 | Schema Foods | Colonna `Calorie` rimossa dalla tabella `Foods`. View `Foods_Dashboard` aggiornata: calcola `Calorie` via subquery su `Foods_Nutrients JOIN Nutrients WHERE Name = 'Energia'`. Entità, DTO e repository aggiornati |
+| B25 | Schema Dishes | Colonna `Calorie` rimossa dalla tabella `Dishes`. View `Dishes_Dashboard` aggiornata con lo stesso pattern. `DishDetailDto`, `DishService`, `DrRepository.Dish` aggiornati |
+| B26 | FK protection DELETE | Pre-check DELETE esteso a Categories, Brands e Supermarkets (pattern già in uso per Nutrients e Units): ritorna 409 Conflict se il record è referenziato da Foods |
+| B27 | BrandId nullable | `Foods.BrandId` era `NOT NULL` nel DB ma `Guid?` nell'entità. Allineato con `ALTER TABLE Foods ALTER COLUMN BrandId uniqueidentifier NULL` |
+
 ### Sessione 2026-04-03
 
 | ID | Area | Descrizione |
@@ -85,7 +97,7 @@ Rimangono aperti: uniformità `CancellationToken`, logging con redaction, integr
 | CRUD repository incompleto | Tutti i metodi CRUD implementati |
 | Metadata OpenAPI mancante | `Produces`, `WithName`, `WithSummary` uniformi |
 | Nessuna validazione duplicati | Check nome/abbreviazione su create/update per tutti i domini |
-| Delete senza FK protection | 409 Conflict se record in uso (Nutrients, UdM, Supermarkets, Categories) |
+| Delete senza FK protection | 409 Conflict se record in uso (tutti i domini: Nutrients, UdM, Supermarkets, Categories, Brands) |
 | God Table (`IsDish` flag su Foods) | Tabella `Dishes` separata |
 | Header autenticazione loggati | `HttpContextLogger` filtra `authorization`, `cookie`, `set-cookie` |
 
@@ -97,4 +109,4 @@ Rimangono aperti: uniformità `CancellationToken`, logging con redaction, integr
 
 ---
 
-*Ultima revisione: 2026-04-03 — modello `claude-sonnet-4-6`*
+*Ultima revisione: 2026-04-04 — modello `claude-sonnet-4-6`*

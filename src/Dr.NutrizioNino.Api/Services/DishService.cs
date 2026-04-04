@@ -59,8 +59,6 @@ public class DishService(DrRepository drRepository)
             Id = dishId,
             Name = dto.Name,
             WeightGrams = totalWeight,
-            Calorie = Math.Round(
-                dto.Ingredients.Sum(i => foods.First(f => f.Id == i.FoodId).Calorie * (i.QuantityGrams / 100m)), 2),
             UnitOfMeasureId = Constants.GetDefaultUnitOfMeasure(),
             IsNutritionStale = false,
             NutrientsCalculatedAt = DateTime.UtcNow,
@@ -136,10 +134,6 @@ public class DishService(DrRepository drRepository)
             }
         }
 
-        var newCalorie = Math.Round(
-            dish.DishIngredients
-                .Sum(i => foods.First(f => f.Id == i.FoodId).Calorie * (i.QuantityGrams / 100m)), 2);
-
         var newNutrients = contributions.Select(kv => new DishNutrient
         {
             DishId = id,
@@ -148,7 +142,7 @@ public class DishService(DrRepository drRepository)
             Quantity = Math.Round(kv.Value.Total, 2)
         }).ToList();
 
-        await drRepository.UpdateDishNutrientsAsync(id, totalWeight, newCalorie, newNutrients, ct).ConfigureAwait(false);
+        await drRepository.UpdateDishNutrientsAsync(id, totalWeight, newNutrients, ct).ConfigureAwait(false);
         return (true, null);
     }
 

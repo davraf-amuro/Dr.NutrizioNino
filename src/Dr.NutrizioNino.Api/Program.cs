@@ -59,6 +59,7 @@ try
     });
 
     builder.Services.AddDefaultProblemDetails();
+    builder.Services.AddExceptionHandler<DatabaseExceptionHandler>();
     builder.Services.AddDefaultExceptionHandler();
 
 

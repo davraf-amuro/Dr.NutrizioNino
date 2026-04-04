@@ -73,21 +73,13 @@ public partial class DrRepository
             return false;
         }
 
-        var calorieChanged = record.Calorie != food.Calorie;
-
         record.Name = food.Name;
         record.Quantity = food.Quantity;
         record.Barcode = food.Barcode;
         record.BrandId = food.BrandId;
-        record.Calorie = food.Calorie;
         record.UnitOfMeasureId = food.UnitOfMeasureId;
 
         await drContext.SaveChangesAsync(ct).ConfigureAwait(false);
-
-        if (calorieChanged)
-        {
-            await MarkDishesStaleByFoodIdAsync(food.Id, ct).ConfigureAwait(false);
-        }
 
         return true;
     }
@@ -141,7 +133,6 @@ public partial class DrRepository
 
         await using var transaction = await drContext.Database.BeginTransactionAsync(ct).ConfigureAwait(false);
 
-        var calorieChanged = record.Calorie != food.Calorie;
         var nutrientsChanged = record.FoodsNutrients.Count != food.FoodsNutrients.Count
             || record.FoodsNutrients.Any(existing => food.FoodsNutrients
                 .All(n => n.NutrientId != existing.NutrientId || n.Quantity != existing.Quantity));
@@ -150,7 +141,6 @@ public partial class DrRepository
         record.Quantity = food.Quantity;
         record.Barcode = food.Barcode;
         record.BrandId = food.BrandId;
-        record.Calorie = food.Calorie;
         record.UnitOfMeasureId = food.UnitOfMeasureId;
 
         drContext.FoodsNutrients.RemoveRange(record.FoodsNutrients);
@@ -165,7 +155,7 @@ public partial class DrRepository
         await drContext.SaveChangesAsync(ct).ConfigureAwait(false);
         await transaction.CommitAsync(ct).ConfigureAwait(false);
 
-        if (calorieChanged || nutrientsChanged)
+        if (nutrientsChanged)
         {
             await MarkDishesStaleByFoodIdAsync(food.Id, ct).ConfigureAwait(false);
         }

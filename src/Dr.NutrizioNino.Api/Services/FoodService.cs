@@ -26,7 +26,6 @@ public class FoodService(DrRepository drRepository)
             Quantity = foodInfo.Quantity,
             Barcode = foodInfo.Barcode,
             BrandId = foodInfo.BrandId,
-            Calorie = foodInfo.Calorie,
             UnitOfMeasureId = foodInfo.UnitOfMeasureId
         };
 
@@ -95,7 +94,6 @@ public class FoodService(DrRepository drRepository)
             food?.Quantity ?? Constants.GetDefaultQuantity(),
             food?.Barcode,
             food?.BrandId ?? Constants.GetDefaultBrandId(),
-            food?.Calorie ?? Constants.GetDefaultCalories(),
             food?.UnitOfMeasureId ?? Constants.GetDefaultUnitOfMeasure(),
             nutrients,
             supermarketIds,
@@ -111,7 +109,6 @@ public class FoodService(DrRepository drRepository)
             Quantity = foodInfo.Quantity,
             Barcode = null,
             BrandId = foodInfo.BrandId,
-            Calorie = foodInfo.Calorie,
             UnitOfMeasureId = foodInfo.UnitOfMeasureId,
             OwnerId = ownerId
         };

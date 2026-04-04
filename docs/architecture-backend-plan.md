@@ -16,7 +16,9 @@
 | B01 | Versioning URL `api/v{version}/...` su tutti gli endpoint | M | ✅ Completato |
 | B02 | `ValidatorMiddleware` allineato alle route reali | S | ✅ Completato |
 | B03 | CORS per `PUT`, `DELETE` | S | ✅ Completato |
-| B04 | CRUD completo, validazioni duplicati, FK protection | M | ✅ Completato |
+| B04 | CRUD completo, validazioni duplicati, FK protection su tutti i domini | M | ✅ Completato |
+| B10 | `DatabaseExceptionHandler` — 503 su errori connessione DB | S | ✅ Completato |
+| B11 | Rimozione `Calorie` da `Foods`/`Dishes` — calcolata nelle view da nutriente Energia | M | ✅ Completato |
 | B05 | `CancellationToken` uniforme nei repository | M | ⚠️ Parziale |
 | B06 | Logging: disabilitare `EnableSensitiveDataLogging` in prod | S | ⚠️ Parziale |
 | B07 | OpenAPI metadata uniformi (`Produces`, `WithName`, `WithSummary`) | M | ✅ Completato |
@@ -59,4 +61,4 @@
 
 ---
 
-*Ultima revisione: 2026-04-03 — modello `claude-sonnet-4-6`*
+*Ultima revisione: 2026-04-04 — modello `claude-sonnet-4-6`*

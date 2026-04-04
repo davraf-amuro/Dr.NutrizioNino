@@ -8,7 +8,6 @@ namespace Dr.NutrizioNino.Api.Infrastructure.Models;
 /// <param name="Quantity"></param>
 /// <param name="Barcode"></param>
 /// <param name="BrandId"></param>
-/// <param name="Calorie"></param>
 /// <param name="UnitOfMeasureId"></param>
 /// <param name="Nutrients"></param>
 /// <param name="SupermarketIds"></param>
@@ -18,7 +17,6 @@ public record FoodInfo(
     , decimal Quantity
     , string? Barcode
     , Guid? BrandId
-    , decimal Calorie
     , Guid UnitOfMeasureId
     , IList<NutrientsGetForFoodCreatingInfo> Nutrients
     , IList<Guid>? SupermarketIds = null

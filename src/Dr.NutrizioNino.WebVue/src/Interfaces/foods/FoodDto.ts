@@ -7,7 +7,6 @@ export interface FoodDto {
   unitOfMeasureId: string | null
   barcode: string | null
   brandId: string | null
-  calorie: number
   nutrients: FoodNutrientDto[]
   supermarketIds: string[] | null
   categoryIds: string[] | null

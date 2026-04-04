@@ -22,7 +22,7 @@
 
       <n-divider title-placement="left">Anteprima nutrienti</n-divider>
 
-      <DishNutritionPreview :nutrients="nutrients" :calorie="calorie" title="Valori totali (anteprima)" />
+      <DishNutritionPreview :nutrients="nutrients" title="Valori totali (anteprima)" />
     </n-spin>
 
     <n-space justify="space-between" style="margin-top: 8px">
@@ -64,7 +64,7 @@ const form = ref({ name: '' })
 const ingredients = ref<DishIngredient[]>([])
 const foodCache = new Map<string, FoodDto>()
 
-const { nutrients, calorie } = useDishCalculator(ingredients)
+const { nutrients } = useDishCalculator(ingredients)
 
 const canSave = computed(
   () => form.value.name.trim().length >= 3 && ingredients.value.length > 0

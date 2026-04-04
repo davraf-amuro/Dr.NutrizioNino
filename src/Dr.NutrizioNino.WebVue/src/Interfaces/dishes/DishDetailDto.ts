@@ -16,7 +16,6 @@ export interface DishDetailDto {
   id: string
   name: string
   weightGrams: number
-  calorie: number
   ingredients: DishDetailIngredientDto[]
   nutrients: DishDetailNutrientDto[]
 }

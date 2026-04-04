@@ -5,7 +5,6 @@ public class Dish
     public Guid Id { get; set; }
     public string Name { get; set; } = null!;
     public decimal WeightGrams { get; set; }
-    public decimal Calorie { get; set; }
     public Guid UnitOfMeasureId { get; set; }
     public bool IsNutritionStale { get; set; }
     public DateTime? NutrientsCalculatedAt { get; set; }

@@ -36,6 +36,11 @@
 | FW-23 | App shell — menu condizionale admin + username header | S | ✅ Completato |
 | FW-24 | Confronto alimenti — selezione multipla + modale griglia | M | ✅ Completato |
 | FW-25 | Dropdown filtrabili + ordine alfabetico | S | ✅ Completato |
+| FW-26 | Menu "Configurazione" raggruppato — dropdown con 5 anagrafiche | S | ✅ Completato |
+| FW-27 | Bottoni azioni uniformati (secondary/tertiary) in DishesList | S | ✅ Completato |
+| FW-28 | Peso totale piatto in footer griglia ingredienti | S | ✅ Completato |
+| FW-29 | Dashboard piatti — colonna Kcal rinominata, Qta aggiunta | S | ✅ Completato |
+| FW-30 | Calorie rimossa da FoodDto/DishDetailDto; mantenuta in FoodDashboardDto | S | ✅ Completato |
 
 ---
 
@@ -68,4 +73,4 @@
 
 ---
 
-*Ultima revisione: 2026-04-03 — modello `claude-sonnet-4-6`*
+*Ultima revisione: 2026-04-04 — modello `claude-sonnet-4-6`*

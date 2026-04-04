@@ -19,12 +19,9 @@
       :single-line="false"
       :bordered="true"
       :pagination="false"
+      :summary="() => ({ food: { value: 'Totale', colSpan: 1 }, quantityGrams: { value: totalWeight + ' g' }, remove: { value: '' } })"
       aria-label="Lista ingredienti"
     />
-
-    <n-text v-if="ingredients.length > 0" depth="3" style="font-size: 13px">
-      Peso totale: {{ totalWeight }}g
-    </n-text>
   </n-space>
 </template>
 
@@ -36,7 +33,6 @@ import {
   NDataTable,
   NInputNumber,
   NSpace,
-  NText,
   type DataTableColumns
 } from 'naive-ui'
 import type { FoodDashboardDto } from '@/Interfaces/foods/FoodDashboardDto'

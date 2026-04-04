@@ -1,7 +1,6 @@
 # Dr.NutrizioNino
 
-Applicazione web per la gestione di alimenti, nutrienti, unità di misura, marche e piatti.
-Backend .NET 10 Minimal API · Frontend Vue 3.
+Applicazione web per tenere il Diario Alimentare. Gestisce alimenti, nutrienti, unità di misura, marche e piatti.
 
 ## Stack tecnologico
 
@@ -9,7 +8,7 @@ Backend .NET 10 Minimal API · Frontend Vue 3.
 |-------|------------|
 | Backend | .NET 10 · C# 14 · Minimal API · EF Core 10 |
 | Database | SQL Server |
-| Autenticazione | ASP.NET Core Identity · JWT Bearer · Cookie httpOnly |
+| Autenticazione | ASP.NET Core Identity · JWT Bearer · localStorage |
 | Frontend | Vue 3 · TypeScript · Vite 8 · Naive UI |
 | HTTP client | Axios |
 | Logging | Serilog (console + file rotante) |
@@ -128,6 +127,8 @@ Versione attiva: **v1**
 | Unità di misura | `/api/v1/unitsOfMeasures` |
 | Marche | `/api/v1/brands` |
 | Piatti | `/api/v1/dishes` |
+| Supermercati | `/api/v1/supermarkets` |
+| Categorie | `/api/v1/categories` |
 | Autenticazione | `/api/v1/auth` |
 | Amministrazione utenti | `/api/v1/admin/users` |
 
@@ -137,11 +138,24 @@ Documentazione interattiva completa: `http://localhost:5083/scalar/v1`
 
 ## Autenticazione
 
-Il sistema usa JWT trasportato tramite **cookie httpOnly**. Il token è firmato con HMAC-SHA256 e ha una durata di 8 ore. Il frontend non legge mai il token: il browser lo invia automaticamente a ogni richiesta.
+Il sistema usa JWT salvato in **localStorage** e inviato come header `Authorization: Bearer <token>` a ogni richiesta via interceptor Axios. Il token è firmato con HMAC-SHA256 e ha una durata di 8 ore.
 
 Due ruoli disponibili: `User` e `Admin`. Gli endpoint amministrativi richiedono la policy `AdminOnly`.
 
 Documentazione dettagliata: [`docs/authentication.md`](docs/authentication.md)
+
+---
+
+## Documentazione
+
+| Documento | Descrizione |
+|-----------|-------------|
+| [`docs/onboarding.md`](docs/onboarding.md) | Guida di ingresso per sviluppatori — stack, avvio, struttura, convenzioni |
+| [`docs/authentication.md`](docs/authentication.md) | Flusso JWT, tokenStorage, navigation guard, endpoint protetti |
+| [`docs/architecture-backend-findings.md`](docs/architecture-backend-findings.md) | Mappa architettura backend, rischi, funzionalità aggiunte, anti-pattern |
+| [`docs/architecture-backend-plan.md`](docs/architecture-backend-plan.md) | Backlog e KPI del backend |
+| [`docs/architecture-frontend-findings.md`](docs/architecture-frontend-findings.md) | Mappa architettura frontend, funzionalità aggiunte, anti-pattern |
+| [`docs/architecture-frontend-plan.md`](docs/architecture-frontend-plan.md) | Backlog e KPI del frontend |
 
 ---
 
@@ -153,4 +167,4 @@ Configurato in `.mcp.json`. Vedi [`tools/mcp-db-schema/README.md`](tools/mcp-db-
 
 ---
 
-*Aggiornato il: 2026-04-02*
+*Aggiornato il: 2026-04-04*

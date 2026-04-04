@@ -15,7 +15,6 @@ internal static class ModelsFactory
             newFood.Name = foodDto.Name;
             newFood.BrandId = foodDto.BrandId;
             newFood.Barcode = foodDto.Barcode;
-            newFood.Calorie = foodDto.Calorie;
         }
 
         return newFood;
