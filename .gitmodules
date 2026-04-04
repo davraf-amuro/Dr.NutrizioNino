@@ -1,3 +1,6 @@
 [submodule "davraf-guidelines"]
 	path = davraf-guidelines
 	url = https://github.com/davraf-amuro/davraf-guidelines.git
+[submodule "tools/dr-mcp-dbschema"]
+	path = tools/dr-mcp-dbschema
+	url = https://github.com/davraf-amuro/dr-mcp-dbschema.git
