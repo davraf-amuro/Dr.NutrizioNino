@@ -21,6 +21,7 @@ const menuOptions = computed<MenuOption[]>(() => {
   const items: MenuOption[] = [
     { label: 'Alimenti', key: '/foods' },
     { label: 'Piatti', key: '/dishes' },
+    { label: 'Simulazioni', key: '/daily-simulations' },
     {
       label: 'Configurazione',
       key: 'configurazione',
@@ -46,6 +47,7 @@ const activeKey = computed(() => {
   if (route.path.startsWith('/units')) return '/units'
   if (route.path.startsWith('/supermarkets')) return '/supermarkets'
   if (route.path.startsWith('/categories')) return '/categories'
+  if (route.path.startsWith('/daily-simulations')) return '/daily-simulations'
   if (route.path.startsWith('/admin')) return '/admin/users'
   return '/foods'
 })

@@ -118,6 +118,7 @@ try
     builder.Services.AddScoped<AuthService>();
     builder.Services.AddScoped<AdminUserService>();
     builder.Services.AddScoped<UserProfileService>();
+    builder.Services.AddScoped<DailySimulationService>();
 
     var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? [];
     builder.Services.AddCors(options =>
@@ -172,6 +173,7 @@ try
     app.MapsAuthEndpoints(versionSet, app.Environment);
     app.MapsAdminEndpoints(versionSet);
     app.MapsUserProfileEndpoints(versionSet);
+    app.MapDailySimulationEndpoints(versionSet);
 
     // SEED: garantisce che i ruoli esistano al primo avvio
     using (var seedScope = app.Services.CreateScope())

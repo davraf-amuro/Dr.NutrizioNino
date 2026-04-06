@@ -23,5 +23,8 @@ public partial class DrNutrizioNinoContext
         modelBuilder.ApplyConfiguration(new DishDashboardConfiguration());
         modelBuilder.ApplyConfiguration(new CategoryConfiguration());
         modelBuilder.ApplyConfiguration(new FoodCategoryConfiguration());
+        modelBuilder.ApplyConfiguration(new DailySimulationConfiguration());
+        modelBuilder.ApplyConfiguration(new DailySimulationEntryConfiguration());
+        modelBuilder.ApplyConfiguration(new DailySimulationEntryNutrientConfiguration());
     }
 }

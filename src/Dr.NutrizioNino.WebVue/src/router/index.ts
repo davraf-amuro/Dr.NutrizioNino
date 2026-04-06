@@ -51,6 +51,11 @@ const router = createRouter({
       component: () => import('../views/CategoriesView.vue')
     },
     {
+      path: '/daily-simulations',
+      name: 'daily-simulations',
+      component: () => import('../views/DailySimulationsView.vue')
+    },
+    {
       path: '/admin/users',
       name: 'admin-users',
       component: () => import('../views/AdminUsersView.vue'),
