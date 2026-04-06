@@ -5,7 +5,7 @@ using TinyHelpers.AspNetCore.Extensions;
 using Dr.NutrizioNino.Models.Dto.Auth;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Dr.NutrizioNino.Api.Endopints;
+namespace Dr.NutrizioNino.Api.Endpoints;
 
 public static class AdminEndpoints
 {
@@ -17,18 +17,18 @@ public static class AdminEndpoints
             .MapToApiVersion(ApiVersionFactory.Version1)
             .RequireAuthorization("AdminOnly");
 
-        group.MapGet("/", async (AdminUserService service) =>
+        group.MapGet("/", async (AdminUserService service, CancellationToken ct) =>
         {
-            var users = await service.GetUsersAsync();
+            var users = await service.GetUsersAsync(ct);
             return Results.Ok(users);
         })
         .WithName("GetUsers")
         .WithSummary("Lista tutti gli utenti")
         .Produces<IList<UserListItem>>(StatusCodes.Status200OK);
 
-        group.MapPost("/", async (AdminUserService service, [FromBody] CreateUserRequest request) =>
+        group.MapPost("/", async (AdminUserService service, [FromBody] CreateUserRequest request, CancellationToken ct) =>
         {
-            var (success, errors) = await service.CreateUserAsync(request);
+            var (success, errors) = await service.CreateUserAsync(request, ct);
             if (!success)
                 return Results.Problem(string.Join("; ", errors), statusCode: StatusCodes.Status400BadRequest);
             return Results.Created();
@@ -38,9 +38,9 @@ public static class AdminEndpoints
         .Produces(StatusCodes.Status201Created)
         .ProducesDefaultProblem(StatusCodes.Status400BadRequest);
 
-        group.MapGet("{id:guid}", async (AdminUserService service, Guid id) =>
+        group.MapGet("{id:guid}", async (AdminUserService service, Guid id, CancellationToken ct) =>
         {
-            var user = await service.GetUserByIdAsync(id);
+            var user = await service.GetUserByIdAsync(id, ct);
             return user is not null
                 ? Results.Ok(user)
                 : Results.Problem("Utente non trovato.", statusCode: StatusCodes.Status404NotFound);
@@ -50,9 +50,9 @@ public static class AdminEndpoints
         .Produces<UserListItem>(StatusCodes.Status200OK)
         .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 
-        group.MapPut("{id:guid}", async (AdminUserService service, Guid id, [FromBody] UpdateUserRequest request) =>
+        group.MapPut("{id:guid}", async (AdminUserService service, Guid id, [FromBody] UpdateUserRequest request, CancellationToken ct) =>
         {
-            var (success, errors) = await service.UpdateUserAsync(id, request);
+            var (success, errors) = await service.UpdateUserAsync(id, request, ct);
             if (!success)
                 return Results.Problem(string.Join("; ", errors), statusCode: StatusCodes.Status400BadRequest);
             return Results.NoContent();
@@ -62,9 +62,9 @@ public static class AdminEndpoints
         .Produces(StatusCodes.Status204NoContent)
         .ProducesDefaultProblem(StatusCodes.Status400BadRequest);
 
-        group.MapDelete("{id:guid}", async (AdminUserService service, Guid id) =>
+        group.MapDelete("{id:guid}", async (AdminUserService service, Guid id, CancellationToken ct) =>
         {
-            var (success, errors) = await service.DeleteUserAsync(id);
+            var (success, errors) = await service.DeleteUserAsync(id, ct);
             if (!success)
                 return Results.Problem(string.Join("; ", errors), statusCode: StatusCodes.Status400BadRequest);
             return Results.NoContent();
@@ -74,9 +74,9 @@ public static class AdminEndpoints
         .Produces(StatusCodes.Status204NoContent)
         .ProducesDefaultProblem(StatusCodes.Status400BadRequest);
 
-        group.MapPatch("{id:guid}/role", async (AdminUserService service, Guid id, [FromBody] ChangeRoleRequest request) =>
+        group.MapPatch("{id:guid}/role", async (AdminUserService service, Guid id, [FromBody] ChangeRoleRequest request, CancellationToken ct) =>
         {
-            var (success, errors) = await service.ChangeRoleAsync(id, request.Role);
+            var (success, errors) = await service.ChangeRoleAsync(id, request.Role, ct);
             if (!success)
                 return Results.Problem(string.Join("; ", errors), statusCode: StatusCodes.Status400BadRequest);
             return Results.NoContent();

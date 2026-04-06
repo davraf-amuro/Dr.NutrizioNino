@@ -1,6 +1,6 @@
 using Asp.Versioning;
 
-namespace Dr.NutrizioNino.Api.Endopints;
+namespace Dr.NutrizioNino.Api.Endpoints;
 
 public class ApiVersionFactory
 {

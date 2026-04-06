@@ -1,12 +1,13 @@
-using System.Security.Claims;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
+using Dr.NutrizioNino.Api.Helpers;
 using Dr.NutrizioNino.Api.Services;
 using TinyHelpers.AspNetCore.Extensions;
 using Dr.NutrizioNino.Models.Dto.Auth;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
-namespace Dr.NutrizioNino.Api.Endopints;
+namespace Dr.NutrizioNino.Api.Endpoints;
 
 public static class AuthEndpoints
 {
@@ -42,9 +43,10 @@ public static class AuthEndpoints
 
         group.MapGet("me", async (AuthService service, ClaimsPrincipal user) =>
         {
-            var userId = Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)
-                ?? user.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)!);
-            var me = await service.GetMeAsync(userId);
+            var userId = user.GetUserId();
+            if (userId is null)
+                return Results.Problem("Utente non autenticato.", statusCode: StatusCodes.Status401Unauthorized);
+            var me = await service.GetMeAsync(userId.Value);
             return me is null ? Results.NotFound() : Results.Ok(me);
         })
         .WithName("GetMe")
@@ -55,9 +57,10 @@ public static class AuthEndpoints
 
         group.MapPatch("me/birthdate", async (AuthService service, ClaimsPrincipal user, [FromBody] UpdateBirthdateRequest request) =>
         {
-            var userId = Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)
-                ?? user.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)!);
-            var ok = await service.UpdateBirthdateAsync(userId, request.DateOfBirth);
+            var userId = user.GetUserId();
+            if (userId is null)
+                return Results.Problem("Utente non autenticato.", statusCode: StatusCodes.Status401Unauthorized);
+            var ok = await service.UpdateBirthdateAsync(userId.Value, request.DateOfBirth);
             return ok ? Results.NoContent() : Results.NotFound();
         })
         .WithName("UpdateMyBirthdate")

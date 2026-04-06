@@ -6,18 +6,22 @@ namespace Dr.NutrizioNino.Api.Services;
 
 public class AdminUserService(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole<Guid>> roleManager)
 {
-    public async Task<IList<UserListItem>> GetUsersAsync()
+    public async Task<IList<UserListItem>> GetUsersAsync(CancellationToken ct = default)
     {
-        var result = new List<UserListItem>();
-        foreach (var user in userManager.Users.ToList())
-        {
-            var roles = await userManager.GetRolesAsync(user);
-            result.Add(new UserListItem(user.Id, user.UserName!, user.Email!, user.DateOfBirth, roles.FirstOrDefault() ?? "User"));
-        }
-        return result;
+        var adminsTask = userManager.GetUsersInRoleAsync("Admin");
+        var usersTask = userManager.GetUsersInRoleAsync("User");
+        await Task.WhenAll(adminsTask, usersTask);
+        var admins = adminsTask.Result;
+        var users = usersTask.Result;
+        var adminIds = admins.Select(u => u.Id).ToHashSet();
+        var allUsers = admins.Concat(users.Where(u => !adminIds.Contains(u.Id)));
+        return allUsers
+            .Select(u => new UserListItem(u.Id, u.UserName!, u.Email!, u.DateOfBirth,
+                adminIds.Contains(u.Id) ? "Admin" : "User"))
+            .ToList();
     }
 
-    public async Task<(bool Success, IEnumerable<string> Errors)> CreateUserAsync(CreateUserRequest request)
+    public async Task<(bool Success, IEnumerable<string> Errors)> CreateUserAsync(CreateUserRequest request, CancellationToken ct = default)
     {
         await EnsureRolesExistAsync();
 
@@ -41,7 +45,7 @@ public class AdminUserService(UserManager<ApplicationUser> userManager, RoleMana
         return (true, []);
     }
 
-    public async Task<UserListItem?> GetUserByIdAsync(Guid userId)
+    public async Task<UserListItem?> GetUserByIdAsync(Guid userId, CancellationToken ct = default)
     {
         var user = await userManager.FindByIdAsync(userId.ToString());
         if (user is null) return null;
@@ -49,7 +53,7 @@ public class AdminUserService(UserManager<ApplicationUser> userManager, RoleMana
         return new UserListItem(user.Id, user.UserName!, user.Email!, user.DateOfBirth, roles.FirstOrDefault() ?? "User");
     }
 
-    public async Task<(bool Success, IEnumerable<string> Errors)> UpdateUserAsync(Guid userId, UpdateUserRequest request)
+    public async Task<(bool Success, IEnumerable<string> Errors)> UpdateUserAsync(Guid userId, UpdateUserRequest request, CancellationToken ct = default)
     {
         var user = await userManager.FindByIdAsync(userId.ToString());
         if (user is null) return (false, ["Utente non trovato."]);
@@ -64,7 +68,7 @@ public class AdminUserService(UserManager<ApplicationUser> userManager, RoleMana
             : (false, result.Errors.Select(e => e.Description));
     }
 
-    public async Task<(bool Success, IEnumerable<string> Errors)> DeleteUserAsync(Guid userId)
+    public async Task<(bool Success, IEnumerable<string> Errors)> DeleteUserAsync(Guid userId, CancellationToken ct = default)
     {
         var user = await userManager.FindByIdAsync(userId.ToString());
         if (user is null) return (false, ["Utente non trovato."]);
@@ -75,7 +79,7 @@ public class AdminUserService(UserManager<ApplicationUser> userManager, RoleMana
             : (false, result.Errors.Select(e => e.Description));
     }
 
-    public async Task<(bool Success, IEnumerable<string> Errors)> ChangeRoleAsync(Guid userId, string newRole)
+    public async Task<(bool Success, IEnumerable<string> Errors)> ChangeRoleAsync(Guid userId, string newRole, CancellationToken ct = default)
     {
         await EnsureRolesExistAsync();
 

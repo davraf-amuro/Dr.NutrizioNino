@@ -1,7 +1,6 @@
 using System.Text;
 using Asp.Versioning;
-using Dr.NutrizioNino.Api.dto;
-using Dr.NutrizioNino.Api.Endopints;
+using Dr.NutrizioNino.Api.Endpoints;
 using Dr.NutrizioNino.Api.Infrastructure;
 using Dr.NutrizioNino.Api.Middleware;
 using Dr.NutrizioNino.Api.Models;
@@ -32,8 +31,6 @@ try
     //carico i parametri di configurazione dal config
     builder.Configuration.AddJsonFile("appsettings.local.json", optional: true, reloadOnChange: true);
     builder.Configuration.AddEnvironmentVariables(); //si assicura di ereditare le variabili d'ambiente, serve soprattutto in docker
-    builder.Services.Configure<AuthorizationTokensDto>(builder.Configuration.GetSection("AuthorizationTokens"));
-
     //abilito il versionamento delle api
     builder.Services.AddApiVersioning(options =>
     {
@@ -146,15 +143,15 @@ try
         .Build();
 
     // Configure the HTTP request pipeline.
-    //if (app.Environment.IsDevelopment())
-    //{
-    app.MapOpenApi();
-    //attivo le UI
-    app.MapScalarApiReference(options =>
+    if (app.Environment.IsDevelopment())
     {
-        options.DarkMode = false;
-        options.DefaultHttpClient = new KeyValuePair<ScalarTarget, ScalarClient>(ScalarTarget.CSharp, ScalarClient.HttpClient);
-    });
+        app.MapOpenApi();
+        app.MapScalarApiReference(options =>
+        {
+            options.DarkMode = false;
+            options.DefaultHttpClient = new KeyValuePair<ScalarTarget, ScalarClient>(ScalarTarget.CSharp, ScalarClient.HttpClient);
+        });
+    }
 
     app.UseCors(permitGetPost);
     app.UseHttpsRedirection();
@@ -162,6 +159,7 @@ try
     app.UseStatusCodePages();
     app.UseAuthentication();
     app.UseAuthorization();
+    app.UseMiddleware<HttpContextLogger>();
 
     //aggiungi gli endpoint
     app.MapsFoodsEndpoints(versionSet);
@@ -175,37 +173,11 @@ try
     app.MapsAdminEndpoints(versionSet);
     app.MapsUserProfileEndpoints(versionSet);
 
-    //carica i middleware
-    app.UseMiddleware<HttpContextLogger>();
-    app.UseMiddleware<ValidatorMiddleware>();
-
-    // SEED: crea admin iniziale se non esiste — RIMUOVI dopo il primo avvio in produzione
+    // SEED: garantisce che i ruoli esistano al primo avvio
     using (var seedScope = app.Services.CreateScope())
     {
         var adminService = seedScope.ServiceProvider.GetRequiredService<AdminUserService>();
         await adminService.EnsureRolesExistAsync();
-
-        var userManager = seedScope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-        /* if (await userManager.FindByNameAsync("davraf") is null)
-        {
-            var adminUser = new ApplicationUser
-            {
-                UserName = "admin",
-                Email = "admin@gmail.com",
-                EmailConfirmed = true,
-                DateOfBirth = new DateOnly(1975, 04, 09)
-            };
-            var result = await userManager.CreateAsync(adminUser, "superman");
-            if (result.Succeeded)
-            {
-                await userManager.AddToRoleAsync(adminUser, "Admin");
-                Log.Warning(">>> SEED: utente 'admin' creato con ruolo Admin");
-            }
-            else
-            {
-                Log.Error(">>> SEED FALLITO: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
-            }
-        } */
     }
 
     //Log.Information($"Security Protocols Allowed: {ServicePointManager.SecurityProtocol}");

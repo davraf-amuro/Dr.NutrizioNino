@@ -5,10 +5,9 @@ namespace Dr.NutrizioNino.Api.Infrastructure;
 
 internal static class ModelsFactory
 {
-    internal static async Task<Food> CreateFood(CreateFoodDto foodDto)
+    internal static Food CreateFood(CreateFoodDto foodDto)
     {
         var newFood = new Food() { Id = Guid.NewGuid() };
-        //newFood.FoodsNutrients = new List<FoodNutrient>();
 
         if (foodDto != null)
         {
@@ -20,7 +19,7 @@ internal static class ModelsFactory
         return newFood;
     }
 
-    internal static async Task<Nutrient> CreateNutrient(CreateNutrientDto newNutrientDto)
+    internal static Nutrient CreateNutrient(CreateNutrientDto newNutrientDto)
     {
         return new Nutrient
         {
@@ -32,17 +31,16 @@ internal static class ModelsFactory
         };
     }
 
-    public static async Task<Brand> CreateBrand(CreateBrandDto newBrandDto)
+    public static Brand CreateBrand(CreateBrandDto newBrandDto)
     {
         return new Brand
         {
-            // assegna un nuovo guid a id
             Id = Guid.NewGuid(),
             Name = newBrandDto.Name,
         };
     }
 
-    public static async Task<UnitOfMeasure> CreateUnitOfMeasure(CreateUnitOfMeasureDto newUnitOfMeasure)
+    public static UnitOfMeasure CreateUnitOfMeasure(CreateUnitOfMeasureDto newUnitOfMeasure)
     {
         return new UnitOfMeasure
         {

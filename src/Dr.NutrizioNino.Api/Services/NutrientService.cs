@@ -26,7 +26,7 @@ public class NutrientService(DrRepository drRepository)
             return null;
         }
 
-        var nutrient = await ModelsFactory.CreateNutrient(newNutrientDto);
+        var nutrient = ModelsFactory.CreateNutrient(newNutrientDto);
         var created = await drRepository.CreateNutrientAsync(nutrient, ct).ConfigureAwait(false);
         return NutrientExtensions.ToNutrientInfo.Compile()(created);
     }

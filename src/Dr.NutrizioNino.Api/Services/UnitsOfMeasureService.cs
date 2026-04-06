@@ -28,7 +28,7 @@ public class UnitsOfMeasureService(DrRepository drRepository)
             return (UomOperationResult.DuplicateAbbreviation, null);
         }
 
-        var unitOfMeasure = await ModelsFactory.CreateUnitOfMeasure(newUnitOfMeasure).ConfigureAwait(false);
+        var unitOfMeasure = ModelsFactory.CreateUnitOfMeasure(newUnitOfMeasure);
         var entity = await drRepository.CreateUnitOfMeasureAsync(unitOfMeasure, ct).ConfigureAwait(false);
         return (UomOperationResult.Success, UnitOfMeasureExtensions.ToUnitOfMeasureDto.Compile()(entity));
     }

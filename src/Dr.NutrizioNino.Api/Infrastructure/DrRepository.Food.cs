@@ -11,7 +11,7 @@ public partial class DrRepository
 {
     public async Task<Food> CreateFoodAsync(CreateFoodDto newFoodDto, CancellationToken ct = default)
     {
-        var newFood = await ModelsFactory.CreateFood(newFoodDto).ConfigureAwait(false);
+        var newFood = ModelsFactory.CreateFood(newFoodDto);
         drContext.Foods.Add(newFood);
         await drContext.SaveChangesAsync(ct).ConfigureAwait(false);
         return newFood;
@@ -84,7 +84,7 @@ public partial class DrRepository
         return true;
     }
 
-    public async Task<IEnumerable<FoodDashboardInfo>> GetFoodsDashboardAsync(string? nameFilter = null, CancellationToken ct = default) =>
+    public async Task<IList<FoodDashboardInfo>> GetFoodsDashboardAsync(string? nameFilter = null, CancellationToken ct = default) =>
         await drContext.FoodsDashboard
             .AsNoTracking()
             .Where(f => nameFilter == null || EF.Functions.Like(f.Name!, $"%{nameFilter}%"))

@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using TinyHelpers.AspNetCore.Extensions;
 
-namespace Dr.NutrizioNino.Api.Endopints;
+namespace Dr.NutrizioNino.Api.Endpoints;
 
 public static class DishEndpoints
 {

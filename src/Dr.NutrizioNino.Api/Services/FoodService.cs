@@ -64,11 +64,8 @@ public class FoodService(DrRepository drRepository)
     public async Task DeleteFoodAsync(Guid id, CancellationToken ct = default) =>
         await drRepository.DeleteFoodAsync(id, ct).ConfigureAwait(false);
 
-    public async Task<IList<FoodDashboardInfo>> GetFoodsDashboardAsync(string? nameFilter = null, CancellationToken ct = default)
-    {
-        var result = await drRepository.GetFoodsDashboardAsync(nameFilter, ct).ConfigureAwait(false);
-        return result.ToList();
-    }
+    public async Task<IList<FoodDashboardInfo>> GetFoodsDashboardAsync(string? nameFilter = null, CancellationToken ct = default) =>
+        await drRepository.GetFoodsDashboardAsync(nameFilter, ct).ConfigureAwait(false);
 
     public async Task<FoodDashboardInfo?> GetFoodDashboardAsync(Guid id, CancellationToken ct = default) =>
         await drRepository.GetFoodDashboardAsync(id, ct).ConfigureAwait(false);

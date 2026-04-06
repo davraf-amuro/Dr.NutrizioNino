@@ -6,7 +6,7 @@ using Dr.NutrizioNino.Models.Dto;
 using Microsoft.AspNetCore.Mvc;
 using TinyHelpers.AspNetCore.Extensions;
 
-namespace Dr.NutrizioNino.Api.Endopints;
+namespace Dr.NutrizioNino.Api.Endpoints;
 
 public static class SupermarketsEndpoints
 {

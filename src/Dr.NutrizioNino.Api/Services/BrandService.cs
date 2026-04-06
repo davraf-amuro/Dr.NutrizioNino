@@ -22,7 +22,7 @@ public class BrandService(DrRepository drRepository)
 
     public async Task<BrandDto> CreateBrandAsync(CreateBrandDto newBrandDto, Guid? ownerId = null, CancellationToken ct = default)
     {
-        var brand = await ModelsFactory.CreateBrand(newBrandDto);
+        var brand = ModelsFactory.CreateBrand(newBrandDto);
         brand.OwnerId = ownerId;
         var created = await drRepository.CreateBrandAsync(brand, ct).ConfigureAwait(false);
         return BrandExtensions.ToBrandDto.Compile()(created);
