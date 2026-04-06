@@ -26,9 +26,17 @@ public class NutrientService(DrRepository drRepository)
             return null;
         }
 
-        var nutrient = ModelsFactory.CreateNutrient(newNutrientDto);
+        var maxOrder = await drRepository.GetMaxNutrientPositionOrderAsync(ct).ConfigureAwait(false);
+        var nutrientWithOrder = newNutrientDto with { PositionOrder = maxOrder + 1 };
+        var nutrient = ModelsFactory.CreateNutrient(nutrientWithOrder);
         var created = await drRepository.CreateNutrientAsync(nutrient, ct).ConfigureAwait(false);
         return NutrientExtensions.ToNutrientInfo.Compile()(created);
+    }
+
+    public async Task<bool> ReorderNutrientsAsync(IList<NutrientReorderItem> items, CancellationToken ct = default)
+    {
+        await drRepository.ReorderNutrientsAsync(items, ct).ConfigureAwait(false);
+        return true;
     }
 
     public async Task<NutrientOperationResult> UpdateNutrientAsync(Nutrient nutrient, CancellationToken ct = default)

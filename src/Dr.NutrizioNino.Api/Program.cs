@@ -59,7 +59,6 @@ try
     builder.Services.AddExceptionHandler<DatabaseExceptionHandler>();
     builder.Services.AddDefaultExceptionHandler();
 
-
     //aggiungi i servizi
     builder.Services.AddDbContext<DrNutrizioNinoContext>(options =>
     {

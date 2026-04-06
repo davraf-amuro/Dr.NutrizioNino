@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { NAlert, NButton, NCard, NSpace, useDialog } from 'naive-ui'
+import { h, nextTick, onMounted, ref } from 'vue'
+import { NAlert, NButton, NCard, NSpace, useDialog, useMessage } from 'naive-ui'
 import foodList from '../components/Foods/FoodsList.vue'
 import foodDetail from '../components/Foods/FoodDetail.vue'
 import FoodCompareModal from '../components/Foods/FoodCompareModal.vue'
@@ -21,6 +21,7 @@ const {
   loadDashboard,
   loadLookups,
   startCreateFood,
+  cloneFood,
   startEditFood,
   completeCreateFood,
   cancelCreateFood,
@@ -32,9 +33,11 @@ const {
 } = useFoods()
 
 const dialog = useDialog()
+const message = useMessage()
 
 const compareShow = ref(false)
 const compareFoods = ref<FoodDashboardDto[]>([])
+const highlightedFoodId = ref<string | null>(null)
 
 const handleCompare = (foods: FoodDashboardDto[]) => {
   compareFoods.value = foods
@@ -49,6 +52,38 @@ const handleDeleteFood = (food: FoodDashboardDto) => {
     negativeText: 'Annulla',
     onPositiveClick: () => removeFood(food)
   })
+}
+
+const handleCloneFood = async (id: string) => {
+  try {
+    const clonedId = await cloneFood(id)
+    if (!clonedId) return
+
+    // Scroll alla riga clonata + highlight
+    await nextTick()
+    highlightedFoodId.value = clonedId
+    document.querySelector(`tr[data-food-id="${clonedId}"]`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+
+    // Rimuove highlight dopo l'animazione
+    setTimeout(() => { highlightedFoodId.value = null }, 2600)
+
+    // Toast con link "Modifica" opzionale
+    message.success(
+      () => h(NSpace, { size: 'small', align: 'center', style: 'display:inline-flex' }, {
+        default: () => [
+          'Alimento clonato —',
+          h(NButton, {
+            text: true, type: 'primary', size: 'small',
+            onClick: () => startEditFood(clonedId)
+          }, { default: () => 'Modifica' })
+        ]
+      }),
+      { duration: 4000 }
+    )
+  } catch {
+    message.error('Errore durante la clonazione')
+  }
 }
 
 onMounted(async () => {
@@ -78,9 +113,11 @@ onMounted(async () => {
         <foodList
           v-if="!isCreating"
           :foods="dashboard"
+          :highlight-id="highlightedFoodId"
           @edit="(food) => startEditFood(food.id)"
           @delete="handleDeleteFood"
           @compare="handleCompare"
+          @clone="handleCloneFood"
         />
 
         <foodDetail

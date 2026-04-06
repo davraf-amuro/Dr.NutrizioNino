@@ -10,6 +10,8 @@ Feature aggiunte (2026-04-03): dominio Categorie con relazione M:N `FoodCategory
 
 Feature aggiunte (2026-04-04): gestione errori DB con 503, rimozione colonna `Calorie` da `Foods` e `Dishes` (ora calcolata nelle view da nutriente "Energia"), FK pre-check DELETE esteso a Categories/Brands/Supermarkets, fix `Foods.BrandId` nullable.
 
+Feature aggiunte (2026-04-06): fix bug concorrenza DbContext in AdminUserService, reorder nutrienti via endpoint dedicato, ordinamento alfabetico dashboard alimenti, nuovo DTO `NutrientReorderItem`.
+
 Rimangono aperti: uniformità `CancellationToken`, logging con redaction, integration test, baseline metriche.
 
 ---
@@ -58,6 +60,15 @@ Rimangono aperti: uniformità `CancellationToken`, logging con redaction, integr
 | B14 | Dettaglio piatto | `GET /api/v1/dishes/{id}` → `DishDetailDto` con ingredienti e nutrienti |
 | B15 | Dominio Supermercati | Tabella `Supermarkets` + join `FoodSupermarket` (M:N). CRUD con 409 su nome duplicato. 9 catene italiane in seed |
 
+### Sessione 2026-04-06
+
+| ID | Area | Descrizione |
+|----|------|-------------|
+| B28 | Fix DbContext threading | `AdminUserService.GetUsersAsync`: rimosso `Task.WhenAll(adminsTask, usersTask)`. Le due chiamate a `UserManager.GetUsersInRoleAsync` ora sono await sequenziali — `UserManager` usa lo stesso `DbContext` Scoped e non supporta operazioni concorrenti |
+| B29 | Reorder nutrienti | Nuovo endpoint `PUT /api/v1/nutrients/reorder` (AdminOnly). Accetta `IList<NutrientReorderItem>`. `DrRepository.Nutrients`: `GetMaxNutrientPositionOrderAsync` + `ReorderNutrientsAsync` (update batch). Nuovo DTO `NutrientReorderItem(Guid Id, int PositionOrder)` in `Dr.NutrizioNino.Models.Dto` |
+| B30 | Nuovo nutriente in ultima posizione | `NutrientService.CreateNutrientAsync`: recupera `MAX(PositionOrder)` dal repository prima della creazione e assegna `PositionOrder = max + 1` automaticamente, ignorando il valore passato dal client |
+| B31 | Ordinamento dashboard alimenti | `DrRepository.Food.GetFoodsDashboardAsync`: aggiunto `.OrderBy(f => f.Name)` alla query — l'ordinamento avviene a livello SQL |
+
 ### Sessione 2026-04-04
 
 | ID | Area | Descrizione |
@@ -86,6 +97,7 @@ Rimangono aperti: uniformità `CancellationToken`, logging con redaction, integr
 | B10 | Precisione DB | `Foods_Nutrients.Quantity`: `numeric(4,2)` → `numeric(6,2)` |
 | B17 | FoodNutrient tracking | `contributions` dict re-keyed da `(NutrientId, UomId)` a `NutrientId` |
 | B18 | BrandId NOT NULL su Dish | Risolto separando `Dishes` in tabella propria |
+| B28 | DbContext concurrency in AdminUserService | `Task.WhenAll` su `GetUsersInRoleAsync` causava `InvalidOperationException`. Fix: await sequenziale |
 
 ---
 
@@ -109,4 +121,4 @@ Rimangono aperti: uniformità `CancellationToken`, logging con redaction, integr
 
 ---
 
-*Ultima revisione: 2026-04-04 — modello `claude-sonnet-4-6`*
+*Ultima revisione: 2026-04-06 — modello `claude-sonnet-4-6`*

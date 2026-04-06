@@ -119,6 +119,18 @@ public static class NutrientsEndpoints
             .Produces(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound, StatusCodes.Status409Conflict);
 
+        group.MapPut("reorder", async (NutrientService service, IList<NutrientReorderItem> items, CancellationToken ct) =>
+        {
+            await service.ReorderNutrientsAsync(items, ct);
+            return Results.Ok();
+        })
+            .RequireAuthorization("AdminOnly")
+            .WithName("ReorderNutrients")
+            .WithSummary("Reorder nutrients")
+            .WithDescription("Updates the PositionOrder of multiple nutrients in a single operation.")
+            .Produces(StatusCodes.Status200OK)
+            .ProducesDefaultProblem(StatusCodes.Status400BadRequest);
+
         group.MapDelete("{id}", async (NutrientService service, Guid id, CancellationToken ct) =>
         {
             var result = await service.DeleteNutrientAsync(id, ct);

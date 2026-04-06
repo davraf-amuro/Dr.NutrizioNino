@@ -34,3 +34,8 @@ export const updateFood = async (food: FoodDto): Promise<void> => {
 export const deleteFood = async (id: string): Promise<void> => {
   await apiClient.delete(`/foods/${id}`)
 }
+
+export const cloneFood = async (id: string): Promise<string> => {
+  const response = await apiClient.post<{ id: string }>(`/foods/${id}/clone`)
+  return response.data.id
+}

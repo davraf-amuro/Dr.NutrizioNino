@@ -77,6 +77,32 @@ public partial class DrRepository
         return true;
     }
 
+    public async Task<int> GetMaxNutrientPositionOrderAsync(CancellationToken ct = default) =>
+        await drContext.Nutrients
+            .AsNoTracking()
+            .MaxAsync(n => (int?)n.PositionOrder, ct)
+            .ConfigureAwait(false) ?? 0;
+
+    public async Task ReorderNutrientsAsync(IList<NutrientReorderItem> items, CancellationToken ct = default)
+    {
+        var ids = items.Select(i => i.Id).ToList();
+        var records = await drContext.Nutrients
+            .Where(n => ids.Contains(n.Id))
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+
+        foreach (var record in records)
+        {
+            var item = items.FirstOrDefault(i => i.Id == record.Id);
+            if (item is not null)
+            {
+                record.PositionOrder = item.PositionOrder;
+            }
+        }
+
+        await drContext.SaveChangesAsync(ct).ConfigureAwait(false);
+    }
+
     /// <summary>
     /// Restituisce tutti i nutrienti. Se riceve il guid di un cibo restituisce i nutrienti di quel cibo più quelli mancanti.
     /// </summary>

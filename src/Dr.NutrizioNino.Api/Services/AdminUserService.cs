@@ -8,11 +8,8 @@ public class AdminUserService(UserManager<ApplicationUser> userManager, RoleMana
 {
     public async Task<IList<UserListItem>> GetUsersAsync(CancellationToken ct = default)
     {
-        var adminsTask = userManager.GetUsersInRoleAsync("Admin");
-        var usersTask = userManager.GetUsersInRoleAsync("User");
-        await Task.WhenAll(adminsTask, usersTask);
-        var admins = adminsTask.Result;
-        var users = usersTask.Result;
+        var admins = await userManager.GetUsersInRoleAsync("Admin");
+        var users = await userManager.GetUsersInRoleAsync("User");
         var adminIds = admins.Select(u => u.Id).ToHashSet();
         var allUsers = admins.Concat(users.Where(u => !adminIds.Contains(u.Id)));
         return allUsers

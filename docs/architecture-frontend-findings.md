@@ -10,6 +10,8 @@ Feature aggiunte (2026-04-03): dominio Categorie completo, gestione utenti admin
 
 Feature aggiunte (2026-04-04): menu "Configurazione" raggruppato con dropdown, bottoni azioni uniformati nelle liste, peso totale piatto in footer griglia ingredienti, colonne dashboard piatti allineate, calorie rimosse dai DTO (mantenute nelle view via nutriente Energia).
 
+Feature aggiunte (2026-04-06): reorder nutrienti con drag & drop (WCAG), clone alimento con feedback visivo (toast + scroll + highlight), refactoring completo pagina Simulazioni (griglia padre-figlio, nome modificabile, Aggiungi voce in cima), grafico nutrienti per simulazione. Nuove dipendenze: `vue-draggable-plus`, `chart.js`, `vue-chartjs`.
+
 Rimangono aperti: watcher deep in FoodDetail, test frontend, convergenza naming interfacce.
 
 ---
@@ -31,7 +33,8 @@ Rimangono aperti: watcher deep in FoodDetail, test frontend, convergenza naming 
 | Domain — Supermarkets | `src/modules/supermarkets/api/`, `src/modules/supermarkets/composables/` |
 | Domain — Categories | `src/modules/categories/api/`, `src/modules/categories/composables/` |
 | Domain — Admin | `src/modules/admin/api/admin.api.ts`, `src/modules/admin/composables/useAdminUsers.ts` |
-| UI layer | `src/views/`, `src/components/` (Admin, Brands, Categories, Dishes, Foods, Nutrients, Supermarkets, Units) |
+| Domain — Daily Simulations | `src/modules/dailySimulations/api/`, `src/modules/dailySimulations/composables/` |
+| UI layer | `src/views/`, `src/components/` (Admin, Brands, Categories, DailySimulations, Dishes, Foods, Nutrients, Supermarkets, Units) |
 
 ---
 
@@ -61,6 +64,15 @@ Rimangono aperti: watcher deep in FoodDetail, test frontend, convergenza naming 
 | FW-14 | Ordinamento nutrienti centralizzato | `sortNutrients.ts`: `positionOrder` ASC (0 in fondo) → alfabetico. Usato in FoodDetail, FoodCompareModal, useDishCalculator |
 | FW-15 | Dominio Supermercati | `SupermarketsView`, CRUD completo. `FoodsList` con colonna tag supermercati |
 | FW-17 | Dettaglio piatto read-only | `DishDetail.vue`: tabella ingredienti + preview nutrienti |
+
+### Sessione 2026-04-06
+
+| ID | Feature | Descrizione |
+|----|---------|-------------|
+| FW-31 | Reorder nutrienti drag & drop | `NutrientsReorderModal.vue` (nuovo): modal con lista riordinabile via `vue-draggable-plus` + pulsanti ↑/↓ come fallback accessibile (WCAG 2.1 AA). `NutrientsView.vue`: aggiunto pulsante "Ordina". `NutrientsList.vue`: colonna "Qty default" → "Unità di misura default" (abbreviazione da prop `unitsOfMeasures`). `nutrients.api.ts`: funzione `reorderNutrients` |
+| FW-32 | Clone alimento con feedback | `FoodsList.vue`: bottone "Clona" + `row-props` con `data-food-id` + animazione `row-flash` CSS 2.5s su classe `row-highlight`. `useFoods.cloneFood`: clona → fetcha `getFoodDashboardRow(id)` → push in lista (no reload completo, cache aggiornata). `FoodsView.handleCloneFood`: scroll `scrollIntoView` alla riga clonata + toast con link "Modifica" opzionale (4s) |
+| FW-33 | Simulazioni — nuova UI | `DailySimulationDetail.vue` riscritto: nome simulazione come `<n-input>` inline modificabile (salva su blur/enter), "Aggiungi voce" spostato in cima, griglia `<table>` custom padre-figlio con sezioni collassabili (▶/▼), colonne nutrienti dinamiche estratte dai dati, footer per sezione con somme, riga "Totale giornata". Bottone "Grafico" nell'header |
+| FW-34 | Grafico nutrienti simulazione | `DailySimulationChart.vue` (nuovo): bar chart via `chart.js` + `vue-chartjs`. Asse X = sezioni in ordine enum (Colazione→Pranzo→Cena→…), asse Y = quantità nutriente. Ogni nutriente = una serie. Checkbox `n-tag` per mostrare/nascondere singoli nutrienti (tutti visibili di default). Si apre in `n-modal` |
 
 ### Sessione 2026-04-04
 
@@ -111,4 +123,4 @@ Rimangono aperti: watcher deep in FoodDetail, test frontend, convergenza naming 
 
 ---
 
-*Ultima revisione: 2026-04-04 — modello `claude-sonnet-4-6`*
+*Ultima revisione: 2026-04-06 — modello `claude-sonnet-4-6`*

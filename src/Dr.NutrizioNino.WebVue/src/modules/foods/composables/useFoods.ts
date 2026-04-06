@@ -10,6 +10,7 @@ import { getBrands } from '@/modules/brands/api/brands.api'
 import { getSupermarkets } from '@/modules/supermarkets/api/supermarkets.api'
 import { getCategories } from '@/modules/categories/api/categories.api'
 import {
+  cloneFood as cloneFoodApi,
   createFood,
   deleteFood,
   getFoodById,
@@ -188,6 +189,21 @@ export const useFoods = () => {
     if (categoriesCache) categoriesCache.push(category)
   }
 
+  const cloneFood = async (id: string): Promise<string | null> => {
+    let clonedId: string | null = null
+    const result = await run(async () => {
+      clonedId = await cloneFoodApi(id)
+      return getFoodDashboardRow(clonedId)
+    })
+
+    if (result) {
+      dashboard.value.push(result)
+      updateDashboardCache(dashboard.value)
+    }
+
+    return result ? clonedId : null
+  }
+
   const removeFood = async (food: FoodDashboardDto) => {
     const removed = await run(async () => {
       await deleteFood(food.id)
@@ -214,6 +230,7 @@ export const useFoods = () => {
     loadDashboard,
     loadLookups,
     startCreateFood,
+    cloneFood,
     startEditFood,
     completeCreateFood,
     cancelCreateFood,

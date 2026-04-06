@@ -19,26 +19,40 @@
 </template>
 
 <script setup lang="ts">
-import { h } from 'vue'
+import { computed, h } from 'vue'
 import type { Nutrient } from '@/Interfaces/Nutrients/Nutrient'
+import type { UnitOfMeasureDto } from '@/Interfaces/UnitOfMeasureDto'
 import { NButton, NDataTable, NInput, NSpace, type DataTableColumns } from 'naive-ui'
 import { useTableSearch } from '@/core/composables/useTableSearch'
 
 const props = defineProps<{
   nutrients: Nutrient[]
+  unitsOfMeasures: UnitOfMeasureDto[]
 }>()
 
 const emit = defineEmits<{
   edit: [nutrient: Nutrient]
   delete: [nutrient: Nutrient]
+  reorder: []
 }>()
 
 const { searchQuery, filteredData } = useTableSearch(() => props.nutrients, 'name')
 
+const uomMap = computed(() => {
+  const map = new Map<string, string>()
+  for (const u of props.unitsOfMeasures) map.set(u.id, u.abbreviation)
+  return map
+})
+
 const columns: DataTableColumns<Nutrient> = [
   { title: 'Ordine', key: 'positionOrder', width: 90, sorter: (a, b) => a.positionOrder - b.positionOrder },
   { title: 'Nome', key: 'name', sorter: 'default' },
-  { title: 'Qty default', key: 'defaultQuantity', width: 120, sorter: (a, b) => a.defaultQuantity - b.defaultQuantity },
+  {
+    title: 'Unità di misura default',
+    key: 'defaultUnitOfMeasureId',
+    width: 180,
+    render: (row) => uomMap.value.get(row.defaultUnitOfMeasureId) ?? '—'
+  },
   {
     title: 'Azioni',
     key: 'actions',

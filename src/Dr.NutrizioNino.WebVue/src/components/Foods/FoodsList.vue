@@ -20,6 +20,7 @@
       :columns="columns"
       :data="filteredData"
       :row-key="(row: FoodDashboardDto) => row.id"
+      :row-props="rowProps"
       :checked-row-keys="checkedRowKeys"
       :single-line="false"
       :bordered="true"
@@ -38,12 +39,14 @@ import { useTableSearch } from '@/core/composables/useTableSearch'
 
 const props = defineProps<{
   foods: FoodDashboardDto[]
+  highlightId?: string | null
 }>()
 
 const emit = defineEmits<{
   edit: [food: FoodDashboardDto]
   delete: [food: FoodDashboardDto]
   compare: [foods: FoodDashboardDto[]]
+  clone: [id: string]
 }>()
 
 const { searchQuery, filteredData } = useTableSearch(() => props.foods, 'name')
@@ -54,6 +57,11 @@ function onCompare() {
   const selected = props.foods.filter((f) => checkedRowKeys.value.includes(f.id))
   emit('compare', selected)
 }
+
+const rowProps = (row: FoodDashboardDto) => ({
+  'data-food-id': row.id,
+  class: row.id === props.highlightId ? 'row-highlight' : undefined
+})
 
 const columns: DataTableColumns<FoodDashboardDto> = [
   { type: 'selection' },
@@ -83,12 +91,26 @@ const columns: DataTableColumns<FoodDashboardDto> = [
   {
     title: 'Azioni',
     key: 'actions',
-    width: 180,
+    width: 240,
     render: (row) =>
       h(NSpace, { size: 'small' }, () => [
         h(NButton, { size: 'small', type: 'primary', onClick: () => emit('edit', row) }, { default: () => 'Modifica' }),
+        h(NButton, { size: 'small', onClick: () => emit('clone', row.id) }, { default: () => 'Clona' }),
         h(NButton, { size: 'small', type: 'error', tertiary: true, onClick: () => emit('delete', row) }, { default: () => 'Elimina' })
       ])
   }
 ]
 </script>
+
+<style>
+/* Global: Naive UI non usa scoped per le classi delle righe */
+tr.row-highlight td {
+  animation: row-flash 2.5s ease forwards;
+}
+
+@keyframes row-flash {
+  0%   { background-color: rgba(99, 226, 183, 0.45); }
+  70%  { background-color: rgba(99, 226, 183, 0.20); }
+  100% { background-color: transparent; }
+}
+</style>

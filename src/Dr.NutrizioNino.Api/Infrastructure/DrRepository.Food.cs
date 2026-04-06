@@ -88,6 +88,7 @@ public partial class DrRepository
         await drContext.FoodsDashboard
             .AsNoTracking()
             .Where(f => nameFilter == null || EF.Functions.Like(f.Name!, $"%{nameFilter}%"))
+            .OrderBy(f => f.Name)
             .ToListAsync(ct)
             .ConfigureAwait(false);
 

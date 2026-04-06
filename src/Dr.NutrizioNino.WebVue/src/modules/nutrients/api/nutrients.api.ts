@@ -30,3 +30,12 @@ export const updateNutrient = async (nutrient: Nutrient): Promise<void> => {
 export const deleteNutrient = async (id: string): Promise<void> => {
   await apiClient.delete(`/nutrients/${id}`)
 }
+
+export interface NutrientReorderItem {
+  id: string
+  positionOrder: number
+}
+
+export const reorderNutrients = async (items: NutrientReorderItem[]): Promise<void> => {
+  await apiClient.put('/nutrients/reorder', items)
+}
