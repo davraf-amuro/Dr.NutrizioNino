@@ -128,7 +128,7 @@ try
             {
                 policy.WithOrigins(allowedOrigins)
                       .AllowAnyHeader()
-                      .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                      .WithMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                       .AllowCredentials();
             });
     });

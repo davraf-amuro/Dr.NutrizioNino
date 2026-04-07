@@ -52,8 +52,19 @@ public static class DailySimulationSectionEndpoints
             .ProducesDefaultProblem(StatusCodes.Status400BadRequest)
             .RequireAuthorization("AdminOnly");
 
-        // PUT /{id} — rinomina sezione — AdminOnly
-        group.MapPut("{id}", async (DailySimulationSectionService service, Guid id, UpdateSimulationSectionDto dto, CancellationToken ct) =>
+        // PUT /reorder — riordina sezioni — AdminOnly (deve stare prima di {id:guid})
+        group.MapPut("reorder", async (DailySimulationSectionService service, IList<SimulationSectionReorderItem> items, CancellationToken ct) =>
+        {
+            await service.ReorderAsync(items, ct);
+            return Results.Ok();
+        })
+            .WithName("ReorderSections")
+            .WithSummary("Reorder simulation sections")
+            .Produces(StatusCodes.Status200OK)
+            .RequireAuthorization("AdminOnly");
+
+        // PUT /{id:guid} — rinomina sezione — AdminOnly
+        group.MapPut("{id:guid}", async (DailySimulationSectionService service, Guid id, UpdateSimulationSectionDto dto, CancellationToken ct) =>
         {
             if (string.IsNullOrWhiteSpace(dto.Name))
                 return TypedResults.Problem(new ProblemDetails { Title = "Nome non valido", Status = 400, Detail = "Il nome è obbligatorio." });
@@ -67,8 +78,8 @@ public static class DailySimulationSectionEndpoints
             .ProducesDefaultProblem(StatusCodes.Status400BadRequest, StatusCodes.Status404NotFound)
             .RequireAuthorization("AdminOnly");
 
-        // DELETE /{id} — soft delete — AdminOnly
-        group.MapDelete("{id}", async (DailySimulationSectionService service, Guid id, CancellationToken ct) =>
+        // DELETE /{id:guid} — soft delete — AdminOnly
+        group.MapDelete("{id:guid}", async (DailySimulationSectionService service, Guid id, CancellationToken ct) =>
         {
             var found = await service.DeleteAsync(id, ct);
             return found ? Results.Ok() : TypedResults.Problem(new ProblemDetails { Title = "Not Found", Status = 404, Detail = "Sezione non trovata." });
@@ -77,17 +88,6 @@ public static class DailySimulationSectionEndpoints
             .WithSummary("Soft-delete a simulation section")
             .Produces(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status404NotFound)
-            .RequireAuthorization("AdminOnly");
-
-        // PUT /reorder — riordina sezioni — AdminOnly
-        group.MapPut("reorder", async (DailySimulationSectionService service, IList<SimulationSectionReorderItem> items, CancellationToken ct) =>
-        {
-            await service.ReorderAsync(items, ct);
-            return Results.Ok();
-        })
-            .WithName("ReorderSections")
-            .WithSummary("Reorder simulation sections")
-            .Produces(StatusCodes.Status200OK)
             .RequireAuthorization("AdminOnly");
 
         return endpoints;
