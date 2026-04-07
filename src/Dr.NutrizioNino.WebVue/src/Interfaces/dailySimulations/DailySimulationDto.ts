@@ -21,7 +21,7 @@ export interface DailySimulationEntryDto {
 }
 
 export interface DailySimulationSectionDto {
-  sectionType: number // 0=Colazione 1=Pranzo 2=Cena 3=Spuntino 4=Merenda 5=Altro
+  sectionId: string
   sectionName: string
   entries: DailySimulationEntryDto[]
 }
@@ -52,7 +52,7 @@ export interface DailySimulationCompareDto {
 // ── Richieste ──────────────────────────────────────────────
 
 export interface AddSimulationEntryRequest {
-  sectionType: number
+  sectionId: string
   sourceType: number
   sourceId: string
   quantityGrams: number

@@ -39,8 +39,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { NModal, NSpin } from 'naive-ui'
+import { computed, ref, watch } from 'vue'
+import { NModal, NSpin, useThemeVars } from 'naive-ui'
+const themeVars = useThemeVars()
+const cellMaxBg = computed(() => themeVars.value.successColor + '33')
+const cellMinBg = computed(() => themeVars.value.errorColor + '33')
 import type { FoodDashboardDto } from '@/Interfaces/foods/FoodDashboardDto'
 import type { FoodDto } from '@/Interfaces/foods/FoodDto'
 import { getFoodById } from '@/modules/foods/api/foods.api'
@@ -154,12 +157,14 @@ function cellClass(row: NutrientRow, foodId: string): string {
 .compare-table th,
 .compare-table td {
   padding: 8px 12px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid v-bind('themeVars.dividerColor');
   text-align: right;
+  color: v-bind('themeVars.textColor1');
+  background: v-bind('themeVars.tableColor');
 }
 
 .compare-table th {
-  background: #f5f5f5;
+  background: v-bind('themeVars.tableHeaderColor');
   font-weight: 600;
   text-align: center;
 }
@@ -171,30 +176,30 @@ function cellClass(row: NutrientRow, foodId: string): string {
 }
 
 .unit-abbr {
-  color: #999;
+  color: v-bind('themeVars.textColor3');
   font-size: 11px;
   margin-left: 4px;
 }
 
 .cell-max {
-  background: #f0fff4;
+  background: v-bind(cellMaxBg);
 }
 
 .cell-min {
-  background: #fff5f5;
+  background: v-bind(cellMinBg);
 }
 
 .arrow {
   margin-left: 4px;
-  color: #18a058;
+  color: v-bind('themeVars.successColor');
   font-size: 11px;
 }
 
 .arrow-min {
-  color: #d03050;
+  color: v-bind('themeVars.errorColor');
 }
 
 .na {
-  color: #ccc;
+  color: v-bind('themeVars.textColor3');
 }
 </style>

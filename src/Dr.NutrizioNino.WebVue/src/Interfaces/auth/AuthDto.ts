@@ -15,4 +15,5 @@ export interface MeResponse {
   email: string
   dateOfBirth: string
   role: string
+  themePreference: string
 }

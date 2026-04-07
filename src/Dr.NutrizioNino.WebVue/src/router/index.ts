@@ -56,6 +56,17 @@ const router = createRouter({
       component: () => import('../views/DailySimulationsView.vue')
     },
     {
+      path: '/profile',
+      name: 'profile',
+      component: () => import('../views/UserProfileView.vue')
+    },
+    {
+      path: '/section-configs',
+      name: 'section-configs',
+      component: () => import('../views/SectionConfigsView.vue'),
+      meta: { requiresAdmin: true }
+    },
+    {
       path: '/admin/users',
       name: 'admin-users',
       component: () => import('../views/AdminUsersView.vue'),

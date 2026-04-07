@@ -5,5 +5,6 @@ namespace Dr.NutrizioNino.Api.Models;
 public class ApplicationUser : IdentityUser<Guid>
 {
     public DateOnly DateOfBirth { get; set; }
+    public string ThemePreference { get; set; } = "light";
     public ICollection<UserProfileEntry> ProfileEntries { get; set; } = [];
 }

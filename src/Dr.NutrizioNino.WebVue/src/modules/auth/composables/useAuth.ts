@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 import { authApi } from '@/modules/auth/api/auth.api'
 import type { MeResponse } from '@/Interfaces/auth/AuthDto'
 import { saveToken, getToken, removeToken } from '@/core/http/tokenStorage'
+import { useTheme } from '@/modules/auth/composables/useTheme'
 
 function isTokenValid(token: string): boolean {
   try {
@@ -29,7 +30,9 @@ export function useAuth() {
       return
     }
     try {
-      user.value = await authApi.me()
+      const me = await authApi.me()
+      user.value = me
+      useTheme().initFromUser(me.themePreference)
     } catch {
       removeToken()
       user.value = null
@@ -46,7 +49,8 @@ export function useAuth() {
       userName: response.userName,
       email: '',
       dateOfBirth: '',
-      role: response.role
+      role: response.role,
+      themePreference: 'light'
     }
     checked.value = true
   }

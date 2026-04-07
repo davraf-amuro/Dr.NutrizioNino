@@ -69,6 +69,26 @@ public static class AuthEndpoints
         .ProducesDefaultProblem(StatusCodes.Status404NotFound)
         .RequireAuthorization();
 
+        group.MapPatch("me/theme", async (AuthService service, ClaimsPrincipal user, [FromBody] UpdateThemeRequest request) =>
+        {
+            var userId = user.GetUserId();
+            if (userId is null)
+                return Results.Problem("Utente non autenticato.", statusCode: StatusCodes.Status401Unauthorized);
+
+            var allowed = new[] { "light", "dark", "system" };
+            if (!allowed.Contains(request.Theme))
+                return Results.Problem("Valore tema non valido. Usa: light, dark, system.", statusCode: StatusCodes.Status400BadRequest);
+
+            var ok = await service.UpdateThemeAsync(userId.Value, request.Theme);
+            return ok ? Results.NoContent() : Results.NotFound();
+        })
+        .WithName("UpdateMyTheme")
+        .WithSummary("Aggiorna la preferenza tema UI dell'utente autenticato")
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesDefaultProblem(StatusCodes.Status400BadRequest)
+        .ProducesDefaultProblem(StatusCodes.Status404NotFound)
+        .RequireAuthorization();
+
         return endpoints;
     }
 }

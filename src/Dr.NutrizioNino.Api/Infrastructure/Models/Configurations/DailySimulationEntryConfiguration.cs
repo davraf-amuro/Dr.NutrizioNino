@@ -12,7 +12,6 @@ public class DailySimulationEntryConfiguration : IEntityTypeConfiguration<DailyS
         entity.ToTable("DailySimulationEntries");
 
         entity.Property(e => e.Id).ValueGeneratedNever();
-        entity.Property(e => e.SectionType).HasConversion<byte>();
         entity.Property(e => e.SourceType).HasConversion<byte>();
         entity.Property(e => e.SourceName).IsRequired().HasMaxLength(200);
         entity.Property(e => e.QuantityGrams).HasColumnType("decimal(8,2)");
@@ -23,6 +22,12 @@ public class DailySimulationEntryConfiguration : IEntityTypeConfiguration<DailyS
             .HasForeignKey(d => d.SimulationId)
             .OnDelete(DeleteBehavior.Cascade)
             .HasConstraintName("FK_DailySimulationEntries_Sim");
+
+        entity.HasOne(d => d.Section)
+            .WithMany(s => s.Entries)
+            .HasForeignKey(d => d.SectionId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .HasConstraintName("FK_DailySimulationEntries_Section");
 
         entity.HasIndex(e => e.SimulationId).HasDatabaseName("IX_DailySimulationEntries_SimId");
     }

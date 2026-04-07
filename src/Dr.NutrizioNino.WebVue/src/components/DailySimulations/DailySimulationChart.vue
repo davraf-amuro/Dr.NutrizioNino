@@ -38,6 +38,7 @@ import {
 } from 'chart.js'
 import { Bar } from 'vue-chartjs'
 import type { DailySimulationDetailDto } from '@/Interfaces/dailySimulations/DailySimulationDto'
+import { sortNutrients } from '@/core/utils/sortNutrients'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
@@ -58,7 +59,7 @@ const allNutrientColumns = computed<NutrientColumn[]>(() => {
       }
     }
   }
-  return [...seen.values()].sort((a, b) => a.positionOrder - b.positionOrder)
+  return sortNutrients([...seen.values()])
 })
 
 // ── Visibilità nutrienti (tutti visibili di default) ─────────
