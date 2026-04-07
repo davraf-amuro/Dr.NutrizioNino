@@ -9,6 +9,7 @@ import {
   NLayoutHeader,
   NMenu,
   NMessageProvider,
+  NNotificationProvider,
   NText,
   type MenuOption
 } from 'naive-ui'
@@ -59,6 +60,7 @@ const activeKey = computed(() => {
 
 <template>
   <n-config-provider :theme="resolvedTheme">
+    <n-notification-provider>
     <n-message-provider>
       <n-dialog-provider>
         <n-layout class="app-shell">
@@ -82,6 +84,7 @@ const activeKey = computed(() => {
         </n-layout>
       </n-dialog-provider>
     </n-message-provider>
+    </n-notification-provider>
   </n-config-provider>
 </template>
 
