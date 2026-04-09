@@ -33,7 +33,17 @@ public class AuthService(
         var roles = await userManager.GetRolesAsync(user);
         var role = roles.FirstOrDefault() ?? "User";
 
-        return new MeResponse(user.Id, user.UserName!, user.Email!, user.DateOfBirth, role);
+        return new MeResponse(user.Id, user.UserName!, user.Email!, user.DateOfBirth, role, user.ThemePreference);
+    }
+
+    public async Task<bool> UpdateThemeAsync(Guid userId, string theme)
+    {
+        var user = await userManager.FindByIdAsync(userId.ToString());
+        if (user is null) return false;
+
+        user.ThemePreference = theme;
+        var result = await userManager.UpdateAsync(user);
+        return result.Succeeded;
     }
 
     public async Task<bool> UpdateBirthdateAsync(Guid userId, DateOnly dateOfBirth)

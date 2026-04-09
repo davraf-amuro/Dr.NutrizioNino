@@ -52,7 +52,10 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { NModal, NSpin } from 'naive-ui'
+import { NModal, NSpin, useThemeVars } from 'naive-ui'
+const themeVars = useThemeVars()
+const cellMaxBg = computed(() => themeVars.value.successColor + '33')
+const cellMinBg = computed(() => themeVars.value.errorColor + '33')
 import type { DailySimulationCompareDto, SimulationCompareNutrientDto } from '@/Interfaces/dailySimulations/DailySimulationDto'
 import { compareSimulations } from '@/modules/dailySimulations/api/dailySimulations.api'
 import { sortNutrients } from '@/core/utils/sortNutrients'
@@ -126,12 +129,14 @@ function deltaClass(row: SimulationCompareNutrientDto): string {
 .compare-table th,
 .compare-table td {
   padding: 8px 12px;
-  border: 1px solid #e0e0e0;
+  border: 1px solid v-bind('themeVars.dividerColor');
   text-align: right;
+  color: v-bind('themeVars.textColor1');
+  background: v-bind('themeVars.tableColor');
 }
 
 .compare-table th {
-  background: #f5f5f5;
+  background: v-bind('themeVars.tableHeaderColor');
   font-weight: 600;
   text-align: center;
 }
@@ -142,8 +147,8 @@ function deltaClass(row: SimulationCompareNutrientDto): string {
   min-width: 160px;
 }
 
-.unit-abbr { color: #999; font-size: 11px; margin-left: 4px; }
-.cell-max { background: #f0fff4; }
-.cell-min { background: #fff5f5; }
-.na { color: #ccc; }
+.unit-abbr { color: v-bind('themeVars.textColor3'); font-size: 11px; margin-left: 4px; }
+.cell-max { background: v-bind(cellMaxBg); }
+.cell-min { background: v-bind(cellMinBg); }
+.na { color: v-bind('themeVars.textColor3'); }
 </style>

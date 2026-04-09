@@ -1,21 +1,25 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { RouterView, useRoute, useRouter } from 'vue-router'
+import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 import {
+  NConfigProvider,
   NDialogProvider,
   NLayout,
   NLayoutContent,
   NLayoutHeader,
   NMenu,
   NMessageProvider,
+  NNotificationProvider,
   NText,
   type MenuOption
 } from 'naive-ui'
 import { useAuth } from '@/modules/auth/composables/useAuth'
+import { useTheme } from '@/modules/auth/composables/useTheme'
 
 const route = useRoute()
 const router = useRouter()
 const { isAdmin, user } = useAuth()
+const { resolvedTheme } = useTheme()
 
 const menuOptions = computed<MenuOption[]>(() => {
   const items: MenuOption[] = [
@@ -27,6 +31,7 @@ const menuOptions = computed<MenuOption[]>(() => {
       key: 'configurazione',
       children: [
         { label: 'Nutrienti', key: '/nutrients' },
+        { label: 'Sezioni simulazione', key: '/section-configs' },
         { label: 'Marche', key: '/brands' },
         { label: 'Unità di misura', key: '/units' },
         { label: 'Supermercati', key: '/supermarkets' },
@@ -54,27 +59,33 @@ const activeKey = computed(() => {
 </script>
 
 <template>
-  <n-message-provider>
-    <n-dialog-provider>
-      <n-layout class="app-shell">
-        <n-layout-header bordered class="app-header">
-          <n-text class="app-title">Dr. NutrizioNino</n-text>
-          <n-menu
-            mode="horizontal"
-            :options="menuOptions"
-            :value="activeKey"
-            @update:value="(key) => router.push(key)"
-            class="app-nav"
-          />
-          <n-text v-if="user" depth="3" class="app-username">{{ user.userName }}</n-text>
-        </n-layout-header>
+  <n-config-provider :theme="resolvedTheme">
+    <n-notification-provider>
+    <n-message-provider>
+      <n-dialog-provider>
+        <n-layout class="app-shell">
+          <n-layout-header bordered class="app-header">
+            <n-text class="app-title">Dr. NutrizioNino</n-text>
+            <n-menu
+              mode="horizontal"
+              :options="menuOptions"
+              :value="activeKey"
+              @update:value="(key) => router.push(key)"
+              class="app-nav"
+            />
+            <RouterLink v-if="user" to="/profile" class="app-username-link">
+              <n-text depth="3" class="app-username">{{ user.userName }}</n-text>
+            </RouterLink>
+          </n-layout-header>
 
-        <n-layout-content class="app-content">
-          <RouterView />
-        </n-layout-content>
-      </n-layout>
-    </n-dialog-provider>
-  </n-message-provider>
+          <n-layout-content class="app-content">
+            <RouterView />
+          </n-layout-content>
+        </n-layout>
+      </n-dialog-provider>
+    </n-message-provider>
+    </n-notification-provider>
+  </n-config-provider>
 </template>
 
 <style scoped>
@@ -104,12 +115,17 @@ const activeKey = computed(() => {
   flex: 1;
 }
 
-.app-username {
+.app-username-link {
+  text-decoration: none;
   white-space: nowrap;
-  font-size: 13px;
 }
 
-.app-content {
-  padding: 28px 32px;
+.app-username {
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.app-username:hover {
+  opacity: 0.75;
 }
 </style>

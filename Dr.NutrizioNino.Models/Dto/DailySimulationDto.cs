@@ -6,9 +6,8 @@ public record CreateDailySimulationDto(string Name);
 
 public record RenameDailySimulationDto(string Name);
 
-/// <summary>SectionType: 0=Colazione 1=Pranzo 2=Cena 3=Spuntino 4=Merenda 5=Altro</summary>
 /// <summary>SourceType: 0=Food 1=Dish</summary>
-public record AddSimulationEntryDto(byte SectionType, byte SourceType, Guid SourceId, decimal QuantityGrams);
+public record AddSimulationEntryDto(Guid SectionId, byte SourceType, Guid SourceId, decimal QuantityGrams);
 
 public record UpdateEntryQuantityDto(decimal QuantityGrams);
 
@@ -32,7 +31,7 @@ public record DailySimulationEntryDto(
 );
 
 public record DailySimulationSectionDto(
-    byte SectionType,
+    Guid SectionId,
     string SectionName,
     IList<DailySimulationEntryDto> Entries
 );

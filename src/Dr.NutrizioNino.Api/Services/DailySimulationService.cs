@@ -44,7 +44,6 @@ public class DailySimulationService(DrRepository drRepository)
 
     public async Task<(Guid? EntryId, string? Error)> AddEntryAsync(Guid simulationId, AddSimulationEntryDto dto, CancellationToken ct = default)
     {
-        var sectionType = (DailySimulationSectionType)dto.SectionType;
         var sourceType = (DailySimulationSourceType)dto.SourceType;
 
         var nutrients = sourceType == DailySimulationSourceType.Food
@@ -63,7 +62,7 @@ public class DailySimulationService(DrRepository drRepository)
         {
             Id = entryId,
             SimulationId = simulationId,
-            SectionType = sectionType,
+            SectionId = dto.SectionId,
             SourceType = sourceType,
             SourceId = dto.SourceId,
             SnapshotAt = DateTime.UtcNow,

@@ -13,7 +13,9 @@ public class NutrientService(DrRepository drRepository)
 {
     public async Task<IList<NutrientInfo>> GetNutrientsAsync(CancellationToken ct = default) =>
         (await drRepository.GetNutrientsAsync(NutrientExtensions.ToNutrientInfo, ct).ConfigureAwait(false))
-            .OrderBy(x => x.Name).ToList();
+            .OrderBy(x => x.PositionOrder == 0 ? int.MaxValue : x.PositionOrder)
+            .ThenBy(x => x.Name)
+            .ToList();
 
     public async Task<NutrientInfo?> GetNutrientAsync(Guid id, CancellationToken ct = default) =>
         await drRepository.GetNutrientAsync(id, NutrientExtensions.ToNutrientInfo, ct).ConfigureAwait(false);

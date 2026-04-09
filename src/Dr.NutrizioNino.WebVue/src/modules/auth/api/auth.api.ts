@@ -7,5 +7,8 @@ export const authApi = {
 
   logout: () => apiClient.post('/auth/logout'),
 
-  me: () => apiClient.get<MeResponse>('/auth/me').then((r) => r.data)
+  me: () => apiClient.get<MeResponse>('/auth/me').then((r) => r.data),
+
+  updateTheme: (theme: string) =>
+    apiClient.patch('/auth/me/theme', { theme })
 }

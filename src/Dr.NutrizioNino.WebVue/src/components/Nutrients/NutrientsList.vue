@@ -45,7 +45,7 @@ const uomMap = computed(() => {
 })
 
 const columns: DataTableColumns<Nutrient> = [
-  { title: 'Ordine', key: 'positionOrder', width: 90, sorter: (a, b) => a.positionOrder - b.positionOrder },
+  { title: 'Ordine', key: 'positionOrder', width: 90, defaultSortOrder: 'ascend', sorter: (a, b) => a.positionOrder - b.positionOrder },
   { title: 'Nome', key: 'name', sorter: 'default' },
   {
     title: 'Unità di misura default',
