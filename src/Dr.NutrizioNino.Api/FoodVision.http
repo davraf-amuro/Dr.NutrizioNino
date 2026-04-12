@@ -1,0 +1,10 @@
+### Estrai nutrienti da immagine (AI vision)
+### Richiede JWT Bearer token e max 3 req/min
+POST {{DrNutrizioNino_Api_HostAddress}}/api/v1/foods/extract-nutrients
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "base64Image": "{{base64ImageData}}",
+  "mediaType": "image/jpeg"
+}

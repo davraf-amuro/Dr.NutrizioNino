@@ -1,4 +1,5 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using Asp.Versioning;
 using Dr.NutrizioNino.Api.Endpoints;
 using Dr.NutrizioNino.Api.Infrastructure;
@@ -8,6 +9,7 @@ using Dr.NutrizioNino.Api.Services;
 using Dr.NutrizioNino.Api.Transformers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
@@ -119,6 +121,25 @@ try
     builder.Services.AddScoped<UserProfileService>();
     builder.Services.AddScoped<DailySimulationService>();
     builder.Services.AddScoped<DailySimulationSectionService>();
+    builder.Services.AddHttpClient(string.Empty, client =>
+    {
+        client.Timeout = TimeSpan.FromMinutes(3);
+    });
+    builder.Services.AddScoped<VisionExtractionService>();
+
+    // Rate limiting: max 3 richieste/minuto per utente per endpoint vision
+    builder.Services.AddRateLimiter(options =>
+    {
+        options.AddSlidingWindowLimiter("vision", opt =>
+        {
+            opt.PermitLimit = 3;
+            opt.Window = TimeSpan.FromMinutes(1);
+            opt.SegmentsPerWindow = 3;
+            opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+            opt.QueueLimit = 0;
+        });
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    });
 
     var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? [];
     builder.Services.AddCors(options =>
@@ -155,6 +176,7 @@ try
     }
 
     app.UseCors(permitGetPost);
+    app.UseRateLimiter();
     app.UseHttpsRedirection();
     app.UseExceptionHandler();
     app.UseStatusCodePages();
@@ -175,6 +197,8 @@ try
     app.MapsUserProfileEndpoints(versionSet);
     app.MapDailySimulationEndpoints(versionSet);
     app.MapsDailySimulationSectionEndpoints(versionSet);
+    app.MapFoodVisionEndpoints(versionSet);
+    app.MapUserPreferencesEndpoints(versionSet);
 
     // SEED: garantisce che i ruoli esistano al primo avvio
     using (var seedScope = app.Services.CreateScope())
