@@ -6,6 +6,7 @@ using Dr.NutrizioNino.Api.Infrastructure;
 using Dr.NutrizioNino.Api.Middleware;
 using Dr.NutrizioNino.Api.Models;
 using Dr.NutrizioNino.Api.Services;
+using Dr.NutrizioNino.Api.Services.Vision;
 using Dr.NutrizioNino.Api.Transformers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -121,13 +122,22 @@ try
     builder.Services.AddScoped<UserProfileService>();
     builder.Services.AddScoped<DailySimulationService>();
     builder.Services.AddScoped<DailySimulationSectionService>();
-    builder.Services.AddHttpClient(string.Empty, client =>
+    builder.Services.AddHttpClient();
+    builder.Services.AddHttpClient("ollama", (sp, client) =>
     {
-        client.Timeout = TimeSpan.FromMinutes(3);
+        var cfg = sp.GetRequiredService<IConfiguration>();
+        var minutes = cfg.GetValue<int>("Vision:Ollama:TimeoutMinutes", 10);
+        client.Timeout = TimeSpan.FromMinutes(minutes);
     });
     builder.Services.AddScoped<VisionExtractionService>();
 
-    // Rate limiting: max 3 richieste/minuto per utente per endpoint vision
+    // Vision providers — registrati come singleton per SemaphoreSlim in OllamaVisionProvider
+    builder.Services.AddSingleton<IVisionProvider, OllamaVisionProvider>();
+    builder.Services.AddSingleton<IVisionProvider, ClaudeVisionProvider>();
+    builder.Services.AddSingleton<IVisionProvider, AzureVisionProvider>();
+    builder.Services.AddSingleton<VisionProviderFactory>();
+
+    // Rate limiting
     builder.Services.AddRateLimiter(options =>
     {
         options.AddSlidingWindowLimiter("vision", opt =>
@@ -135,6 +145,14 @@ try
             opt.PermitLimit = 3;
             opt.Window = TimeSpan.FromMinutes(1);
             opt.SegmentsPerWindow = 3;
+            opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+            opt.QueueLimit = 0;
+        });
+        options.AddSlidingWindowLimiter("aliases", opt =>
+        {
+            opt.PermitLimit = 10;
+            opt.Window = TimeSpan.FromMinutes(1);
+            opt.SegmentsPerWindow = 2;
             opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
             opt.QueueLimit = 0;
         });
@@ -198,6 +216,8 @@ try
     app.MapDailySimulationEndpoints(versionSet);
     app.MapsDailySimulationSectionEndpoints(versionSet);
     app.MapFoodVisionEndpoints(versionSet);
+    app.MapVisionProvidersEndpoints(versionSet);
+    app.MapNutrientAliasEndpoints(versionSet);
     app.MapUserPreferencesEndpoints(versionSet);
 
     // SEED: garantisce che i ruoli esistano al primo avvio
