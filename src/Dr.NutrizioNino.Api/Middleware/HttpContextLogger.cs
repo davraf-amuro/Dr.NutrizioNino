@@ -5,7 +5,7 @@ namespace Dr.NutrizioNino.Api.Middleware;
 
 public class HttpContextLogger(RequestDelegate next, ILogger<HttpContextLogger> logger)
 {
-    private static readonly HashSet<string> SensitiveHeaders = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly HashSet<string> _sensitiveHeaders = new(StringComparer.OrdinalIgnoreCase)
     {
         "authorization",
         "cookie",
@@ -22,7 +22,7 @@ public class HttpContextLogger(RequestDelegate next, ILogger<HttpContextLogger> 
         var userAgent = context.Request.Headers.UserAgent.ToString();
         var safeHeaderNames = context.Request.Headers
             .Select(h => h.Key)
-            .Where(h => !SensitiveHeaders.Contains(h))
+            .Where(h => !_sensitiveHeaders.Contains(h))
             .ToArray();
 
         logger.LogInformation(

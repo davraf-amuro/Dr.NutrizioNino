@@ -98,7 +98,7 @@ public partial class DrRepository
             .FirstOrDefaultAsync(f => f.Id == id, ct)
             .ConfigureAwait(false);
 
-    internal async Task<Guid> InsertFullFood(Food food, CancellationToken ct = default)
+    internal async Task<Guid> InsertFullFoodAsync(Food food, CancellationToken ct = default)
     {
         drContext.Foods.Add(food);
         await drContext.SaveChangesAsync(ct).ConfigureAwait(false);

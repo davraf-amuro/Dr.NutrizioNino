@@ -40,7 +40,10 @@ public partial class DrRepository
             .FirstOrDefaultAsync(s => s.Id == id, ct)
             .ConfigureAwait(false);
 
-        if (section is null) return false;
+        if (section is null)
+        {
+            return false;
+        }
 
         section.Name = name;
         await drContext.SaveChangesAsync(ct).ConfigureAwait(false);
@@ -53,7 +56,10 @@ public partial class DrRepository
             .FirstOrDefaultAsync(s => s.Id == id, ct)
             .ConfigureAwait(false);
 
-        if (section is null) return false;
+        if (section is null)
+        {
+            return false;
+        }
 
         section.IsActive = false;
         await drContext.SaveChangesAsync(ct).ConfigureAwait(false);
@@ -71,7 +77,10 @@ public partial class DrRepository
         foreach (var item in items)
         {
             var section = sections.FirstOrDefault(s => s.Id == item.Id);
-            if (section is not null) section.DisplayOrder = item.DisplayOrder;
+            if (section is not null)
+            {
+                section.DisplayOrder = item.DisplayOrder;
+            }
         }
 
         await drContext.SaveChangesAsync(ct).ConfigureAwait(false);
@@ -103,7 +112,10 @@ public partial class DrRepository
             .FirstOrDefaultAsync(s => s.Id == id, ct)
             .ConfigureAwait(false);
 
-        if (sim is null) return null;
+        if (sim is null)
+        {
+            return null;
+        }
 
         // Usa l'ordine corrente dalla tabella Nutrients (lo snapshot può essere stale)
         var currentOrders = await drContext.Nutrients
@@ -160,7 +172,10 @@ public partial class DrRepository
             .FirstOrDefaultAsync(s => s.Id == id, ct)
             .ConfigureAwait(false);
 
-        if (record is null) return false;
+        if (record is null)
+        {
+            return false;
+        }
 
         record.Name = name;
         record.UpdatedAt = DateTime.UtcNow;
@@ -174,7 +189,10 @@ public partial class DrRepository
             .FirstOrDefaultAsync(s => s.Id == id, ct)
             .ConfigureAwait(false);
 
-        if (record is null) return;
+        if (record is null)
+        {
+            return;
+        }
 
         drContext.DailySimulations.Remove(record);
         await drContext.SaveChangesAsync(ct).ConfigureAwait(false);
@@ -196,7 +214,10 @@ public partial class DrRepository
             .FirstOrDefaultAsync(e => e.Id == entryId, ct)
             .ConfigureAwait(false);
 
-        if (entry is null) return false;
+        if (entry is null)
+        {
+            return false;
+        }
 
         await using var transaction = await drContext.Database.BeginTransactionAsync(ct).ConfigureAwait(false);
         entry.QuantityGrams = newQuantityGrams;
@@ -214,7 +235,10 @@ public partial class DrRepository
             .FirstOrDefaultAsync(e => e.Id == entryId && e.SimulationId == simulationId, ct)
             .ConfigureAwait(false);
 
-        if (entry is null) return false;
+        if (entry is null)
+        {
+            return false;
+        }
 
         drContext.DailySimulationEntries.Remove(entry);
         await drContext.SaveChangesAsync(ct).ConfigureAwait(false);
@@ -236,7 +260,10 @@ public partial class DrRepository
             .FirstOrDefaultAsync(s => s.Id == sourceId, ct)
             .ConfigureAwait(false);
 
-        if (source is null) throw new InvalidOperationException("Simulazione sorgente non trovata.");
+        if (source is null)
+        {
+            throw new InvalidOperationException("Simulazione sorgente non trovata.");
+        }
 
         var cloneId = Guid.NewGuid();
         var now = DateTime.UtcNow;
@@ -296,7 +323,10 @@ public partial class DrRepository
             .ToListAsync(ct)
             .ConfigureAwait(false);
 
-        if (sims.Count < 2) return null;
+        if (sims.Count < 2)
+        {
+            return null;
+        }
 
         var sim1Info = sims.First(s => s.Id == id1);
         var sim2Info = sims.First(s => s.Id == id2);
