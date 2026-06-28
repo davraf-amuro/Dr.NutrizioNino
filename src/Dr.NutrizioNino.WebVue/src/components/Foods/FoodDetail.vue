@@ -147,7 +147,10 @@
         v-if="lastExtractionResults.length > 0"
         :extracted-nutrients="lastExtractionResults"
         :available-nutrients="availableNutrients"
+        :units-of-measures="unitsOfMeasures"
         @alias-confirmed="onAliasConfirmed"
+        @nutrient-created="onNutrientCreated"
+        @unit-created="onReconUnitCreated"
       />
 
       <n-space vertical size="small">
@@ -156,6 +159,7 @@
           :key="fnu.nutrientId"
           :food-nutrient-dto="fnu"
           :units-of-measures="unitsOfMeasures"
+          :status="matchStatusByNutrientId[fnu.nutrientId]"
           @update="updateNutrient"
         />
       </n-space>
@@ -199,9 +203,10 @@ import {
   type SelectOption
 } from 'naive-ui'
 import type { FoodDto } from '@/Interfaces/foods/FoodDto'
-import type { ExtractedNutrientDto } from '@/Interfaces/foods/ExtractedNutrientDto'
-import type { NutrientDto } from '@/Interfaces/Nutrients/NutrientDto'
+import type { ExtractedNutrientDto, ExtractionStatus } from '@/Interfaces/foods/ExtractedNutrientDto'
+import type { Nutrient } from '@/Interfaces/Nutrients/Nutrient'
 import { extractNutrientsFromImage } from '@/modules/foods/api/foods.api'
+import { ApiError } from '@/core/http/ApiError'
 import type { UnitOfMeasureDto } from '@/Interfaces/UnitOfMeasureDto'
 import type { Brand } from '@/Interfaces/Brand'
 import type { Supermarket } from '@/Interfaces/Supermarket'
@@ -222,7 +227,7 @@ const props = defineProps<{
   unitsOfMeasures: UnitOfMeasureDto[]
   supermarkets: Supermarket[]
   categories: Category[]
-  availableNutrients?: NutrientDto[]
+  availableNutrients?: Nutrient[]
   isSubmitting?: boolean
 }>()
 
@@ -233,6 +238,7 @@ const emit = defineEmits<{
   'unit-created': [unit: UnitOfMeasureDto]
   'supermarket-created': [supermarket: Supermarket]
   'category-created': [category: Category]
+  'nutrient-created': [nutrient: Nutrient]
 }>()
 
 const formRef = ref<FormInst | null>(null)
@@ -339,6 +345,15 @@ const extractionConversions = ref<string[]>([])
 const lastExtractionResults = ref<ExtractedNutrientDto[]>([])
 let abortController: AbortController | null = null
 
+// Mappa esito estrazione per nutriente, propagata come badge alle righe FoodNutrientInput
+const matchStatusByNutrientId = computed<Record<string, ExtractionStatus>>(() => {
+  const map: Record<string, ExtractionStatus> = {}
+  for (const result of lastExtractionResults.value) {
+    if (result.matchedNutrientId) map[result.matchedNutrientId] = result.status
+  }
+  return map
+})
+
 const timerColor = computed(() => {
   const map = { idle: '#aaa', green: '#18a058', orange: '#f0a020', red: '#d03050' }
   return map[timer.status.value]
@@ -390,6 +405,11 @@ const handleImageExtraction = async (base64: string, mediaType: string) => {
     }
   } catch (err: unknown) {
     if (err instanceof Error && (err.name === 'CanceledError' || err.name === 'AbortError')) return
+    // 422 = immagine non riconosciuta come etichetta: avviso non bloccante con il detail dal backend
+    if (err instanceof ApiError && err.status === 422) {
+      message.warning(err.message)
+      return
+    }
     const msg = err instanceof Error ? err.message : 'Errore sconosciuto'
     message.error(`Estrazione fallita: ${msg}`)
   } finally {
@@ -404,8 +424,30 @@ const reanalyze = async () => {
 }
 
 const onAliasConfirmed = (aiName: string, nutrientId: string) => {
-  // Rimuovi dalla lista non riconosciuti dopo conferma alias
   lastExtractionResults.value = lastExtractionResults.value.filter((n) => n.name !== aiName)
+}
+
+const onNutrientCreated = (nutrient: Nutrient, unitOfMeasureId: string) => {
+  emit('nutrient-created', nutrient)
+  localFood.value.nutrients.push({
+    nutrientId: nutrient.id,
+    name: nutrient.name,
+    positionOrder: nutrient.positionOrder,
+    unitOfMeasureId: unitOfMeasureId || nutrient.defaultUnitOfMeasureId,
+    quantity: 0
+  })
+}
+
+// UoM creata al volo dalla riconciliazione: assegnala alla riga e segna il match come completo
+const onReconUnitCreated = (unit: UnitOfMeasureDto, nutrientId: string) => {
+  emit('unit-created', unit)
+  const target = localFood.value.nutrients.find((n) => n.nutrientId === nutrientId)
+  if (target) target.unitOfMeasureId = unit.id
+  lastExtractionResults.value = lastExtractionResults.value.map((result) =>
+    result.matchedNutrientId === nutrientId
+      ? { ...result, status: 'Matched', canonicalUnit: unit.abbreviation }
+      : result
+  )
 }
 
 const triggerImagePaste = () => {

@@ -18,9 +18,9 @@ public class VisionExtractionService(
     private async Task<string> BuildSystemPromptAsync(CancellationToken ct)
     {
         var nutrients = await drRepository.GetNutrientsAsync(
-            n => new { n.Name, n.UnitaMisura }, ct).ConfigureAwait(false);
+            n => new { n.Name, Unit = n.DefaultUnitOfMeasure.Abbreviation }, ct).ConfigureAwait(false);
 
-        var nutrientList = string.Join("\n", nutrients.Select(n => $"- {n.Name} ({n.UnitaMisura})"));
+        var nutrientList = string.Join("\n", nutrients.Select(n => $"- {n.Name} ({n.Unit})"));
 
         return $$"""
             Esperto OCR per tabelle nutrizionali. Immagine = tabella nutrizionale alimento.
@@ -86,7 +86,18 @@ public class VisionExtractionService(
             return [];
         }
 
-        // Salva in cache
+        // Mappa prima di cachare: un'immagine non-etichetta produce JSON malformato
+        // (es. oggetto singolo invece di array) che dà 0 nutrienti. In quel caso NON
+        // salviamo in cache, altrimenti ogni retry farebbe cache-hit sullo stesso JSON rotto.
+        var results = await MapResultAsync(rawJson, ct).ConfigureAwait(false);
+
+        if (results.Count == 0)
+        {
+            logger.LogWarning("Etichetta non riconosciuta: nessun nutriente estratto. hash={Hash} provider={Provider}", imageHash, providerKey);
+            return results;
+        }
+
+        // Salva in cache solo le estrazioni valide
         await drRepository.SaveExtractionCacheAsync(new NutrientExtractionCache
         {
             Id = Guid.NewGuid(),
@@ -97,7 +108,7 @@ public class VisionExtractionService(
             CreatedAt = DateTime.UtcNow
         }, ct).ConfigureAwait(false);
 
-        return await MapResultAsync(rawJson, ct).ConfigureAwait(false);
+        return results;
     }
 
     private static string ExtractJsonArray(string text)
@@ -112,18 +123,30 @@ public class VisionExtractionService(
         return text;
     }
 
-    private record NutrientLookup(Guid Id, string Name, string UnitaMisura);
+    private record NutrientLookup(Guid Id, string Name, string CanonicalUnit);
 
     /// <summary>Maps raw JSON to ExtractedNutrientDto list, resolving aliases and computing ExtractionStatus.</summary>
     private async Task<IList<ExtractedNutrientDto>> MapResultAsync(string json, CancellationToken ct)
     {
         var knownNutrients = await drRepository.GetNutrientsAsync(
-            n => new NutrientLookup(n.Id, n.Name, n.UnitaMisura), ct).ConfigureAwait(false);
+            n => new NutrientLookup(n.Id, n.Name, n.DefaultUnitOfMeasure.Abbreviation), ct).ConfigureAwait(false);
 
         var aliasMap = await drRepository.GetAllAliasesAsync(ct).ConfigureAwait(false);
 
-        var raw = JsonSerializer.Deserialize<List<RawExtracted>>(json,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
+        // L'immagine potrebbe non essere un'etichetta: in tal caso il provider rende JSON
+        // malformato (oggetto singolo invece di array). Deserialize lancerebbe JsonException:
+        // la intercettiamo e trattiamo come "nessun nutriente" (lista vuota), senza propagare.
+        List<RawExtracted> raw;
+        try
+        {
+            raw = JsonSerializer.Deserialize<List<RawExtracted>>(json,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
+        }
+        catch (JsonException ex)
+        {
+            logger.LogWarning(ex, "JSON estrazione non valido (immagine non riconosciuta come etichetta)");
+            return [];
+        }
 
         var results = new List<ExtractedNutrientDto>();
 
@@ -148,7 +171,7 @@ public class VisionExtractionService(
 
                 if (!string.IsNullOrEmpty(r.Unit))
                 {
-                    if (string.IsNullOrEmpty(matched.UnitaMisura) || matched.UnitaMisura == r.Unit)
+                    if (string.IsNullOrEmpty(matched.CanonicalUnit) || matched.CanonicalUnit == r.Unit)
                     {
                         status = ExtractionStatus.Matched;
                     }
@@ -156,13 +179,13 @@ public class VisionExtractionService(
                     {
                         try
                         {
-                            convertedValue = await unitConversionService.ConvertAsync(r.Value, r.Unit, matched.UnitaMisura).ConfigureAwait(false);
-                            canonicalUnit = matched.UnitaMisura;
+                            convertedValue = await unitConversionService.ConvertAsync(r.Value, r.Unit, matched.CanonicalUnit).ConfigureAwait(false);
+                            canonicalUnit = matched.CanonicalUnit;
                             status = ExtractionStatus.Matched;
                         }
                         catch (NotSupportedException ex)
                         {
-                            logger.LogWarning(ex, "Conversione non supportata: {From} → {To}", r.Unit, matched.UnitaMisura);
+                            logger.LogWarning(ex, "Conversione non supportata: {From} → {To}", r.Unit, matched.CanonicalUnit);
                         }
                     }
                 }
