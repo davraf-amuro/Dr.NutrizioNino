@@ -11,6 +11,7 @@ namespace Dr.NutrizioNino.Api.Services;
 public class VisionExtractionService(
     DrRepository drRepository,
     VisionProviderFactory providerFactory,
+    UnitConversionService unitConversionService,
     ILogger<VisionExtractionService> logger)
 {
     /// <summary>Builds the system prompt injecting canonical nutrient names and units from DB.</summary>
@@ -22,16 +23,29 @@ public class VisionExtractionService(
         var nutrientList = string.Join("\n", nutrients.Select(n => $"- {n.Name} ({n.UnitaMisura})"));
 
         return $$"""
-            Sei un esperto di nutrizione. Analizza la seguente lista di nutrienti e restituisci un JSON array con i valori tipici per un alimento generico da 100g.
-            Usa ESCLUSIVAMENTE i seguenti nutrienti. Per ciascuno è indicato il nome canonico e l'unità di misura canonica (tra parentesi):
+            Esperto OCR per tabelle nutrizionali. Immagine = tabella nutrizionale alimento.
+
+            Compito: trascrivi ogni nutriente abbinando il VALORE all'UNITA scritta accanto, esattamente come in etichetta. Non convertire, non calcolare, non scegliere: copia.
+
+            Leggi SOLO la colonna "per 100 g" (o "per 100 ml"). Ignora "per porzione", "per pezzo", percentuali "%".
+
+            Se un nutriente ha PIU valori con unita diverse (tipico ENERGIA: "2252 kJ" e "539 kcal"), restituisci un oggetto per OGNI coppia valore+unita: per l'energia DUE oggetti, uno con kJ e uno con kcal.
+
+            Includi i sotto-nutrienti "di cui ..." (es. "di cui acidi grassi saturi", "di cui zuccheri") come righe a se.
+
+            Denominazione - elenco nutrienti canonici (nome + unita canonica tra parentesi):
             {{nutrientList}}
-            Per ogni nutriente:
-            - "name": usa ESCLUSIVAMENTE e LETTERALMENTE uno dei nomi canonici dall'elenco sopra — nessuna variazione, abbreviazione, traduzione o riformulazione
-            - "unit": usa ESATTAMENTE l'unità canonica indicata tra parentesi nell'elenco (es. "gr", "mg", "kcal", "mcg")
-            - "value": il valore numerico nell'unità canonica (0 se non presente o non rilevabile)
-            - "confidenceScore": valore tra 0.0 e 1.0
-            Rispondi SOLO con il JSON array, senza testo aggiuntivo.
-            Formato: [{"name":"Energia","value":250,"unit":"kcal","confidenceScore":0.95},{"name":"Carboidrati","value":30.5,"unit":"gr","confidenceScore":0.98}]
+            - Nutriente corrisponde a uno elenco: usa il nome canonico. L'unita resta SEMPRE quella STAMPATA accanto al valore.
+            - Nessuna corrispondenza: usa nome e unita come in etichetta.
+
+            Ogni oggetto:
+            - "name": nome (canonico se riconosciuto, altrimenti etichetta)
+            - "value": numero come stampato nella colonna per 100 g/ml
+            - "unit": unita STAMPATA accanto a quel numero
+            - "confidenceScore": 1.0 nitido e leggibile; 0.5-0.8 sfocato o parzialmente coperto
+
+            Rispondi SOLO con JSON array, senza testo, senza markdown.
+            Formato: [{"name":"Energia","value":2252,"unit":"kJ","confidenceScore":1.0},{"name":"Energia","value":539,"unit":"kcal","confidenceScore":1.0},{"name":"Zuccheri","value":56.3,"unit":"gr","confidenceScore":1.0}]
             """;
     }
 
@@ -142,7 +156,7 @@ public class VisionExtractionService(
                     {
                         try
                         {
-                            convertedValue = UnitConversionService.Convert(r.Value, r.Unit, matched.UnitaMisura);
+                            convertedValue = await unitConversionService.ConvertAsync(r.Value, r.Unit, matched.UnitaMisura).ConfigureAwait(false);
                             canonicalUnit = matched.UnitaMisura;
                             status = ExtractionStatus.Matched;
                         }
@@ -165,7 +179,33 @@ public class VisionExtractionService(
                 Status: status));
         }
 
-        return results;
+        // Dedup: per un nutriente riconosciuto possono arrivare piu coppie valore+unita
+        // (tipico Energia: kJ e kcal). Tieni quella con unita gia canonica (nessuna
+        // conversione, es. 539 kcal); altrimenti la prima. Le non riconosciute restano.
+        var chosen = results
+            .Where(r => r.MatchedNutrientId is not null)
+            .GroupBy(r => r.MatchedNutrientId!.Value)
+            .ToDictionary(
+                g => g.Key,
+                g => g.FirstOrDefault(r => r.Status == ExtractionStatus.Matched && r.CanonicalUnit is null) ?? g.First());
+
+        var deduped = new List<ExtractedNutrientDto>();
+        var seen = new HashSet<Guid>();
+        foreach (var r in results)
+        {
+            if (r.MatchedNutrientId is null)
+            {
+                deduped.Add(r);
+                continue;
+            }
+
+            if (seen.Add(r.MatchedNutrientId.Value))
+            {
+                deduped.Add(chosen[r.MatchedNutrientId.Value]);
+            }
+        }
+
+        return deduped;
     }
 
     private static string ComputeHash(string input)

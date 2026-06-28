@@ -27,7 +27,9 @@ public class OllamaVisionProvider(
                 model,
                 prompt = systemPrompt,
                 images = new[] { base64Image },
-                stream = false
+                stream = false,
+                format = "json",
+                options = new { num_ctx = 2048, temperature = 0.0 }
             };
 
             logger.LogInformation("Ollama request: model={Model} endpoint={Endpoint}", model, endpoint);
@@ -40,7 +42,9 @@ public class OllamaVisionProvider(
             // Risposta Ollama: { "response": "testo generato" }
             using var doc = JsonDocument.Parse(content);
             if (doc.RootElement.TryGetProperty("response", out var resp))
+            {
                 return resp.GetString() ?? string.Empty;
+            }
 
             return content;
         }
