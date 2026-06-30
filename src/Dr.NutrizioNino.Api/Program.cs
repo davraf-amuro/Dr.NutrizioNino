@@ -135,6 +135,7 @@ try
     });
     builder.Services.AddScoped<VisionExtractionService>();
     builder.Services.AddSingleton<UnitConversionService>();
+    builder.Services.AddSingleton<DatabaseStartupService>();
     builder.Services.AddHostedService<CacheCleanupService>();
 
     // Vision providers — registrati come singleton per SemaphoreSlim in OllamaVisionProvider
@@ -225,12 +226,15 @@ try
     app.MapVisionProvidersEndpoints(versionSet);
     app.MapNutrientAliasEndpoints(versionSet);
     app.MapUserPreferencesEndpoints(versionSet);
+    app.MapHealthEndpoints(versionSet);
 
-    // SEED: garantisce che i ruoli esistano al primo avvio
-    using (var seedScope = app.Services.CreateScope())
+    // SEED: garantisce che i ruoli esistano al primo avvio.
+    // Resiliente: se il DB non è raggiungibile, l'API parte comunque in stato degradato.
+    // Lo stato è consultabile su /api/v1/status e il retry su /api/v1/status/retry-database.
+    var dbStartup = app.Services.GetRequiredService<DatabaseStartupService>();
+    if (!await dbStartup.TryInitializeAsync(CancellationToken.None))
     {
-        var adminService = seedScope.ServiceProvider.GetRequiredService<AdminUserService>();
-        await adminService.EnsureRolesExistAsync();
+        Log.Warning("Database non raggiungibile all'avvio: l'API parte in stato degradato. Stato su /api/v1/status, retry su /api/v1/status/retry-database");
     }
 
     //Log.Information($"Security Protocols Allowed: {ServicePointManager.SecurityProtocol}");

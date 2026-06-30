@@ -1,0 +1,7 @@
+### Stato del database (live, anonimo)
+GET {{DrNutrizioNino_Api_HostAddress}}/api/v1/status
+
+###
+
+### Ritenta connessione al database + seed ruoli (anonimo)
+POST {{DrNutrizioNino_Api_HostAddress}}/api/v1/status/retry-database
