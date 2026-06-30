@@ -133,12 +133,14 @@ public static class CategoriesEndpoints
         group.MapDelete("{id}", async (CategoryService service, Guid id, CancellationToken ct) =>
         {
             if (await service.IsCategoryInUseAsync(id, ct))
+            {
                 return TypedResults.Problem(new ProblemDetails
                 {
                     Title = "Conflict",
                     Status = StatusCodes.Status409Conflict,
                     Detail = "La categoria è in uso e non può essere eliminata."
                 });
+            }
 
             var deleted = await service.DeleteCategoryAsync(id, ct);
             return deleted

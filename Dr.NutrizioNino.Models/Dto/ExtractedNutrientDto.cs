@@ -7,4 +7,5 @@ public record ExtractedNutrientDto(
     decimal? ConvertedValue,
     string? CanonicalUnit,
     Guid? MatchedNutrientId,
-    float ConfidenceScore);
+    float ConfidenceScore,
+    ExtractionStatus Status);

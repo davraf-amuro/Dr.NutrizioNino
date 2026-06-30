@@ -13,7 +13,9 @@ function invalidate() {
 }
 
 export function useSectionConfigs() {
-  const activeSections = computed(() => sections.value.filter((s) => s.isActive))
+  const activeSections = computed(() =>
+    sections.value.filter((s) => s.isActive).sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
+  )
 
   const sectionOptions = computed<SelectOption[]>(() =>
     activeSections.value.map((s) => ({ label: s.name, value: s.id }))

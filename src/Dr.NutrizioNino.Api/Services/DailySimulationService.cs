@@ -101,17 +101,23 @@ public class DailySimulationService(DrRepository drRepository)
         var entry = await drRepository.GetEntryAsync(entryId, ct).ConfigureAwait(false);
 
         if (entry is null || entry.SimulationId != simulationId)
+        {
             return (false, null);
+        }
 
         if (entry.SourceId is null)
+        {
             return (true, "Sorgente originale eliminata: impossibile ricalcolare.");
+        }
 
         var nutrients = entry.SourceType == DailySimulationSourceType.Food
             ? await BuildFoodSnapshotAsync(entry.SourceId.Value, newQuantityGrams, ct).ConfigureAwait(false)
             : await BuildDishSnapshotAsync(entry.SourceId.Value, newQuantityGrams, ct).ConfigureAwait(false);
 
         if (nutrients is null)
+        {
             return (true, "Sorgente originale eliminata: impossibile ricalcolare.");
+        }
 
         var newNutrients = nutrients.Select(n => new DailySimulationEntryNutrient
         {
@@ -139,7 +145,10 @@ public class DailySimulationService(DrRepository drRepository)
     private async Task<IList<NutrientSnapshot>?> BuildFoodSnapshotAsync(Guid foodId, decimal quantityGrams, CancellationToken ct)
     {
         var food = await drRepository.GetFoodWithNutrientsAsync(foodId, ct).ConfigureAwait(false);
-        if (food is null) return null;
+        if (food is null)
+        {
+            return null;
+        }
 
         var refQuantity = food.Quantity > 0 ? food.Quantity : 100m;
 
@@ -154,7 +163,10 @@ public class DailySimulationService(DrRepository drRepository)
     private async Task<IList<NutrientSnapshot>?> BuildDishSnapshotAsync(Guid dishId, decimal quantityGrams, CancellationToken ct)
     {
         var dish = await drRepository.GetDishWithNutrientsAsync(dishId, ct).ConfigureAwait(false);
-        if (dish is null) return null;
+        if (dish is null)
+        {
+            return null;
+        }
 
         var refWeight = dish.WeightGrams > 0 ? dish.WeightGrams : 100m;
 

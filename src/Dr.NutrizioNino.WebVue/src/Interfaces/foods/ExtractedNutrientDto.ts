@@ -1,3 +1,5 @@
+export type ExtractionStatus = 'Matched' | 'IncompleteMatch' | 'Unrecognized'
+
 export interface ExtractedNutrientDto {
   name: string
   value: number
@@ -6,4 +8,5 @@ export interface ExtractedNutrientDto {
   canonicalUnit: string | null
   matchedNutrientId: string | null
   confidenceScore: number
+  status: ExtractionStatus
 }

@@ -14,6 +14,7 @@ const {
   unitsOfMeasures,
   supermarkets,
   categories,
+  nutrients,
   isCreating,
   formMode,
   isLoading,
@@ -29,7 +30,8 @@ const {
   addBrandLookup,
   addUnitLookup,
   addSupermarketLookup,
-  addCategoryLookup
+  addCategoryLookup,
+  addNutrientLookup
 } = useFoods()
 
 const dialog = useDialog()
@@ -128,12 +130,14 @@ onMounted(async () => {
           @unit-created="addUnitLookup"
           @supermarket-created="addSupermarketLookup"
           @category-created="addCategoryLookup"
+          @nutrient-created="addNutrientLookup"
           :food="selectedFood"
           :mode="formMode"
           :brands="brands"
           :units-of-measures="unitsOfMeasures"
           :supermarkets="supermarkets"
           :categories="categories"
+          :available-nutrients="nutrients"
           :is-submitting="isLoading"
         />
       </n-space>

@@ -56,15 +56,23 @@ public static class NutrientsEndpoints
 
         group.MapPost("", async (NutrientService service, CreateNutrientDto newNutrient, CancellationToken ct) =>
         {
-            var result = await service.CreateNutrientAsync(newNutrient, ct);
-            return result is not null
-                ? Results.Ok(result)
-                : TypedResults.Problem(new ProblemDetails
+            var (result, nutrient) = await service.CreateNutrientAsync(newNutrient, ct);
+            return result switch
+            {
+                NutrientCreateResult.Success => Results.Ok(nutrient),
+                NutrientCreateResult.InvalidUnitOfMeasure => TypedResults.Problem(new ProblemDetails
+                {
+                    Title = "Invalid Request",
+                    Status = StatusCodes.Status400BadRequest,
+                    Detail = "L'unità di misura è obbligatoria e deve esistere."
+                }),
+                _ => TypedResults.Problem(new ProblemDetails
                 {
                     Title = "Conflict",
                     Status = StatusCodes.Status409Conflict,
                     Detail = "Esiste già un nutriente con questo nome."
-                });
+                })
+            };
         })
             .WithName("CreateNutrient")
             .WithSummary("Create nutrient")

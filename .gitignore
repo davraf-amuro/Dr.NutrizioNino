@@ -1,5 +1,6 @@
 # Claude Code local settings
 .claude/settings.local.json
+.claude/worktrees/
 my-minimalapi.md
 
 # Local overrides / config con dati reali (sensitive-data.instructions.md)

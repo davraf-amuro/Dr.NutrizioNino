@@ -1,0 +1,14 @@
+### Recupera preferenze nutrienti grafico
+GET {{DrNutrizioNino_Api_HostAddress}}/api/v1/users/me/chart-preferences
+Authorization: Bearer {{token}}
+
+###
+
+### Salva preferenze nutrienti grafico
+PUT {{DrNutrizioNino_Api_HostAddress}}/api/v1/users/me/chart-preferences
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "visibleNutrients": ["Energia", "Proteine", "Carboidrati"]
+}

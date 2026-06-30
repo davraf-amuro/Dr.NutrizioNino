@@ -16,7 +16,9 @@ public class AuthService(
     {
         var user = await userManager.FindByNameAsync(request.UserName);
         if (user is null || !await userManager.CheckPasswordAsync(user, request.Password))
+        {
             return null;
+        }
 
         var roles = await userManager.GetRolesAsync(user);
         var role = roles.FirstOrDefault() ?? "User";
@@ -28,7 +30,10 @@ public class AuthService(
     public async Task<MeResponse?> GetMeAsync(Guid userId)
     {
         var user = await userManager.FindByIdAsync(userId.ToString());
-        if (user is null) return null;
+        if (user is null)
+        {
+            return null;
+        }
 
         var roles = await userManager.GetRolesAsync(user);
         var role = roles.FirstOrDefault() ?? "User";
@@ -39,7 +44,10 @@ public class AuthService(
     public async Task<bool> UpdateThemeAsync(Guid userId, string theme)
     {
         var user = await userManager.FindByIdAsync(userId.ToString());
-        if (user is null) return false;
+        if (user is null)
+        {
+            return false;
+        }
 
         user.ThemePreference = theme;
         var result = await userManager.UpdateAsync(user);
@@ -49,7 +57,10 @@ public class AuthService(
     public async Task<bool> UpdateBirthdateAsync(Guid userId, DateOnly dateOfBirth)
     {
         var user = await userManager.FindByIdAsync(userId.ToString());
-        if (user is null) return false;
+        if (user is null)
+        {
+            return false;
+        }
 
         user.DateOfBirth = dateOfBirth;
         var result = await userManager.UpdateAsync(user);

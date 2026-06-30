@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Asp.Versioning;
 using Dr.NutrizioNino.Api.Endpoints;
@@ -62,8 +63,11 @@ try
     builder.Services.AddExceptionHandler<DatabaseExceptionHandler>();
     builder.Services.AddDefaultExceptionHandler();
 
+    builder.Services.ConfigureHttpJsonOptions(o =>
+        o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+
     //aggiungi i servizi
-    builder.Services.AddDbContext<DrNutrizioNinoContext>(options =>
+    builder.Services.AddDbContextFactory<DrNutrizioNinoContext>(options =>
     {
         options.UseSqlServer(builder.Configuration.GetConnectionString("DrNutrizioNinoSql"));
         if (builder.Environment.IsDevelopment())
@@ -89,7 +93,7 @@ try
     builder.Services.AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme    = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     })
     .AddJwtBearer(opt =>
     {
@@ -130,6 +134,8 @@ try
         client.Timeout = TimeSpan.FromMinutes(minutes);
     });
     builder.Services.AddScoped<VisionExtractionService>();
+    builder.Services.AddSingleton<UnitConversionService>();
+    builder.Services.AddHostedService<CacheCleanupService>();
 
     // Vision providers — registrati come singleton per SemaphoreSlim in OllamaVisionProvider
     builder.Services.AddSingleton<IVisionProvider, OllamaVisionProvider>();

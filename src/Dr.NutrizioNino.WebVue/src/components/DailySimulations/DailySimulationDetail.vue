@@ -27,8 +27,8 @@
         <n-gi>
           <n-form-item label="Cerca">
             <n-select
-              v-model:value="newEntry.sourceId"
-              :options="sourceOptions"
+              v-model:value="newEntry.combinedSourceKey"
+              :options="combinedOptions"
               filterable
               clearable
               placeholder="Seleziona alimento o piatto..."
@@ -36,15 +36,7 @@
           </n-form-item>
         </n-gi>
         <n-gi>
-          <n-form-item label="Tipo">
-            <n-radio-group v-model:value="newEntry.sourceType">
-              <n-radio :value="0">Alimento</n-radio>
-              <n-radio :value="1">Piatto</n-radio>
-            </n-radio-group>
-          </n-form-item>
-        </n-gi>
-        <n-gi>
-          <n-form-item label="Quantità (g)">
+          <n-form-item :label="`Quantità (${selectedUnit ?? 'g'})`">
             <n-input-number
               v-model:value="newEntry.quantityGrams"
               :min="0.1"
@@ -54,11 +46,11 @@
             />
           </n-form-item>
         </n-gi>
-        <n-gi style="display: flex; align-items: flex-end; padding-bottom: 24px">
+        <n-gi :span="2" style="display: flex; align-items: flex-end; padding-bottom: 8px">
           <n-button
             type="primary"
             :loading="isAdding"
-            :disabled="!newEntry.sourceId || !newEntry.quantityGrams"
+            :disabled="!newEntry.combinedSourceKey || !newEntry.quantityGrams"
             @click="handleAddEntry"
           >
             Aggiungi
@@ -161,8 +153,9 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import {
   NButton, NCard, NFormItem, NGi, NGrid, NInput, NInputNumber,
-  NRadio, NRadioGroup, NSelect, NSpace, useThemeVars, type SelectOption
+  NSelect, NSpace, useThemeVars, type SelectOption
 } from 'naive-ui'
+import { formatNutrient } from '@/core/utils/formatNutrient'
 import type { DailySimulationDetailDto, DailySimulationEntryDto, DailySimulationSectionDto } from '@/Interfaces/dailySimulations/DailySimulationDto'
 import { getFoodsDashboard } from '@/modules/foods/api/foods.api'
 import { getDishesDashboard } from '@/modules/dishes/api/dishes.api'
@@ -204,10 +197,10 @@ const handleSaveName = async () => {
 const isAdding = ref(false)
 const showChart = ref(false)
 
-const newEntry = reactive<AddSimulationEntryRequest>({
+// combinedSourceKey: "food:<id>" | "dish:<id>"
+const newEntry = reactive<{ sectionId: string; combinedSourceKey: string; quantityGrams: number }>({
   sectionId: '',
-  sourceType: 0,
-  sourceId: '',
+  combinedSourceKey: '',
   quantityGrams: 100
 })
 
@@ -215,45 +208,52 @@ const { sectionOptions, loadSectionConfigs } = useSectionConfigs()
 
 const foodData = ref<FoodDashboardDto[]>([])
 const dishData = ref<FoodDashboardDto[]>([])
-const foodOptions = ref<SelectOption[]>([])
-const dishOptions = ref<SelectOption[]>([])
 
-const sourceOptions = computed<SelectOption[]>(() =>
-  newEntry.sourceType === 0 ? foodOptions.value : dishOptions.value
+interface CombinedOption extends SelectOption { sourceType: number; unit: string }
+
+const combinedOptions = computed<CombinedOption[]>(() => [
+  ...foodData.value.map((f) => ({ label: `${f.name} (${f.abbreviation})`, value: `food:${f.id}`, sourceType: 0, unit: f.abbreviation })),
+  ...dishData.value.map((d) => ({ label: `${d.name} (${d.abbreviation})`, value: `dish:${d.id}`, sourceType: 1, unit: d.abbreviation }))
+])
+
+const selectedOption = computed<CombinedOption | undefined>(() =>
+  combinedOptions.value.find((o) => o.value === newEntry.combinedSourceKey)
 )
+const selectedUnit = computed<string | undefined>(() => selectedOption.value?.unit)
 
 onMounted(async () => {
-  const [foods, dishes] = await Promise.all([getFoodsDashboard(), getDishesDashboard(), loadSectionConfigs()])
-  foodData.value = foods
-  dishData.value = dishes
-  foodOptions.value = foods.map((f) => ({ label: f.name, value: f.id }))
-  dishOptions.value = dishes.map((d) => ({ label: d.name, value: d.id }))
+  await Promise.all([getFoodsDashboard(), getDishesDashboard(), loadSectionConfigs()]).then(([foods, dishes]) => {
+    foodData.value = foods
+    dishData.value = dishes
+  })
   // Pre-seleziona la prima sezione attiva
   if (!newEntry.sectionId && sectionOptions.value.length > 0) {
     newEntry.sectionId = String(sectionOptions.value[0].value ?? '')
   }
 })
 
-// Auto-popola la quantità default quando si seleziona un alimento o piatto
-watch(() => newEntry.sourceId, (id) => {
-  if (!id) return
-  const data = newEntry.sourceType === 0 ? foodData.value : dishData.value
+// Auto-popola la quantità default quando si seleziona un item dalla lista unificata
+watch(() => newEntry.combinedSourceKey, (key) => {
+  if (!key || !selectedOption.value) return
+  const [type, id] = key.split(':')
+  const data = type === 'food' ? foodData.value : dishData.value
   const item = data.find((d) => d.id === id)
   if (item?.quantity) newEntry.quantityGrams = item.quantity
 })
 
-// Pulisce la selezione quando si cambia tipo
-watch(() => newEntry.sourceType, () => {
-  newEntry.sourceId = ''
-  newEntry.quantityGrams = 100
-})
-
 const handleAddEntry = async () => {
-  if (!newEntry.sourceId || !newEntry.quantityGrams) return
+  if (!newEntry.combinedSourceKey || !newEntry.quantityGrams) return
+  const [type, id] = newEntry.combinedSourceKey.split(':')
+  const dto: AddSimulationEntryRequest = {
+    sectionId: newEntry.sectionId,
+    sourceType: type === 'food' ? 0 : 1,
+    sourceId: id,
+    quantityGrams: newEntry.quantityGrams
+  }
   isAdding.value = true
   try {
-    await addEntry(props.simulation.id, { ...newEntry })
-    newEntry.sourceId = ''
+    await addEntry(props.simulation.id, dto)
+    newEntry.combinedSourceKey = ''
     newEntry.quantityGrams = 100
     emit('refresh')
   } finally {
@@ -298,8 +298,6 @@ const getNutrientValue = (entry: DailySimulationEntryDto, nutrientName: string):
   return n?.quantity ?? 0
 }
 
-const formatNutrient = (v: number): string =>
-  v === 0 ? '—' : v % 1 === 0 ? String(v) : v.toFixed(2).replace(/\.?0+$/, '')
 
 const sectionQtyTotal = (section: DailySimulationSectionDto): number =>
   section.entries.reduce((sum, e) => sum + e.quantityGrams, 0)

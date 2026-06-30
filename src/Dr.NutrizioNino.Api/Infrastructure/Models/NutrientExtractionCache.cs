@@ -19,4 +19,7 @@ public class NutrientExtractionCache
 
     [Column("CreatedAt")]
     public DateTime CreatedAt { get; set; }
+
+    [Column("ProviderKey")]
+    public string ProviderKey { get; set; } = "ollama";
 }

@@ -1,0 +1,4 @@
+## profilo utente
+
+abbiamo a database la tabella [UserProfileEntries] dobbiamo fornire all'utente la maschera per registrare quando vuole un record. il record può essere modificato in ogni momento dall'utente.
+

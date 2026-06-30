@@ -1,0 +1,166 @@
+```json
+[
+  {
+    "name": "Energia",
+    "value": 200,
+    "unit": "kcal",
+    "confidenceScore": 0.95
+  },
+  {
+    "name": "Carboidrati",
+    "value": 43,
+    "unit": "gr",
+    "confidenceScore": 0.98
+  },
+  {
+    "name": "Zuccheri",
+    "value": 21,
+    "unit": "gr",
+    "confidenceScore": 0.97
+  },
+  {
+    "name": "Vitamina B2",
+    "value": 0,
+    "unit": "gr",
+    "confidenceScore": 0.96
+  },
+  {
+    "name": "Sale",
+    "value": 15,
+    "unit": "mg",
+    "confidenceScore": 0.94
+  },
+  {
+    "name": "Fosforo",
+    "value": 20,
+    "unit": "mg",
+    "confidenceScore": 0.93
+  },
+  {
+    "name": "Vitamina B9 (folati)",
+    "value": 15,
+    "unit": "mcg",
+    "confidenceScore": 0.92
+  },
+  {
+    "name": "Vitamina C",
+    "value": 0,
+    "unit": "gr",
+    "confidenceScore": 0.91
+  },
+  {
+    "name": "Vitamina A",
+    "value": 0,
+    "unit": "mcg",
+    "confidenceScore": 0.90
+  },
+  {
+    "name": "Grassi",
+    "value": 11,
+    "unit": "gr",
+    "confidenceScore": 0.85
+  },
+  {
+    "name": "Grassi Saturi",
+    "value": 4,
+    "unit": "gr",
+    "confidenceScore": 0.83
+  },
+  {
+    "name": "Fibre",
+    "value": 1,
+    "unit": "gr",
+    "confidenceScore": 0.82
+  },
+  {
+    "name": "Calcio",
+    "value": 4,
+    "unit": "mg",
+    "confidenceScore": 0.79
+  },
+  {
+    "name": "Ferro",
+    "value": 1,
+    "unit": "mg",
+    "confidenceScore": 0.81
+  },
+  {
+    "name": "Vitamina E",
+    "value": 0,
+    "unit": "gr",
+    "confidenceScore": 0.75
+  },
+  {
+    "name": "Sodio",
+    "value": 15,
+    "unit": "mg",
+    "confidenceScore": 0.80
+  },
+  {
+    "name": "Potassio",
+    "value": 0,
+    "unit": "mg",
+    "confidenceScore": 0.76
+  },
+  {
+    "name": "Acido Pantoteico",
+    "value": 0,
+    "unit": "mg",
+    "confidenceScore": 0.74
+  },
+  {
+    "name": "Vitamina B6",
+    "value": 0,
+    "unit": "gr",
+    "confidenceScore": 0.73
+  },
+  {
+    "name": "Proteine",
+    "value": 2,
+    "unit": "gr",
+    "confidenceScore": 0.84
+  },
+  {
+    "name": "Colina",
+    "value": 0,
+    "unit": "mg",
+    "confidenceScore": 0.71
+  },
+  {
+    "name": "Biotina",
+    "value": 0,
+    "unit": "mcg",
+    "confidenceScore": 0.72
+  },
+  {
+    "name": "Acido Folico",
+    "value": 0,
+    "unit": "mcg",
+    "confidenceScore": 0.70
+  },
+  {
+    "name": "Vitamina B1",
+    "value": 0,
+    "unit": "mcg",
+    "confidenceScore": 0.69
+  },
+  {
+    "name": "Vitamina D",
+    "value": 0,
+    "unit": "gr",
+    "confidenceScore": 0.78
+  },
+  {
+    "name": "Vitamina B12",
+    "value": 0,
+    "unit": "mcg",
+    "confidenceScore": 0.68
+  },
+  {
+    "name": "Selenio",
+    "value": 0,
+    "unit": "mcg",
+    "confidenceScore": 0.77
+  }
+]
+```

@@ -1,15 +1,46 @@
+using Dr.NutrizioNino.Api.Models;
+using Microsoft.EntityFrameworkCore;
+
 namespace Dr.NutrizioNino.Api.Services;
 
-public static class UnitConversionService
+public class UnitConversionService(IDbContextFactory<DrNutrizioNinoContext> dbFactory)
 {
-    public static decimal Convert(decimal value, string fromUnit, string toUnit) =>
-        (fromUnit, toUnit) switch
+    private Dictionary<(string, string), decimal>? _cache;
+
+    public async Task<decimal> ConvertAsync(decimal value, string from, string to)
+    {
+        if (from == to)
         {
-            ("mg", "µg") => value * 1000,
-            ("µg", "mg") => value / 1000,
-            ("g", "mg")  => value * 1000,
-            ("mg", "g")  => value / 1000,
-            _ when fromUnit == toUnit => value,
-            _ => throw new NotSupportedException($"Conversione {fromUnit}→{toUnit} non supportata")
-        };
+            return value;
+        }
+
+        var map = await GetMapAsync().ConfigureAwait(false);
+        if (map.TryGetValue((from, to), out var factor))
+        {
+            return value * factor;
+        }
+
+        throw new NotSupportedException($"Conversione {from}→{to} non supportata");
+    }
+
+    public Task ReloadAsync()
+    {
+        _cache = null;
+        return Task.CompletedTask;
+    }
+
+    private async Task<Dictionary<(string, string), decimal>> GetMapAsync()
+    {
+        if (_cache is not null)
+        {
+            return _cache;
+        }
+
+        await using var db = await dbFactory.CreateDbContextAsync().ConfigureAwait(false);
+        _cache = await db.UnitConversions!
+            .AsNoTracking()
+            .ToDictionaryAsync(r => (r.FromUnit, r.ToUnit), r => r.Factor)
+            .ConfigureAwait(false);
+        return _cache;
+    }
 }

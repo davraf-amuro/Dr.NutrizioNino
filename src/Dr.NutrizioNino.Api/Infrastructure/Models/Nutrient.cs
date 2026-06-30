@@ -16,5 +16,6 @@ public partial class Nutrient
     public Guid DefaultUnitOfMeasureId { get; set; }
 
     public decimal DefaultQuantity { get; set; }
+
     public virtual ICollection<FoodNutrient> FoodsNutrients { get; set; } = new List<FoodNutrient>();
 }

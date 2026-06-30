@@ -12,23 +12,27 @@ public partial class DrNutrizioNinoContext(
     DbContextOptions<DrNutrizioNinoContext> options,
     ILoggerFactory loggerFactory) : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(options)
 {
-    public virtual DbSet<Brand> Brands { get; set; }
+    public virtual DbSet<Brand>? Brands { get; set; }
 
-    public virtual DbSet<Food> Foods { get; set; }
+    public virtual DbSet<Food>? Foods { get; set; }
 
-    public virtual DbSet<FoodNutrient> FoodsNutrients { get; set; }
+    public virtual DbSet<FoodNutrient>? FoodsNutrients { get; set; }
 
-    public virtual DbSet<Nutrient> Nutrients { get; set; }
+    public virtual DbSet<Nutrient>? Nutrients { get; set; }
 
-    public virtual DbSet<UnitOfMeasure> UnitsOfMeasures { get; set; }
+    public virtual DbSet<UnitOfMeasure>? UnitsOfMeasures { get; set; }
 
-    public virtual DbSet<NutrientsGetForFoodCreatingInfo> NutrientsGetForFoodCreatingInfoes { get; set; }
+    public virtual DbSet<NutrientsGetForFoodCreatingInfo>? NutrientsGetForFoodCreatingInfoes { get; set; }
 
-    public virtual DbSet<FoodDashboardInfo> FoodsDashboard { get; set; }
+    public virtual DbSet<FoodDashboardInfo>? FoodsDashboard { get; set; }
 
-    public virtual DbSet<NutrientInfo> NutrientInfoes { get; set; }
+    public virtual DbSet<NutrientInfo>? NutrientInfoes { get; set; }
 
-    public virtual DbSet<UserProfileEntry> UserProfileEntries { get; set; }
+    public virtual DbSet<UserProfileEntry>? UserProfileEntries { get; set; }
+
+    public virtual DbSet<NutrientExtractionCache>? NutrientExtractionCache { get; set; }
+
+    public virtual DbSet<NutrientAlias>? NutrientAliases { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

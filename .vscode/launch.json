@@ -5,18 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "chrome",
-            "request": "launch",
-            "name": "Launch Chrome against localhost",
-            "url": "http://localhost:8080",
-            "webRoot": "${workspaceFolder}"
-        },
-        {
             "name": "API (.NET)",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build-api",
-            "program": "${workspaceFolder}/src/Dr.NutrizioNino.Api/bin/net10.0/Dr.NutrizioNino.Api.dll",
+            "program": "${workspaceFolder}/src/Dr.NutrizioNino.Api/bin/Debug/net10.0/Dr.NutrizioNino.Api.dll",
             "args": [],
             "cwd": "${workspaceFolder}/src/Dr.NutrizioNino.Api",
             "stopAtEntry": false,

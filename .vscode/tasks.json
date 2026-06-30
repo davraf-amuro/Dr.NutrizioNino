@@ -2,6 +2,16 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "clean-api",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "clean",
+                "${workspaceFolder}/src/Dr.NutrizioNino.Api/Dr.NutrizioNino.Api.csproj"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
             "label": "build-api",
             "command": "dotnet",
             "type": "process",
@@ -11,6 +21,8 @@
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
+            "dependsOn": ["clean-api"],
+            "dependsOrder": "sequence",
             "problemMatcher": "$msCompile"
         }
     ]

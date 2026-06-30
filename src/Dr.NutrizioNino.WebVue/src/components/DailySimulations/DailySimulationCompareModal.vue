@@ -53,6 +53,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { NModal, NSpin, useThemeVars } from 'naive-ui'
+import { formatNutrient } from '@/core/utils/formatNutrient'
 const themeVars = useThemeVars()
 const cellMaxBg = computed(() => themeVars.value.successColor + '33')
 const cellMinBg = computed(() => themeVars.value.errorColor + '33')
@@ -91,13 +92,14 @@ watch(
 )
 
 function formatQty(v: number): string {
-  return v % 1 === 0 ? String(v) : v.toFixed(2)
+  return formatNutrient(v)
 }
 
 function formatDelta(row: SimulationCompareNutrientDto): string {
   const delta = (row.sim2Quantity ?? 0) - (row.sim1Quantity ?? 0)
-  const sign = delta > 0 ? '+' : ''
-  return `${sign}${delta.toFixed(2)}`
+  if (delta === 0) return '0'
+  const sign = delta > 0 ? '+' : '-'
+  return `${sign}${formatNutrient(Math.abs(delta))}`
 }
 
 function cellClass(row: SimulationCompareNutrientDto, which: 'sim1' | 'sim2'): string {

@@ -39,6 +39,7 @@ import {
 import { Bar } from 'vue-chartjs'
 import type { DailySimulationDetailDto } from '@/Interfaces/dailySimulations/DailySimulationDto'
 import { sortNutrients } from '@/core/utils/sortNutrients'
+import { getChartPreferences, updateChartPreferences } from '@/modules/userPreferences/api/userPreferences.api'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
@@ -62,21 +63,51 @@ const allNutrientColumns = computed<NutrientColumn[]>(() => {
   return sortNutrients([...seen.values()])
 })
 
-// ── Visibilità nutrienti (tutti visibili di default) ─────────
+// ── Visibilità nutrienti (preferenze utente, fallback ai 5 default) ─────────
+const DEFAULT_NUTRIENTS = ['Energia', 'Grassi', 'Carboidrati', 'Fibre', 'Proteine']
 const visibleNutrients = ref<Set<string>>(new Set())
 
-// Inizializza con tutti i nutrienti alla prima apertura
-const initVisible = () => {
-  visibleNutrients.value = new Set(allNutrientColumns.value.map((c) => c.name))
+// Inizializza dai default locali (senza attendere API)
+const initFromDefaults = () => {
+  const available = new Set(allNutrientColumns.value.map((c) => c.name))
+  const defaults = DEFAULT_NUTRIENTS.filter((n) => available.has(n))
+  visibleNutrients.value = new Set(
+    defaults.length > 0 ? defaults : allNutrientColumns.value.map((c) => c.name)
+  )
 }
 
-// Chiamato quando il modal viene aperto
-watch(() => show.value, (val) => { if (val) initVisible() })
+// Carica preferenze dal backend e aggiorna il set
+const loadPreferences = async () => {
+  try {
+    const saved = await getChartPreferences()
+    const available = new Set(allNutrientColumns.value.map((c) => c.name))
+    const matching = saved.filter((n) => available.has(n))
+    if (matching.length > 0) {
+      visibleNutrients.value = new Set(matching)
+    } else {
+      initFromDefaults()
+    }
+  } catch {
+    initFromDefaults()
+  }
+}
 
-const toggleNutrient = (name: string) => {
+// Chiamato quando il modal viene aperto (immediate perché il componente è montato con v-if già true)
+watch(() => show.value, async (val) => {
+  if (!val) return
+  initFromDefaults()
+  await loadPreferences()
+}, { immediate: true })
+
+const toggleNutrient = async (name: string) => {
   const s = new Set(visibleNutrients.value)
   s.has(name) ? s.delete(name) : s.add(name)
   visibleNutrients.value = s
+  try {
+    await updateChartPreferences([...s])
+  } catch {
+    // Salvataggio non bloccante
+  }
 }
 
 // ── Dati grafico ─────────────────────────────────────────────

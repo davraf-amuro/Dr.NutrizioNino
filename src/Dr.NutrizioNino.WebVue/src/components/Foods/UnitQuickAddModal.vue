@@ -51,7 +51,11 @@ import type { UnitOfMeasureDto } from '@/Interfaces/UnitOfMeasureDto'
 import { createUnitOfMeasure } from '@/modules/units/api/units.api'
 import { ApiError } from '@/core/http/ApiError'
 
-const props = defineProps<{ show: boolean }>()
+const props = defineProps<{
+  show: boolean
+  suggestedName?: string
+  suggestedAbbreviation?: string
+}>()
 
 const emit = defineEmits<{
   'update:show': [value: boolean]
@@ -77,8 +81,8 @@ watch(
   () => props.show,
   (val) => {
     if (val) {
-      formModel.name = ''
-      formModel.abbreviation = ''
+      formModel.name = props.suggestedName?.trim() ?? ''
+      formModel.abbreviation = props.suggestedAbbreviation?.trim() ?? ''
       errorMessage.value = null
     }
   }

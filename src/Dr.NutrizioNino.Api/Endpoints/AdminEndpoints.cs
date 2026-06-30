@@ -1,9 +1,9 @@
 using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Dr.NutrizioNino.Api.Services;
-using TinyHelpers.AspNetCore.Extensions;
 using Dr.NutrizioNino.Models.Dto.Auth;
 using Microsoft.AspNetCore.Mvc;
+using TinyHelpers.AspNetCore.Extensions;
 
 namespace Dr.NutrizioNino.Api.Endpoints;
 
@@ -30,7 +30,10 @@ public static class AdminEndpoints
         {
             var (success, errors) = await service.CreateUserAsync(request, ct);
             if (!success)
+            {
                 return Results.Problem(string.Join("; ", errors), statusCode: StatusCodes.Status400BadRequest);
+            }
+
             return Results.Created();
         })
         .WithName("CreateUser")
@@ -54,7 +57,10 @@ public static class AdminEndpoints
         {
             var (success, errors) = await service.UpdateUserAsync(id, request, ct);
             if (!success)
+            {
                 return Results.Problem(string.Join("; ", errors), statusCode: StatusCodes.Status400BadRequest);
+            }
+
             return Results.NoContent();
         })
         .WithName("UpdateUser")
@@ -66,7 +72,10 @@ public static class AdminEndpoints
         {
             var (success, errors) = await service.DeleteUserAsync(id, ct);
             if (!success)
+            {
                 return Results.Problem(string.Join("; ", errors), statusCode: StatusCodes.Status400BadRequest);
+            }
+
             return Results.NoContent();
         })
         .WithName("DeleteUser")
@@ -78,7 +87,10 @@ public static class AdminEndpoints
         {
             var (success, errors) = await service.ChangeRoleAsync(id, request.Role, ct);
             if (!success)
+            {
                 return Results.Problem(string.Join("; ", errors), statusCode: StatusCodes.Status400BadRequest);
+            }
+
             return Results.NoContent();
         })
         .WithName("ChangeUserRole")
