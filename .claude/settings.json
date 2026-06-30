@@ -26,7 +26,18 @@
       "Read(//tmp/**)",
       "PowerShell(Get-NetTCPConnection -LocalPort 7048 -State Listen | Select-Object -First 1 OwningProcess | ForEach-Object { Get-Process -Id $_.OwningProcess | Select-Object Id, ProcessName, StartTime })",
       "Bash(awk 'NR>=427' DrNutrizioNino.Api-20260628.log)",
-      "Bash(shutdown /s /t 0)"
+      "Bash(shutdown /s /t 0)",
+      "Bash(echo \"COMMIT_EXIT=$?\")",
+      "Bash(echo \"UPD_EXIT=$?\")",
+      "PowerShell(Set-Location \"e:/Davide/Progetti/Dr.NutrizioNino\"; .\\\\davraf-guidelines\\\\setup.ps1 -Update 2>&1; \"SETUP_EXIT=$LASTEXITCODE\")",
+      "Bash(git rev-parse *)",
+      "PowerShell($env:ASPNETCORE_ENVIRONMENT=\"Development\"; $env:ASPNETCORE_URLS=\"http://localhost:5080\"; dotnet run --project src/Dr.NutrizioNino.Api/Dr.NutrizioNino.Api.csproj --no-build)",
+      "PowerShell($conn = Get-NetTCPConnection -LocalPort 5083 -State Listen -ErrorAction SilentlyContinue; if \\($conn\\) { $conn.OwningProcess | Select-Object -Unique | ForEach-Object { Stop-Process -Id $_ -Force; \"killed PID $_\" } } else { \"nessun listener 5083\" })",
+      "PowerShell(dotnet format src/Dr.NutrizioNino.Api/Dr.NutrizioNino.Api.csproj --verify-no-changes 2>&1 | Select-Object -Last 15; \"EXIT=$LASTEXITCODE\")",
+      "PowerShell(dotnet format src/Dr.NutrizioNino.Api/Dr.NutrizioNino.Api.csproj --verify-no-changes 2>&1 | Select-String -Pattern \"HealthMapping|DatabaseStartupService|CacheCleanupService|Program.cs\"; \"EXIT=$LASTEXITCODE\")",
+      "PowerShell($base=\"E:\\\\Davide\\\\Progetti\\\\Dr.NutrizioNino\\\\.github\\\\workflows\"; Get-ChildItem $base | Select-Object Name; \"===CI===\"; Get-Content \"$base\\\\ci.yml\" -Raw)",
+      "Bash(echo \"exit=$?\")",
+      "PowerShell($p=\\(Get-NetTCPConnection -LocalPort 5083 -State Listen -ErrorAction SilentlyContinue\\).OwningProcess | Select-Object -Unique; if\\($p\\){$p|ForEach-Object{Stop-Process -Id $_ -Force;\"killed $_\"}}else{\"nessun listener\"})"
     ],
     "additionalDirectories": [
       "e:\\Davide\\Progetti\\Dr.NutrizioNino\\.claude\\skills"
