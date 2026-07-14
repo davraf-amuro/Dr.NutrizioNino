@@ -5,7 +5,18 @@
     <n-spin :show="isSubmitting">
       <n-form ref="formRef" :model="localFood" :rules="rules" label-placement="left" label-width="140" label-align="right">
         <n-form-item label="Nome" path="name">
-          <n-input v-model:value="localFood.name" :maxlength="50" :disabled="isSubmitting" placeholder="Inserisci il nome dell'alimento" />
+          <n-space vertical size="small" style="width: 100%">
+            <n-input v-model:value="localFood.name" :maxlength="50" :disabled="isSubmitting" placeholder="Inserisci il nome dell'alimento" />
+
+            <n-list v-if="nameSuggestions.length > 0" bordered size="small" style="max-width: 400px">
+              <n-list-item v-for="s in nameSuggestions" :key="s.id" style="padding: 4px 8px">
+                <n-space justify="space-between" align="center" style="width: 100%">
+                  <n-text style="font-size: 12px">{{ s.name }}</n-text>
+                  <n-button size="tiny" secondary @click="useExistingFood(s.id)">Usa questo esistente</n-button>
+                </n-space>
+              </n-list-item>
+            </n-list>
+          </n-space>
         </n-form-item>
 
         <n-form-item label="Barcode" path="barcode">
@@ -97,8 +108,19 @@
         <LlmProviderSelect v-model="selectedProviderKey" :disabled="isExtracting" />
 
         <n-button size="small" :loading="isExtracting" @click="triggerImagePaste">
-          📷 Incolla immagine etichetta
+          📋 Incolla
         </n-button>
+
+        <n-button size="small" :loading="isExtracting" @click="triggerFileUpload">
+          📁 Carica file
+        </n-button>
+        <input
+          ref="fileInputRef"
+          type="file"
+          accept="image/*"
+          style="display: none"
+          @change="onFileSelected"
+        />
 
         <n-button
           v-if="pastedImageBase64 && !isExtracting"
@@ -132,10 +154,18 @@
         <span v-if="pastedImageUrl && !isExtracting" style="font-size: 12px; color: #888">Immagine incollata</span>
       </n-space>
 
-      <!-- Anteprima immagine -->
-      <div v-if="pastedImageUrl" style="margin-bottom: 12px; max-width: 200px">
-        <img :src="pastedImageUrl" alt="Etichetta" style="max-width: 100%; border-radius: 6px; border: 1px solid #ddd" />
-      </div>
+      <!-- Anteprima immagine + JSON raw Ollama (affiancati) -->
+      <n-space v-if="pastedImageUrl" align="start" size="medium" style="margin-bottom: 12px">
+        <div style="max-width: 200px">
+          <img :src="pastedImageUrl" alt="Etichetta" style="max-width: 100%; border-radius: 6px; border: 1px solid #ddd" />
+        </div>
+
+        <n-collapse v-if="lastRawJson" style="max-width: 360px; font-size: 12px">
+          <n-collapse-item title="Dati raw Ollama" name="raw-json">
+            <pre style="white-space: pre-wrap; word-break: break-word; margin: 0; font-size: 11px">{{ lastRawJson }}</pre>
+          </n-collapse-item>
+        </n-collapse>
+      </n-space>
 
       <!-- Conversioni effettuate dalla AI -->
       <n-alert v-if="extractionConversions.length > 0" type="info" :show-icon="false" style="margin-bottom: 8px; font-size: 12px">
@@ -185,6 +215,8 @@ import { sortNutrients } from '@/core/utils/sortNutrients'
 import {
   NAlert,
   NButton,
+  NCollapse,
+  NCollapseItem,
   NDivider,
   NForm,
   NFormItem,
@@ -194,9 +226,12 @@ import {
   NInput,
   NInputGroup,
   NInputNumber,
+  NList,
+  NListItem,
   NSelect,
   NSpace,
   NSpin,
+  NText,
   useMessage,
   type FormInst,
   type FormRules,
@@ -205,7 +240,8 @@ import {
 import type { FoodDto } from '@/Interfaces/foods/FoodDto'
 import type { ExtractedNutrientDto, ExtractionStatus } from '@/Interfaces/foods/ExtractedNutrientDto'
 import type { Nutrient } from '@/Interfaces/Nutrients/Nutrient'
-import { extractNutrientsFromImage } from '@/modules/foods/api/foods.api'
+import { extractNutrientsFromImage, getSimilarFoodNames } from '@/modules/foods/api/foods.api'
+import type { FoodSuggestionDto } from '@/Interfaces/foods/FoodSuggestionDto'
 import { ApiError } from '@/core/http/ApiError'
 import type { UnitOfMeasureDto } from '@/Interfaces/UnitOfMeasureDto'
 import type { Brand } from '@/Interfaces/Brand'
@@ -239,6 +275,7 @@ const emit = defineEmits<{
   'supermarket-created': [supermarket: Supermarket]
   'category-created': [category: Category]
   'nutrient-created': [nutrient: Nutrient]
+  'use-existing': [foodId: string]
 }>()
 
 const formRef = ref<FormInst | null>(null)
@@ -299,6 +336,33 @@ watch(() => props.food, (newFood) => {
 
 watch(() => props.brands, () => ensureBrandSelection(), { immediate: true })
 
+// Suggerimenti alimenti con nome simile durante la digitazione (solo in creazione, mai non bloccante)
+const nameSuggestions = ref<FoodSuggestionDto[]>([])
+let nameSuggestionsDebounce: ReturnType<typeof setTimeout> | null = null
+let nameSuggestionsAbort: AbortController | null = null
+
+watch(() => localFood.value.name, (name) => {
+  if (isEditMode.value) return
+
+  if (nameSuggestionsDebounce) clearTimeout(nameSuggestionsDebounce)
+  nameSuggestionsAbort?.abort()
+  nameSuggestions.value = []
+
+  nameSuggestionsDebounce = setTimeout(async () => {
+    nameSuggestionsAbort = new AbortController()
+    try {
+      nameSuggestions.value = await getSimilarFoodNames(name, nameSuggestionsAbort.signal)
+    } catch {
+      // richiesta abortita o errore di rete: nessun suggerimento, non bloccante
+    }
+  }, 300)
+})
+
+const useExistingFood = (foodId: string) => {
+  nameSuggestions.value = []
+  emit('use-existing', foodId)
+}
+
 const showBrandModal = ref(false)
 const showUnitModal = ref(false)
 const showSupermarketModal = ref(false)
@@ -343,6 +407,7 @@ const pastedMediaType = ref('image/jpeg')
 const selectedProviderKey = ref('ollama')
 const extractionConversions = ref<string[]>([])
 const lastExtractionResults = ref<ExtractedNutrientDto[]>([])
+const lastRawJson = ref<string>('')
 let abortController: AbortController | null = null
 
 // Mappa esito estrazione per nutriente, propagata come badge alle righe FoodNutrientInput
@@ -373,14 +438,16 @@ const handleImageExtraction = async (base64: string, mediaType: string) => {
   isExtracting.value = true
   extractionConversions.value = []
   lastExtractionResults.value = []
+  lastRawJson.value = ''
   abortController = new AbortController()
   timer.start()
 
   try {
-    const results = await extractNutrientsFromImage(base64, selectedProviderKey.value, mediaType, abortController.signal)
-    lastExtractionResults.value = results
+    const result = await extractNutrientsFromImage(base64, selectedProviderKey.value, mediaType, abortController.signal)
+    lastExtractionResults.value = result.nutrients
+    lastRawJson.value = result.rawJson
 
-    for (const extracted of results) {
+    for (const extracted of result.nutrients) {
       if (extracted.status !== 'Matched' || !extracted.matchedNutrientId) continue
 
       const target = localFood.value.nutrients.find((n) => n.nutrientId === extracted.matchedNutrientId)
@@ -484,5 +551,29 @@ const triggerImagePaste = () => {
     }
     document.addEventListener('paste', handler, { once: true })
   })
+}
+
+const fileInputRef = ref<HTMLInputElement | null>(null)
+
+const triggerFileUpload = () => {
+  fileInputRef.value?.click()
+}
+
+const onFileSelected = (e: Event) => {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+
+  const reader = new FileReader()
+  reader.onload = async () => {
+    const dataUrl = reader.result as string
+    pastedImageUrl.value = dataUrl
+    pastedImageBase64.value = dataUrl.split(',')[1]
+    pastedMediaType.value = file.type
+    await handleImageExtraction(pastedImageBase64.value!, file.type)
+  }
+  reader.readAsDataURL(file)
+
+  // Reset per permettere di ricaricare lo stesso file consecutivamente
+  ;(e.target as HTMLInputElement).value = ''
 }
 </script>

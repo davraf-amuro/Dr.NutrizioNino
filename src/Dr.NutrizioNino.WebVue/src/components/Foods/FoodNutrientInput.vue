@@ -18,7 +18,7 @@
       v-model:value="quantity"
       :min="0"
       :max="9999"
-      :precision="2"
+      :precision="3"
       :show-button="false"
       size="small"
       class="nutrient-qty"

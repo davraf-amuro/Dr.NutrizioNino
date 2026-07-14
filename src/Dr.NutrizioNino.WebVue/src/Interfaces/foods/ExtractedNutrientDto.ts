@@ -10,3 +10,8 @@ export interface ExtractedNutrientDto {
   confidenceScore: number
   status: ExtractionStatus
 }
+
+export interface ExtractionResultDto {
+  nutrients: ExtractedNutrientDto[]
+  rawJson: string
+}

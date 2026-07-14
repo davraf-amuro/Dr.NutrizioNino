@@ -28,8 +28,27 @@ public class OllamaVisionProvider(
                 prompt = systemPrompt,
                 images = new[] { base64Image },
                 stream = false,
-                format = "json",
-                options = new { num_ctx = 2048, temperature = 0.0 }
+                // format:"json" garantisce solo "JSON valido", qualunque forma: il modello può fermarsi
+                // dopo un oggetto singolo e soddisfare comunque il vincolo. Schema esplicito forza l'array.
+                format = new
+                {
+                    type = "array",
+                    items = new
+                    {
+                        type = "object",
+                        properties = new
+                        {
+                            name = new { type = "string" },
+                            value = new { type = "number" },
+                            unit = new { type = "string" },
+                            confidenceScore = new { type = "number" }
+                        },
+                        required = new[] { "name", "value", "unit", "confidenceScore" }
+                    }
+                },
+                // num_ctx 2048 era insufficiente: immagine (min 1024 token) + prompt lungo saturavano il contesto,
+                // llama.cpp scartava (context-shift) parte delle istruzioni → JSON malformato. Vedi server.log 2026-07-14.
+                options = new { num_ctx = 8192, temperature = 0.0 }
             };
 
             logger.LogInformation("Ollama request: model={Model} endpoint={Endpoint}", model, endpoint);

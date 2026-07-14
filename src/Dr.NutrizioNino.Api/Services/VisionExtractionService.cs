@@ -49,8 +49,8 @@ public class VisionExtractionService(
             """;
     }
 
-    /// <summary>Extracts nutrients from a base64 image using the specified LLM provider; uses cache keyed by hash+provider.</summary>
-    public async Task<IList<ExtractedNutrientDto>> ExtractNutrientsAsync(
+    /// <summary>Extracts nutrients from a base64 image using the specified LLM provider; uses cache keyed by hash+provider. Returns both the matched nutrients and the raw JSON for display/diagnostics.</summary>
+    public async Task<ExtractionResultDto> ExtractNutrientsAsync(
         string base64Image, string mediaType, string providerKey, CancellationToken ct = default)
     {
         var imageHash = ComputeHash(base64Image);
@@ -60,7 +60,8 @@ public class VisionExtractionService(
         if (cached is not null)
         {
             logger.LogInformation("Cache hit: hash={Hash} provider={Provider}", imageHash, providerKey);
-            return await MapResultAsync(cached.ExtractedJson, ct).ConfigureAwait(false);
+            var cachedResults = await MapResultAsync(cached.ExtractedJson, ct).ConfigureAwait(false);
+            return new ExtractionResultDto(cachedResults, cached.ExtractedJson);
         }
 
         var systemPrompt = await BuildSystemPromptAsync(ct).ConfigureAwait(false);
@@ -77,13 +78,16 @@ public class VisionExtractionService(
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             logger.LogError(ex, "Errore nella chiamata al provider {Provider}", providerKey);
-            return [];
+            return new ExtractionResultDto([], string.Empty);
         }
+
+        // Log del JSON grezzo per diagnosticare risposte malformate del provider (non salvato altrove).
+        logger.LogInformation("Ollama raw JSON: hash={Hash} provider={Provider} json={Json}", imageHash, providerKey, rawJson);
 
         if (string.IsNullOrWhiteSpace(rawJson))
         {
             logger.LogWarning("Risposta vuota dal provider {Provider}", providerKey);
-            return [];
+            return new ExtractionResultDto([], rawJson);
         }
 
         // Mappa prima di cachare: un'immagine non-etichetta produce JSON malformato
@@ -94,7 +98,7 @@ public class VisionExtractionService(
         if (results.Count == 0)
         {
             logger.LogWarning("Etichetta non riconosciuta: nessun nutriente estratto. hash={Hash} provider={Provider}", imageHash, providerKey);
-            return results;
+            return new ExtractionResultDto(results, rawJson);
         }
 
         // Salva in cache solo le estrazioni valide
@@ -108,7 +112,7 @@ public class VisionExtractionService(
             CreatedAt = DateTime.UtcNow
         }, ct).ConfigureAwait(false);
 
-        return results;
+        return new ExtractionResultDto(results, rawJson);
     }
 
     private static string ExtractJsonArray(string text)
@@ -152,6 +156,12 @@ public class VisionExtractionService(
 
         foreach (var r in raw)
         {
+            // Energia in kJ ignorata su richiesta esplicita: si considera solo il valore in kcal, nessun fallback di conversione.
+            if (string.Equals(r.Unit, "kJ", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
             // Cerca per nome canonico, poi per alias (O(1), nessun round-trip DB nel loop)
             var matched = knownNutrients.FirstOrDefault(n =>
                 string.Equals(n.Name, r.Name, StringComparison.OrdinalIgnoreCase));
@@ -169,7 +179,8 @@ public class VisionExtractionService(
             {
                 status = ExtractionStatus.IncompleteMatch;
 
-                if (!string.IsNullOrEmpty(r.Unit))
+                // Valore 0 = quantità non letta dall'OCR: resta IncompleteMatch anche con unità valida.
+                if (!string.IsNullOrEmpty(r.Unit) && r.Value != 0)
                 {
                     if (string.IsNullOrEmpty(matched.CanonicalUnit) || matched.CanonicalUnit == r.Unit)
                     {

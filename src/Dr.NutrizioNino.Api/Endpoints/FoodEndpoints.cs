@@ -5,6 +5,7 @@ using Dr.NutrizioNino.Api.Helpers;
 using Dr.NutrizioNino.Api.Infrastructure.Models;
 using Dr.NutrizioNino.Api.Models;
 using Dr.NutrizioNino.Api.Services;
+using Dr.NutrizioNino.Models.Dto;
 using Microsoft.AspNetCore.Mvc;
 using TinyHelpers.AspNetCore.Extensions;
 
@@ -95,6 +96,15 @@ public static class FoodEndpoints
             .WithDescription("Returns a dashboard item for the specified food identifier.")
             .Produces<FoodDashboardInfo>(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status404NotFound);
+
+        group.MapGet("similar", async (FoodService service, string? query, CancellationToken ct) =>
+            Results.Ok(await service.FindSimilarNamesAsync(query, ct)))
+            .WithName("GetSimilarFoodNames")
+            .WithSummary("Get foods with similar name")
+            .WithDescription("Returns up to 8 existing foods whose name is similar to the query, for duplicate-avoidance suggestions while typing.")
+            .Produces<IList<FoodSuggestionDto>>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status429TooManyRequests)
+            .RequireRateLimiting("food-search");
 
         group.MapGet("newgui", () => Guid.NewGuid().ToString())
             .WithName("GetNewGuiToken")

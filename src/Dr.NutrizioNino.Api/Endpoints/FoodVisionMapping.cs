@@ -39,7 +39,7 @@ public static class FoodVisionMapping
             var result = await service.ExtractNutrientsAsync(request.Base64Image, request.MediaType, request.ProviderKey, ct);
 
             // Nessun nutriente estratto: l'immagine non è una tabella nutrizionale riconoscibile.
-            if (result.Count == 0)
+            if (result.Nutrients.Count == 0)
             {
                 return Results.Problem(
                     detail: "Etichetta non riconosciuta. Verifica che l'immagine sia una tabella nutrizionale.",
@@ -49,12 +49,12 @@ public static class FoodVisionMapping
             return Results.Ok(result);
         })
         .RequireRateLimiting("vision")
-        .Produces<IList<ExtractedNutrientDto>>()
+        .Produces<ExtractionResultDto>()
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status422UnprocessableEntity)
         .ProducesProblem(StatusCodes.Status429TooManyRequests)
         .WithSummary("Estrai nutrienti da immagine")
-        .WithDescription("Invia un'immagine in base64 e il provider LLM scelto; riceve i nutrienti estratti con ExtractionStatus. Max 3 richieste al minuto per utente.")
+        .WithDescription("Invia un'immagine in base64 e il provider LLM scelto; riceve i nutrienti estratti con ExtractionStatus e il JSON grezzo del provider. Max 3 richieste al minuto per utente.")
         .WithName("ExtractNutrientsFromImage");
 
         return endpoints;

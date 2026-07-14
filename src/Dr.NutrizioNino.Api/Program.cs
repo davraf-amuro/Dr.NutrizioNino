@@ -163,6 +163,14 @@ try
             opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
             opt.QueueLimit = 0;
         });
+        options.AddSlidingWindowLimiter("food-search", opt =>
+        {
+            opt.PermitLimit = 30;
+            opt.Window = TimeSpan.FromMinutes(1);
+            opt.SegmentsPerWindow = 3;
+            opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+            opt.QueueLimit = 0;
+        });
         options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
     });
 

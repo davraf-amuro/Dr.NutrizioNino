@@ -14,6 +14,12 @@ public class FoodService(DrRepository drRepository)
     public async Task<bool> IsFoodNameTakenAsync(string name, Guid? excludeId = null, CancellationToken ct = default) =>
         await drRepository.IsFoodNameTakenAsync(name, excludeId, ct).ConfigureAwait(false);
 
+    /// <summary>Returns up to 8 existing foods with a name similar to the query; empty list below 2 characters (avoids useless DB round-trips while typing).</summary>
+    public async Task<IList<FoodSuggestionDto>> FindSimilarNamesAsync(string? query, CancellationToken ct = default) =>
+        string.IsNullOrWhiteSpace(query) || query.Trim().Length < 2
+            ? []
+            : await drRepository.GetSimilarFoodNamesAsync(query.Trim(), take: 8, ct).ConfigureAwait(false);
+
     public async Task<bool> UpdateFoodAsync(Food food, CancellationToken ct = default) =>
         await drRepository.UpdateFoodAsync(food, ct).ConfigureAwait(false);
 

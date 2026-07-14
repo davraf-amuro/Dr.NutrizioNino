@@ -1,7 +1,8 @@
 import { apiClient } from '@/core/http/apiClient'
 import type { FoodDashboardDto } from '@/Interfaces/foods/FoodDashboardDto'
 import type { FoodDto } from '@/Interfaces/foods/FoodDto'
-import type { ExtractedNutrientDto } from '@/Interfaces/foods/ExtractedNutrientDto'
+import type { ExtractionResultDto } from '@/Interfaces/foods/ExtractedNutrientDto'
+import type { FoodSuggestionDto } from '@/Interfaces/foods/FoodSuggestionDto'
 
 export interface VisionProviderDto {
   key: string
@@ -51,8 +52,8 @@ export const extractNutrientsFromImage = async (
   providerKey: string,
   mediaType = 'image/jpeg',
   signal?: AbortSignal
-): Promise<ExtractedNutrientDto[]> => {
-  const response = await apiClient.post<ExtractedNutrientDto[]>(
+): Promise<ExtractionResultDto> => {
+  const response = await apiClient.post<ExtractionResultDto>(
     '/foods/extract-nutrients',
     { base64Image, providerKey, mediaType },
     { signal, timeout: 0 }  // timeout 0 = nessun timeout fisso; l'utente annulla manualmente
@@ -67,4 +68,9 @@ export const getVisionProviders = async (): Promise<VisionProviderDto[]> => {
 
 export const saveNutrientAlias = async (aiName: string, nutrientId: string): Promise<void> => {
   await apiClient.post('/nutrients/aliases', { aiName, nutrientId })
+}
+
+export const getSimilarFoodNames = async (query: string, signal?: AbortSignal): Promise<FoodSuggestionDto[]> => {
+  const response = await apiClient.get<FoodSuggestionDto[]>('/foods/similar', { params: { query }, signal })
+  return response.data
 }

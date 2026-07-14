@@ -131,6 +131,7 @@ onMounted(async () => {
           @supermarket-created="addSupermarketLookup"
           @category-created="addCategoryLookup"
           @nutrient-created="addNutrientLookup"
+          @use-existing="(id) => { cancelCreateFood(); startEditFood(id) }"
           :food="selectedFood"
           :mode="formMode"
           :brands="brands"
