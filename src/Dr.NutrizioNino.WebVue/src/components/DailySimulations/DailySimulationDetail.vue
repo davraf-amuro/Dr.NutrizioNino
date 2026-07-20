@@ -136,6 +136,27 @@
             </td>
             <td></td>
           </tr>
+
+          <!-- % Fabbisogno personale -->
+          <tr v-if="target" class="target-row">
+            <td><em>% Fabbisogno</em></td>
+            <td class="col-qty"></td>
+            <td v-for="col in nutrientColumns" :key="col.name" class="col-nutrient">
+              <n-tag v-if="targetPercent(col.name) !== null" size="small" :bordered="true" round>
+                {{ targetArrow(col.name) }} {{ targetPercent(col.name) }}%
+              </n-tag>
+              <span v-else>–</span>
+            </td>
+            <td></td>
+          </tr>
+          <tr v-else class="target-cta-row">
+            <td :colspan="2 + nutrientColumns.length + 1">
+              <n-text depth="3">
+                Fabbisogno non impostato —
+                <router-link to="/profile">imposta il tuo fabbisogno</router-link>
+              </n-text>
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -145,6 +166,7 @@
       v-if="showChart"
       v-model:show="showChart"
       :simulation="simulation"
+      :target="target"
     />
   </n-space>
 </template>
@@ -153,7 +175,7 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import {
   NButton, NCard, NFormItem, NGi, NGrid, NInput, NInputNumber,
-  NSelect, NSpace, useThemeVars, type SelectOption
+  NSelect, NSpace, NTag, NText, useThemeVars, type SelectOption
 } from 'naive-ui'
 import { formatNutrient } from '@/core/utils/formatNutrient'
 import type { DailySimulationDetailDto, DailySimulationEntryDto, DailySimulationSectionDto } from '@/Interfaces/dailySimulations/DailySimulationDto'
@@ -162,6 +184,9 @@ import { getDishesDashboard } from '@/modules/dishes/api/dishes.api'
 import { addEntry, updateEntryQuantity, deleteEntry, renameSimulation } from '@/modules/dailySimulations/api/dailySimulations.api'
 import type { AddSimulationEntryRequest } from '@/Interfaces/dailySimulations/DailySimulationDto'
 import type { FoodDashboardDto } from '@/Interfaces/foods/FoodDashboardDto'
+import type { NutritionalTargetDto } from '@/Interfaces/nutritionalTarget/NutritionalTargetDto'
+import { getMyNutritionalTarget } from '@/modules/nutritionalTarget/api/nutritionalTarget.api'
+import { getTargetValue } from '@/modules/nutritionalTarget/targetMapping'
 import { sortNutrients } from '@/core/utils/sortNutrients'
 import { useSectionConfigs } from '@/modules/sectionConfigs/composables/useSectionConfigs'
 import DailySimulationChart from './DailySimulationChart.vue'
@@ -311,6 +336,29 @@ const dailyQtyTotal = computed(() =>
 
 const dailyNutrientTotal = (nutrientName: string): number =>
   props.simulation.sections.reduce((sum, s) => sum + sectionNutrientTotal(s, nutrientName), 0)
+
+// ── Fabbisogno personale ──────────────────────────────────────
+const target = ref<NutritionalTargetDto | null>(null)
+
+onMounted(async () => {
+  target.value = await getMyNutritionalTarget()
+})
+
+// Percentuale assunta rispetto al fabbisogno per il nutriente; null se non mappato o non impostato
+const targetPercent = (nutrientName: string): number | null => {
+  const value = getTargetValue(target.value, nutrientName)
+  if (!value) return null
+  return Math.round((dailyNutrientTotal(nutrientName) / value) * 100)
+}
+
+// Freccia neutra (non colorata) per enfatizzare scostamenti marcati, senza semantica di allarme
+const targetArrow = (nutrientName: string): string => {
+  const pct = targetPercent(nutrientName)
+  if (pct === null) return ''
+  if (pct > 110) return '▲'
+  if (pct < 90) return '▼'
+  return ''
+}
 
 // ── Handlers entry ────────────────────────────────────────────
 const handleUpdateQuantity = async (entryId: string, quantityGrams: number) => {

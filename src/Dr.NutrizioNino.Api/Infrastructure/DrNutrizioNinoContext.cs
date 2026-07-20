@@ -55,6 +55,7 @@ public partial class DrNutrizioNinoContext(
         modelBuilder.ApplyConfiguration(new UnitsOfMeasureConfiguration());
         modelBuilder.ApplyConfiguration(new FoodDashboardConfiguration());
         modelBuilder.ApplyConfiguration(new UserProfileEntryConfiguration());
+        modelBuilder.ApplyConfiguration(new NutritionalTargetConfiguration());
 
         modelBuilder.Entity<ApplicationUser>()
             .HasIndex(u => u.NormalizedEmail)

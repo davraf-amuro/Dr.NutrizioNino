@@ -101,7 +101,7 @@ public partial class DrRepository
             .OrderByDescending(f => f.Name.ToLower().StartsWith(query.ToLower()))
             .ThenBy(f => f.Name)
             .Take(take)
-            .Select(f => new FoodSuggestionDto(f.Id, f.Name))
+            .Select(f => new FoodSuggestionDto(f.Id, f.Name, f.Brand != null ? f.Brand.Name : null))
             .ToListAsync(ct)
             .ConfigureAwait(false);
 

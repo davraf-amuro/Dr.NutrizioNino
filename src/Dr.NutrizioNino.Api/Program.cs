@@ -126,6 +126,7 @@ try
     builder.Services.AddScoped<UserProfileService>();
     builder.Services.AddScoped<DailySimulationService>();
     builder.Services.AddScoped<DailySimulationSectionService>();
+    builder.Services.AddScoped<NutritionalTargetService>();
     builder.Services.AddHttpClient();
     builder.Services.AddHttpClient("ollama", (sp, client) =>
     {
@@ -230,6 +231,7 @@ try
     app.MapsUserProfileEndpoints(versionSet);
     app.MapDailySimulationEndpoints(versionSet);
     app.MapsDailySimulationSectionEndpoints(versionSet);
+    app.MapNutritionalTargetEndpoints(versionSet);
     app.MapFoodVisionEndpoints(versionSet);
     app.MapVisionProvidersEndpoints(versionSet);
     app.MapNutrientAliasEndpoints(versionSet);
