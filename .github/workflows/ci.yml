@@ -1,0 +1,67 @@
+name: CI
+
+# Gate di integrazione continua per Dr.NutrizioNino.
+# Riproduce il "Gate di Push" descritto in .github/copilot-instructions.md:
+# lint pulito e build che compila, su backend e frontend.
+on:
+  push:
+    branches: [master, dev]
+  pull_request:
+    branches: [master, dev]
+
+jobs:
+  backend:
+    name: Backend (.NET 10)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore Dr.NutrizioNino.sln
+
+      - name: Lint (dotnet format)
+        run: dotnet format Dr.NutrizioNino.sln --verify-no-changes --no-restore
+
+      - name: Build
+        run: dotnet build Dr.NutrizioNino.sln --configuration Release --no-restore
+
+      # I test di integrazione non girano qui: Dr.NutrizioNino.Api.IntegrationTest
+      # usa WebApplicationFactory<Program> e chiama endpoint reali che leggono da
+      # SQL Server. Senza un database raggiungibile fallirebbero sempre.
+      # Per abilitarli serve un service container SQL Server e una connection
+      # string dedicata passata via ConnectionStrings__DrNutrizioNinoSql.
+
+  frontend:
+    name: Frontend (Vue 3)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/Dr.NutrizioNino.WebVue
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: src/Dr.NutrizioNino.WebVue/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      # Lo script "lint" del progetto include --fix, che riscrive i file.
+      # In CI serve una verifica pura: eslint senza --fix.
+      - name: Lint (eslint)
+        run: npx eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts
+
+      - name: Type check
+        run: npm run type-check
+
+      - name: Build
+        run: npm run build-only
