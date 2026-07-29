@@ -9,4 +9,5 @@ export interface FoodDashboardDto {
   abbreviation: string
   supermarketsText: string | null
   isOwner: boolean
+  categoriesText: string | null
 }

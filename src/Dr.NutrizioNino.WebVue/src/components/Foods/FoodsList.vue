@@ -75,6 +75,17 @@ const columns: DataTableColumns<FoodDashboardDto> = [
   },
   { title: 'Nome', key: 'name', sorter: 'default' },
   { title: 'Marca', key: 'brandDescription', sorter: 'default' },
+  {
+    title: 'Categorie',
+    key: 'categoriesText',
+    render: (row) => {
+      if (!row.categoriesText) return null
+      const names = row.categoriesText.split(', ')
+      return h(NSpace, { size: 4, wrap: true }, () =>
+        names.map((name) => h(NTag, { size: 'small', type: 'warning' }, { default: () => name }))
+      )
+    }
+  },
   { title: 'UdM', key: 'abbreviation', width: 80, sorter: 'default' },
   { title: 'Quantità', key: 'quantity', width: 100, sorter: (a, b) => (a.quantity ?? 0) - (b.quantity ?? 0) },
   {

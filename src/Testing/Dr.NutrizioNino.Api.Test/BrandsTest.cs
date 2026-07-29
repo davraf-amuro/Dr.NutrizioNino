@@ -11,7 +11,7 @@ public class BrandsEndpointTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task Get_All()
+    public async Task Get_AllAsync()
     {
         var response = await _client.GetAsync("/api/v1/brands");
         response.EnsureSuccessStatusCode();

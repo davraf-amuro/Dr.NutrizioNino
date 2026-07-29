@@ -11,7 +11,9 @@
             <n-list v-if="nameSuggestions.length > 0" bordered size="small" style="max-width: 400px">
               <n-list-item v-for="s in nameSuggestions" :key="s.id" style="padding: 4px 8px">
                 <n-space justify="space-between" align="center" style="width: 100%">
-                  <n-text style="font-size: 12px">{{ s.name }}</n-text>
+                  <n-text style="font-size: 12px">
+                    {{ s.name }}<span v-if="s.brandDescription" style="color:#888"> — {{ s.brandDescription }}</span>
+                  </n-text>
                   <n-button size="tiny" secondary @click="useExistingFood(s.id)">Usa questo esistente</n-button>
                 </n-space>
               </n-list-item>

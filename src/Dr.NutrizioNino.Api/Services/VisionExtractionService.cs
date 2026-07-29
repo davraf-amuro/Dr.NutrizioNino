@@ -27,9 +27,9 @@ public class VisionExtractionService(
 
             Compito: trascrivi ogni nutriente abbinando il VALORE all'UNITA scritta accanto, esattamente come in etichetta. Non convertire, non calcolare, non scegliere: copia.
 
-            Leggi SOLO la colonna "per 100 g" (o "per 100 ml"). Ignora "per porzione", "per pezzo", percentuali "%".
+            Leggi SOLO la colonna "per 100 g" (o "per 100 ml"). Ignora "per porzione", "per pezzo", percentuali "%", valori tra parentesi (RDA, riferimenti nutrizionali).
 
-            Se un nutriente ha PIU valori con unita diverse (tipico ENERGIA: "2252 kJ" e "539 kcal"), restituisci un oggetto per OGNI coppia valore+unita: per l'energia DUE oggetti, uno con kJ e uno con kcal.
+            Se un nutriente ha PIU valori con unita diverse (tipico ENERGIA: "2252 kJ" e "539 kcal"), restituisci un oggetto per OGNI coppia valore+unita: per l'energia DUE oggetti, uno con kJ e uno con kcal. Questo vale anche se scritti su una sola riga senza separatore chiaro (es. "202 kJ/48 kcal" → due oggetti: value 202/unit "kJ" e value 48/unit "kcal").
 
             Includi i sotto-nutrienti "di cui ..." (es. "di cui acidi grassi saturi", "di cui zuccheri") come righe a se.
 
@@ -41,7 +41,7 @@ public class VisionExtractionService(
             Ogni oggetto:
             - "name": nome (canonico se riconosciuto, altrimenti etichetta)
             - "value": numero come stampato nella colonna per 100 g/ml
-            - "unit": unita STAMPATA accanto a quel numero
+            - "unit": SOLO il simbolo di misura (es. "mg", "µg", "kcal", "kJ", "gr", "ml") — mai testo tra parentesi. Se il valore in etichetta è scritto come "mg(15%)" o "mg (15%)", l'unita è "mg": scarta sempre "(15%)", anche se attaccato senza spazio.
             - "confidenceScore": 1.0 nitido e leggibile; 0.5-0.8 sfocato o parzialmente coperto
 
             Rispondi SOLO con JSON array, senza testo, senza markdown.

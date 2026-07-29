@@ -9,7 +9,7 @@ public class FoodsEndpointTests : IClassFixture<WebApplicationFactory<Program>>
     }
 
     [Fact]
-    public async Task Create_Food()
+    public async Task Create_FoodAsync()
     {
         //var foodDto = new CreateFoodDto()
         //{

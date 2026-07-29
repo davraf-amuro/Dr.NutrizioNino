@@ -19,7 +19,7 @@ public static class FoodEndpoints
         string? UnitOfMeasureDescription, string? Abbreviation,
         bool IsDish, string? SupermarketsText,
         bool IsNutritionStale, DateTime? NutrientsCalculatedAt,
-        bool IsOwner);
+        bool IsOwner, string? CategoriesText);
 
     public static IEndpointRouteBuilder MapsFoodsEndpoints(this IEndpointRouteBuilder endpoints, ApiVersionSet versionSet)
     {
@@ -54,7 +54,8 @@ public static class FoodEndpoints
                 f.Id, f.Name, f.Barcode, f.Quantity, f.BrandDescription, f.Calorie,
                 f.UnitOfMeasureDescription, f.Abbreviation, f.IsDish, f.SupermarketsText,
                 f.IsNutritionStale, f.NutrientsCalculatedAt,
-                IsOwner: userId.HasValue && f.OwnerId.HasValue && f.OwnerId == userId)).ToList();
+                IsOwner: userId.HasValue && f.OwnerId.HasValue && f.OwnerId == userId,
+                f.CategoriesText)).ToList();
             return result.Count > 0
                 ? Results.Ok(result)
                 : TypedResults.Problem(new ProblemDetails
@@ -88,7 +89,8 @@ public static class FoodEndpoints
                 item.Id, item.Name, item.Barcode, item.Quantity, item.BrandDescription, item.Calorie,
                 item.UnitOfMeasureDescription, item.Abbreviation, item.IsDish, item.SupermarketsText,
                 item.IsNutritionStale, item.NutrientsCalculatedAt,
-                IsOwner: userId.HasValue && item.OwnerId.HasValue && item.OwnerId == userId);
+                IsOwner: userId.HasValue && item.OwnerId.HasValue && item.OwnerId == userId,
+                item.CategoriesText);
             return Results.Ok(result);
         })
             .WithName("GetFoodDashboardById")
