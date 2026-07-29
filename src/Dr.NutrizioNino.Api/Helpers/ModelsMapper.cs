@@ -18,12 +18,12 @@ public static class ModelsMapper
     public static BrandDto AsDto(this Brand brand) => new BrandDto(brand.Id, brand.Name);
 
     public static NutrientInfo AsDto(this Nutrient nutrient) => new NutrientInfo(
-                                                                                nutrient.Id
-                                                                                , nutrient.Name
-                                                                                , nutrient.PositionOrder
+        nutrient.Id
+        , nutrient.Name
+        , nutrient.PositionOrder
         , nutrient.DefaultUnitOfMeasureId
         , nutrient.DefaultQuantity
-                                                                                );
+        );
 
     public static UnitOfMeasureDto AsDto(this UnitOfMeasure unitOfMeasure) => new UnitOfMeasureDto(
         unitOfMeasure.Id

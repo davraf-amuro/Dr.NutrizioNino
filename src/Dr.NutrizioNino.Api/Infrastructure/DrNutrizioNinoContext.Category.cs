@@ -6,6 +6,6 @@ namespace Dr.NutrizioNino.Api.Models;
 
 public partial class DrNutrizioNinoContext
 {
-    public virtual DbSet<Category> Categories { get; set; }
-    public virtual DbSet<FoodCategory> FoodCategories { get; set; }
+    public virtual DbSet<Category>? Categories { get; set; }
+    public virtual DbSet<FoodCategory>? FoodCategories { get; set; }
 }

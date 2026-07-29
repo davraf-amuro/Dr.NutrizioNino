@@ -23,7 +23,11 @@ public static class DailySimulationEndpoints
         group.MapGet("", async (DailySimulationService service, ClaimsPrincipal user, CancellationToken ct) =>
         {
             var userId = user.GetUserId();
-            if (!userId.HasValue) return Results.Forbid();
+            if (!userId.HasValue)
+            {
+                return Results.Forbid();
+            }
+
             var items = await service.GetUserSimulationsAsync(userId.Value, ct);
             return Results.Ok(items);
         })
@@ -35,7 +39,11 @@ public static class DailySimulationEndpoints
         group.MapPost("", async (DailySimulationService service, CreateDailySimulationDto dto, ClaimsPrincipal user, CancellationToken ct) =>
         {
             var userId = user.GetUserId();
-            if (!userId.HasValue) return Results.Forbid();
+            if (!userId.HasValue)
+            {
+                return Results.Forbid();
+            }
+
             var id = await service.CreateSimulationAsync(dto, userId.Value, ct);
             return Results.Created($"api/v1/daily-simulations/{id}", new { id });
         })
@@ -49,10 +57,15 @@ public static class DailySimulationEndpoints
         {
             var ownerId = await service.GetOwnerIdAsync(id, ct);
             if (ownerId is null)
+            {
                 return TypedResults.Problem(new ProblemDetails { Title = "Not Found", Status = 404, Detail = "Simulazione non trovata." });
+            }
 
             var callerId = user.GetUserId();
-            if (ownerId != callerId) return Results.Forbid();
+            if (ownerId != callerId)
+            {
+                return Results.Forbid();
+            }
 
             var detail = await service.GetSimulationDetailAsync(id, ct);
             return Results.Ok(detail);
@@ -67,10 +80,15 @@ public static class DailySimulationEndpoints
         {
             var ownerId = await service.GetOwnerIdAsync(id, ct);
             if (ownerId is null)
+            {
                 return TypedResults.Problem(new ProblemDetails { Title = "Not Found", Status = 404, Detail = "Simulazione non trovata." });
+            }
 
             var callerId = user.GetUserId();
-            if (ownerId != callerId) return Results.Forbid();
+            if (ownerId != callerId)
+            {
+                return Results.Forbid();
+            }
 
             await service.RenameSimulationAsync(id, dto.Name, ct);
             return Results.Ok();
@@ -85,10 +103,15 @@ public static class DailySimulationEndpoints
         {
             var ownerId = await service.GetOwnerIdAsync(id, ct);
             if (ownerId is null)
+            {
                 return TypedResults.Problem(new ProblemDetails { Title = "Not Found", Status = 404, Detail = "Simulazione non trovata." });
+            }
 
             var callerId = user.GetUserId();
-            if (ownerId != callerId) return Results.Forbid();
+            if (ownerId != callerId)
+            {
+                return Results.Forbid();
+            }
 
             await service.DeleteSimulationAsync(id, ct);
             return Results.Ok();
@@ -103,10 +126,15 @@ public static class DailySimulationEndpoints
         {
             var ownerId = await service.GetOwnerIdAsync(id, ct);
             if (ownerId is null)
+            {
                 return TypedResults.Problem(new ProblemDetails { Title = "Not Found", Status = 404, Detail = "Simulazione non trovata." });
+            }
 
             var callerId = user.GetUserId();
-            if (ownerId != callerId) return Results.Forbid();
+            if (ownerId != callerId)
+            {
+                return Results.Forbid();
+            }
 
             var cloneId = await service.CloneSimulationAsync(id, callerId!.Value, ct);
             return Results.Created($"api/v1/daily-simulations/{cloneId}", new { id = cloneId });
@@ -121,17 +149,26 @@ public static class DailySimulationEndpoints
         {
             var ownerId = await service.GetOwnerIdAsync(id, ct);
             if (ownerId is null)
+            {
                 return TypedResults.Problem(new ProblemDetails { Title = "Not Found", Status = 404, Detail = "Simulazione non trovata." });
+            }
 
             var callerId = user.GetUserId();
-            if (ownerId != callerId) return Results.Forbid();
+            if (ownerId != callerId)
+            {
+                return Results.Forbid();
+            }
 
             if (dto.QuantityGrams <= 0)
+            {
                 return TypedResults.Problem(new ProblemDetails { Title = "Quantità non valida", Status = 400, Detail = "La quantità deve essere maggiore di zero." });
+            }
 
             var (entryId, error) = await service.AddEntryAsync(id, dto, ct);
             if (error is not null)
+            {
                 return TypedResults.Problem(new ProblemDetails { Title = "Sorgente non trovata", Status = 404, Detail = error });
+            }
 
             return Results.Created($"api/v1/daily-simulations/{id}/entries/{entryId}", new { id = entryId });
         })
@@ -145,20 +182,31 @@ public static class DailySimulationEndpoints
         {
             var ownerId = await service.GetOwnerIdAsync(id, ct);
             if (ownerId is null)
+            {
                 return TypedResults.Problem(new ProblemDetails { Title = "Not Found", Status = 404, Detail = "Simulazione non trovata." });
+            }
 
             var callerId = user.GetUserId();
-            if (ownerId != callerId) return Results.Forbid();
+            if (ownerId != callerId)
+            {
+                return Results.Forbid();
+            }
 
             if (dto.QuantityGrams <= 0)
+            {
                 return TypedResults.Problem(new ProblemDetails { Title = "Quantità non valida", Status = 400, Detail = "La quantità deve essere maggiore di zero." });
+            }
 
             var (found, error) = await service.UpdateEntryQuantityAsync(id, entryId, dto.QuantityGrams, ct);
             if (!found)
+            {
                 return TypedResults.Problem(new ProblemDetails { Title = "Not Found", Status = 404, Detail = "Voce non trovata." });
+            }
 
             if (error is not null)
+            {
                 return TypedResults.Problem(new ProblemDetails { Title = "Ricalcolo non eseguito", Status = 422, Detail = error });
+            }
 
             return Results.Ok();
         })
@@ -172,10 +220,15 @@ public static class DailySimulationEndpoints
         {
             var ownerId = await service.GetOwnerIdAsync(id, ct);
             if (ownerId is null)
+            {
                 return TypedResults.Problem(new ProblemDetails { Title = "Not Found", Status = 404, Detail = "Simulazione non trovata." });
+            }
 
             var callerId = user.GetUserId();
-            if (ownerId != callerId) return Results.Forbid();
+            if (ownerId != callerId)
+            {
+                return Results.Forbid();
+            }
 
             var deleted = await service.DeleteEntryAsync(id, entryId, ct);
             return deleted ? Results.Ok() : TypedResults.Problem(new ProblemDetails { Title = "Not Found", Status = 404, Detail = "Voce non trovata." });
@@ -189,7 +242,10 @@ public static class DailySimulationEndpoints
         group.MapGet("compare", async (DailySimulationService service, Guid id1, Guid id2, ClaimsPrincipal user, CancellationToken ct) =>
         {
             var userId = user.GetUserId();
-            if (!userId.HasValue) return Results.Forbid();
+            if (!userId.HasValue)
+            {
+                return Results.Forbid();
+            }
 
             var result = await service.CompareAsync(id1, id2, userId.Value, ct);
             return result is not null

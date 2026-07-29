@@ -98,7 +98,9 @@ public static class DishEndpoints
             var ownerId = await service.GetOwnerIdAsync(id, ct);
             var callerId = user.GetUserId();
             if (ownerId.HasValue && ownerId != callerId)
+            {
                 return Results.Forbid();
+            }
 
             await service.DeleteDishAsync(id, ct);
             return Results.Ok();
@@ -114,18 +116,22 @@ public static class DishEndpoints
         {
             var original = await service.GetDishDetailAsync(id, ct);
             if (original is null)
+            {
                 return TypedResults.Problem(new ProblemDetails
                 {
                     Title = "Data Not Found",
                     Status = StatusCodes.Status404NotFound,
                     Detail = "Dish not found for clone."
                 });
+            }
 
             var ownerId = user.GetUserId();
             var cloneDto = new CreateDishDto($"{original.Name} (copia)", original.Ingredients.Select(i => new DishIngredientDto(i.FoodId, i.QuantityGrams)).ToList());
             var (detail, error) = await service.CreateDishAsync(cloneDto, ownerId, ct);
             if (error is not null)
+            {
                 return TypedResults.Problem(new ProblemDetails { Title = "Errore clone", Status = StatusCodes.Status400BadRequest, Detail = error });
+            }
 
             return Results.Created($"api/v1/dishes/{detail!.Id}", detail);
         })

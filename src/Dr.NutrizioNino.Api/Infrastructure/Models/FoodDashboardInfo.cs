@@ -30,4 +30,6 @@ public class FoodDashboardInfo
     public DateTime? NutrientsCalculatedAt { get; set; }
 
     public Guid? OwnerId { get; set; }
+
+    public string? CategoriesText { get; set; }
 }

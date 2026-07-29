@@ -8,10 +8,10 @@ namespace Dr.NutrizioNino.Api.Models;
 
 public partial class DrNutrizioNinoContext
 {
-    public virtual DbSet<Dish> Dishes { get; set; }
-    public virtual DbSet<DishNutrient> DishNutrients { get; set; }
-    public virtual DbSet<DishIngredient> DishIngredients { get; set; }
-    public virtual DbSet<DishDashboardInfo> DishesDashboard { get; set; }
+    public virtual DbSet<Dish>? Dishes { get; set; }
+    public virtual DbSet<DishNutrient>? DishNutrients { get; set; }
+    public virtual DbSet<DishIngredient>? DishIngredients { get; set; }
+    public virtual DbSet<DishDashboardInfo>? DishesDashboard { get; set; }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
     {
@@ -26,5 +26,6 @@ public partial class DrNutrizioNinoContext
         modelBuilder.ApplyConfiguration(new DailySimulationConfiguration());
         modelBuilder.ApplyConfiguration(new DailySimulationEntryConfiguration());
         modelBuilder.ApplyConfiguration(new DailySimulationEntryNutrientConfiguration());
+        modelBuilder.ApplyConfiguration(new UnitConversionConfiguration());
     }
 }

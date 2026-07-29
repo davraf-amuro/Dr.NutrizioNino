@@ -1,11 +1,11 @@
+using System.Security.Claims;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Dr.NutrizioNino.Api.Helpers;
 using Dr.NutrizioNino.Api.Services;
-using TinyHelpers.AspNetCore.Extensions;
 using Dr.NutrizioNino.Models.Dto.Auth;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using TinyHelpers.AspNetCore.Extensions;
 
 namespace Dr.NutrizioNino.Api.Endpoints;
 
@@ -22,7 +22,9 @@ public static class AuthEndpoints
         {
             var result = await service.LoginAsync(request);
             if (result is null)
+            {
                 return Results.Problem("Credenziali non valide.", statusCode: StatusCodes.Status401Unauthorized);
+            }
 
             return Results.Ok(new LoginResponse(result.RawToken, result.UserName, result.Role));
         })
@@ -45,7 +47,10 @@ public static class AuthEndpoints
         {
             var userId = user.GetUserId();
             if (userId is null)
+            {
                 return Results.Problem("Utente non autenticato.", statusCode: StatusCodes.Status401Unauthorized);
+            }
+
             var me = await service.GetMeAsync(userId.Value);
             return me is null ? Results.NotFound() : Results.Ok(me);
         })
@@ -59,7 +64,10 @@ public static class AuthEndpoints
         {
             var userId = user.GetUserId();
             if (userId is null)
+            {
                 return Results.Problem("Utente non autenticato.", statusCode: StatusCodes.Status401Unauthorized);
+            }
+
             var ok = await service.UpdateBirthdateAsync(userId.Value, request.DateOfBirth);
             return ok ? Results.NoContent() : Results.NotFound();
         })
@@ -73,11 +81,15 @@ public static class AuthEndpoints
         {
             var userId = user.GetUserId();
             if (userId is null)
+            {
                 return Results.Problem("Utente non autenticato.", statusCode: StatusCodes.Status401Unauthorized);
+            }
 
             var allowed = new[] { "light", "dark", "system" };
             if (!allowed.Contains(request.Theme))
+            {
                 return Results.Problem("Valore tema non valido. Usa: light, dark, system.", statusCode: StatusCodes.Status400BadRequest);
+            }
 
             var ok = await service.UpdateThemeAsync(userId.Value, request.Theme);
             return ok ? Results.NoContent() : Results.NotFound();

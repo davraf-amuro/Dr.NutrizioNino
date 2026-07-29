@@ -1,5 +1,12 @@
 <template>
   <div class="nutrient-row">
+    <n-tooltip v-if="statusInfo" trigger="hover">
+      <template #trigger>
+        <span class="nutrient-status" :aria-label="statusInfo.label" role="img">{{ statusInfo.icon }}</span>
+      </template>
+      {{ statusInfo.label }}
+    </n-tooltip>
+    <span v-else class="nutrient-status" aria-hidden="true" />
     <n-text class="nutrient-label">{{ props.foodNutrientDto.name }}</n-text>
     <n-select
       v-model:value="selectedUnitOfMeasureId"
@@ -11,7 +18,7 @@
       v-model:value="quantity"
       :min="0"
       :max="9999"
-      :precision="2"
+      :precision="3"
       :show-button="false"
       size="small"
       class="nutrient-qty"
@@ -21,14 +28,30 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { NInputNumber, NSelect, NText, type SelectOption } from 'naive-ui'
+import { NInputNumber, NSelect, NText, NTooltip, type SelectOption } from 'naive-ui'
 import type { FoodNutrientDto } from '@/Interfaces/foods/FoodNutrientDto'
 import type { UnitOfMeasureDto } from '@/Interfaces/UnitOfMeasureDto'
+import type { ExtractionStatus } from '@/Interfaces/foods/ExtractedNutrientDto'
 
 const props = defineProps<{
   foodNutrientDto: FoodNutrientDto
   unitsOfMeasures: UnitOfMeasureDto[]
+  status?: ExtractionStatus
 }>()
+
+// Badge accessibile (icona + aria-label, mai colore-solo) per l'esito dell'estrazione AI sulla riga
+const statusInfo = computed(() => {
+  switch (props.status) {
+    case 'Matched':
+      return { icon: '✅', label: 'Corrispondenza esatta dall\'AI — verifica il valore' }
+    case 'IncompleteMatch':
+      return { icon: '⚠️', label: 'Corrispondenza parziale dall\'AI — controlla unità e valore' }
+    case 'Unrecognized':
+      return { icon: '⛔', label: 'Non riconosciuto dall\'AI' }
+    default:
+      return null
+  }
+})
 
 const emit = defineEmits<{
   update: [foodNutrient: FoodNutrientDto]
@@ -64,6 +87,14 @@ watch([selectedUnitOfMeasureId, quantity], () => {
   align-items: center;
   gap: 8px;
   margin-bottom: 4px;
+}
+
+.nutrient-status {
+  width: 18px;
+  min-width: 18px;
+  font-size: 14px;
+  text-align: center;
+  cursor: default;
 }
 
 .nutrient-label {

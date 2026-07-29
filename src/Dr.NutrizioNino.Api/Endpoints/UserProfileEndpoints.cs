@@ -2,9 +2,9 @@ using System.Security.Claims;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Dr.NutrizioNino.Api.Services;
-using TinyHelpers.AspNetCore.Extensions;
 using Dr.NutrizioNino.Models.Dto.Auth;
 using Microsoft.AspNetCore.Mvc;
+using TinyHelpers.AspNetCore.Extensions;
 
 namespace Dr.NutrizioNino.Api.Endpoints;
 

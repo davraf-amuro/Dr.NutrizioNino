@@ -5,6 +5,7 @@ import type { Category } from '@/Interfaces/Category'
 import type { UnitOfMeasureDto } from '@/Interfaces/UnitOfMeasureDto'
 import type { FoodDashboardDto } from '@/Interfaces/foods/FoodDashboardDto'
 import type { FoodDto } from '@/Interfaces/foods/FoodDto'
+import type { Nutrient } from '@/Interfaces/Nutrients/Nutrient'
 import { useAsyncState } from '@/core/composables/useAsyncState'
 import { getBrands } from '@/modules/brands/api/brands.api'
 import { getSupermarkets } from '@/modules/supermarkets/api/supermarkets.api'
@@ -20,6 +21,7 @@ import {
   updateFood
 } from '@/modules/foods/api/foods.api'
 import { getUnitsOfMeasures } from '@/modules/units/api/units.api'
+import { getNutrients } from '@/modules/nutrients/api/nutrients.api'
 
 const cacheTtlMs = 60_000
 let dashboardCache: FoodDashboardDto[] | null = null
@@ -28,6 +30,7 @@ let brandsCache: Brand[] | null = null
 let unitsCache: UnitOfMeasureDto[] | null = null
 let supermarketsCache: Supermarket[] | null = null
 let categoriesCache: Category[] | null = null
+let nutrientsCache: Nutrient[] | null = null
 let lookupsCacheAt = 0
 type FoodFormMode = 'create' | 'edit'
 
@@ -39,6 +42,7 @@ export const useFoods = () => {
   const unitsOfMeasures = ref<UnitOfMeasureDto[]>([])
   const supermarkets = ref<Supermarket[]>([])
   const categories = ref<Category[]>([])
+  const nutrients = ref<Nutrient[]>([])
   const isCreating = ref(false)
   const formMode = ref<FoodFormMode>('create')
 
@@ -47,11 +51,12 @@ export const useFoods = () => {
     dashboardCacheAt = Date.now()
   }
 
-  const updateLookupsCache = (newBrands: Brand[], newUnits: UnitOfMeasureDto[], newSupermarkets: Supermarket[], newCategories: Category[]) => {
+  const updateLookupsCache = (newBrands: Brand[], newUnits: UnitOfMeasureDto[], newSupermarkets: Supermarket[], newCategories: Category[], newNutrients: Nutrient[]) => {
     brandsCache = [...newBrands]
     unitsCache = [...newUnits]
     supermarketsCache = [...newSupermarkets]
     categoriesCache = [...newCategories]
+    nutrientsCache = [...newNutrients]
     lookupsCacheAt = Date.now()
   }
 
@@ -70,29 +75,32 @@ export const useFoods = () => {
   }
 
   const loadLookups = async (force = false) => {
-    const hasValidCache = !force && brandsCache && unitsCache && supermarketsCache && categoriesCache && Date.now() - lookupsCacheAt < cacheTtlMs
-    if (hasValidCache && brandsCache && unitsCache && supermarketsCache && categoriesCache) {
+    const hasValidCache = !force && brandsCache && unitsCache && supermarketsCache && categoriesCache && nutrientsCache && Date.now() - lookupsCacheAt < cacheTtlMs
+    if (hasValidCache && brandsCache && unitsCache && supermarketsCache && categoriesCache && nutrientsCache) {
       brands.value = [...brandsCache]
       unitsOfMeasures.value = [...unitsCache]
       supermarkets.value = [...supermarketsCache]
       categories.value = [...categoriesCache]
+      nutrients.value = [...nutrientsCache]
       return
     }
 
-    const [brandsData, unitsData, supermarketsData, categoriesData] = await Promise.all([
+    const [brandsData, unitsData, supermarketsData, categoriesData, nutrientsData] = await Promise.all([
       run(() => getBrands()),
       run(() => getUnitsOfMeasures()),
       run(() => getSupermarkets()),
-      run(() => getCategories())
+      run(() => getCategories()),
+      run(() => getNutrients())
     ])
 
     if (brandsData) brands.value = brandsData
     if (unitsData) unitsOfMeasures.value = unitsData
     if (supermarketsData) supermarkets.value = supermarketsData
     if (categoriesData) categories.value = categoriesData
+    if (nutrientsData) nutrients.value = nutrientsData
 
-    if (brandsData && unitsData && supermarketsData && categoriesData) {
-      updateLookupsCache(brandsData, unitsData, supermarketsData, categoriesData)
+    if (brandsData && unitsData && supermarketsData && categoriesData && nutrientsData) {
+      updateLookupsCache(brandsData, unitsData, supermarketsData, categoriesData, nutrientsData)
     }
   }
 
@@ -189,6 +197,11 @@ export const useFoods = () => {
     if (categoriesCache) categoriesCache.push(category)
   }
 
+  const addNutrientLookup = (nutrient: Nutrient) => {
+    nutrients.value.push(nutrient)
+    if (nutrientsCache) nutrientsCache.push(nutrient)
+  }
+
   const cloneFood = async (id: string): Promise<string | null> => {
     let clonedId: string | null = null
     const result = await run(async () => {
@@ -223,6 +236,7 @@ export const useFoods = () => {
     unitsOfMeasures,
     supermarkets,
     categories,
+    nutrients,
     isCreating,
     formMode,
     isLoading,
@@ -238,6 +252,7 @@ export const useFoods = () => {
     addBrandLookup,
     addUnitLookup,
     addSupermarketLookup,
-    addCategoryLookup
+    addCategoryLookup,
+    addNutrientLookup
   }
 }

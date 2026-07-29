@@ -1,10 +1,21 @@
-# Linee guida per Claude Code
+## Davraf Guidelines
 
 ## Lingua
 - Rispondi sempre in **italiano**
 
 ## Comportamento generale
-- Se l'utente scrive un termine tecnico in modo errato o impreciso, segnalarlo gentilmente e fornire la forma corretta, in modo che possa imparare la terminologia giusta
+- Termine tecnico errato o impreciso → segnala gentilmente + forma corretta
+
+## Regola fondamentale — Compatibilità duale agente
+
+⛔ OGNI regola, istruzione, convenzione o linea guida creata o modificata in questo progetto **deve essere compatibile sia con Claude Code che con GitHub Copilot**.
+
+- Preferire sintassi e struttura neutra, leggibile da entrambi
+- No feature esclusive di un solo tool
+- Verifica compatibilità prima di proporre o applicare regola
+- Compatibilità non garantita → **fermati, chiedi all'utente** — no assunzioni, no azione autonoma
+
+> **Esenzione — Claude Code Skills.** I file in `.claude/skills/` sono artefatti specifici di Claude Code *by design* (usano `$ARGUMENTS`, sub-agenti, `AskUserQuestion`, `EnterPlanMode`) e non sono portabili su GitHub Copilot: sono **esenti** da questa regola. La compatibilità duale resta obbligatoria per `.github/instructions/*.md`, `.github/prompts/*.prompt.md` e ogni altra regola/documento condiviso.
 
 ## Standard di progetto .NET
 @.github/copilot-instructions.md
@@ -14,19 +25,68 @@
 
 ## Modifiche al codice
 
-Ogni richiesta che comporta una modifica al codice **deve essere proposta come plan** prima di essere eseguita. Non scrivere codice senza che il piano sia stato approvato esplicitamente dall'utente.
+⛔ STOP — Prima di scrivere codice, completa tre passi e documentali nell'output:
+
+1. **Leggi** `.github/copilot-instructions.md` e **cita** sezione rilevante per task corrente.
+2. **Identifica e leggi** file `.github/instructions/*.md` pertinente. Se incerto, elenca file disponibili e scegli.
+3. **Dichiara** scope, file da modificare e cosa NON toccare — formato obbligatorio:
+   > "Modificherò `[file]` per `[motivo]`. Non toccherò `[fuori scope]`."
+
+No procedere finché tre passi non completati e visibili nell'output.
+
+⛔ OBBLIGO DI RENDICONTO — Prima di scrivere codice, elenca nell'output tutti i file letti:
+
+```
+File letti:
+- .github/copilot-instructions.md  ✓
+- .github/instructions/database-provider.instructions.md  ✓
+```
+
+File non letto che andava letto → dichiara `✗ non letto` e leggilo prima di procedere. No elenco visibile = no procedere.
+
+---
+
+### Checklist pre-task (obbligatoria)
+
+Fonte unica: `dev-cycle.instructions.md` — Fase 0. Compila quella checklist nell'output prima di ogni task. Anche una sola risposta NO → fermati e completa il passo mancante prima di procedere.
+
+---
+
+⛔ Task con ≥ 2 operazioni (stessa soglia di `plan-tracking.instructions.md`) richiede piano approvato:
+
+1. Usa `EnterPlanMode` per proporre piano
+2. Dichiara: scope, file da modificare, motivazione, perimetro negativo
+3. Attendi approvazione esplicita utente
+4. Usa `ExitPlanMode` per procedere
+
+Operazione singola → dichiarazione inline (dev-cycle Fase 1), nessun piano richiesto.
+
+**Esenzioni** (nessun `EnterPlanMode` richiesto):
+- Cartella `.ai/` — piani e file di contesto si scrivono senza blocchi
+- Skill invocate esplicitamente dall'utente (es. `/promote-to`, `/professor`) — l'invocazione è l'approvazione; la skill segue i propri passi e le proprie conferme interne
+
+## Piano obbligatorio su disco
+
+⛔ OGNI task con ≥ 2 operazioni richiede piano persistito su disco **prima** di EnterPlanMode.
+
+Segui `plan-tracking.instructions.md`:
+1. Crea `.ai/plans/<YYYY-MM-DD>-<slug>/plan.md` con obiettivo, scope, fasi, criteri di verifica
+2. Entra in EnterPlanMode e proponi piano all'utente
+3. Durante esecuzione, marca `[x]` ogni fase completata nel piano
+4. A task completato, verifica ogni criterio → aggiorna `Stato: COMPLETATO`
+5. Dichiara: `"Piano [slug] verificato. Tutti i criteri soddisfatti."`
+
+Piano `IN CORSO` in `.ai/plans/` all'avvio sessione → riprendi da ultima fase incompleta.
 
 ## Citazione fonti e modello
 
-Alla fine di ogni risposta, se sono stati letti file o consultati documenti:
-- Cita i file usati come fonti (path relativo)
-- Indica il modello LLM usato (es. `claude-sonnet-4-6`)
+Fine risposta, se letti file o consultati documenti:
+- Cita file usati come fonti (path relativo)
+- Indica modello LLM usato (es. `claude-sonnet-4-6`)
 
 ## Invocazione automatica delle skill
 
-Quando l'utente esprime un intento che corrisponde a una delle skill disponibili,
-**invoca direttamente la skill** senza attendere conferma. Usa il contesto della
-conversazione come argomento passato alla skill.
+Intento utente corrisponde a skill disponibile → **invoca direttamente** senza conferma. Usa contesto conversazione come argomento.
 
 | Se l'utente dice qualcosa come... | Invoca |
 |-----------------------------------|--------|
@@ -34,7 +94,13 @@ conversazione come argomento passato alla skill.
 | "consulta il warroom", "sentiamo le opinioni", "apri il tavolo", "cosa ne pensano gli esperti", "discutiamo questa scelta" | `/warroom [domanda o contesto]` |
 | "chiedi al tattico", "rivedi questo prompt", "migliora il prompt", "scrivi un prompt per", "perché questo prompt non funziona" | `/tattico [prompt o descrizione]` |
 | "pianifica il rilascio", "prepara l'ambiente", "come si deploya", "configura Docker", "procedura di deploy" | `/tech [task]` |
+| "promote", "promuovi il branch", "crea la PR verso", "merge su", "porta su master/main/staging" | `/promote-to [target-branch] [--merge] [--delete]` |
+| "audit api", "fai l'audit del backend", "analizza le api", "cerca dead code", "controlla il codice backend" | `/audit-api [focus opzionale]` |
+| "audit frontend", "fai l'audit del fe", "analizza il frontend", "controlla i componenti" | `/audit-fe [focus opzionale]` |
+| "aggiorna il submodule", "aggiorna davraf-guidelines", "aggiorna le linee guida", "get-latest" | `/get-latest` |
+| "modifica testi", "aggiorna commenti", "riscrivi il testo", "correggi il testo", "migliora la descrizione", "aggiorna la descrizione", "modifica il commento" | `/professor [richiesta]` |
+| "aggiorna snapshot", "refresh contesto", "rigenera il riassunto", "snapshot del progetto", "aggiorna il contesto del progetto" | `/snapshot` |
+| "genera i profili di avvio", "crea launch.json", "configura il debug VS Code", "launch profiles" | `/CreateLaunchProfiles [profili]` |
 
-Quando invochi una skill, passa come argomento tutto il contesto utile già presente
-nella conversazione (codice aperto, domanda originale, file citati) — non chiedere
-all'utente di ripetere le informazioni.
+Invoca skill → passa tutto contesto utile già in conversazione (codice aperto, domanda originale, file citati) — no chiedere all'utente di ripetere.
+<!-- /davraf-guidelines -->

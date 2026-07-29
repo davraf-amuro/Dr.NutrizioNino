@@ -1,13 +1,17 @@
 using System.Text;
+using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using Asp.Versioning;
 using Dr.NutrizioNino.Api.Endpoints;
 using Dr.NutrizioNino.Api.Infrastructure;
 using Dr.NutrizioNino.Api.Middleware;
 using Dr.NutrizioNino.Api.Models;
 using Dr.NutrizioNino.Api.Services;
+using Dr.NutrizioNino.Api.Services.Vision;
 using Dr.NutrizioNino.Api.Transformers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
@@ -59,8 +63,11 @@ try
     builder.Services.AddExceptionHandler<DatabaseExceptionHandler>();
     builder.Services.AddDefaultExceptionHandler();
 
+    builder.Services.ConfigureHttpJsonOptions(o =>
+        o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+
     //aggiungi i servizi
-    builder.Services.AddDbContext<DrNutrizioNinoContext>(options =>
+    builder.Services.AddDbContextFactory<DrNutrizioNinoContext>(options =>
     {
         options.UseSqlServer(builder.Configuration.GetConnectionString("DrNutrizioNinoSql"));
         if (builder.Environment.IsDevelopment())
@@ -86,7 +93,7 @@ try
     builder.Services.AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme    = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     })
     .AddJwtBearer(opt =>
     {
@@ -119,6 +126,54 @@ try
     builder.Services.AddScoped<UserProfileService>();
     builder.Services.AddScoped<DailySimulationService>();
     builder.Services.AddScoped<DailySimulationSectionService>();
+    builder.Services.AddScoped<NutritionalTargetService>();
+    builder.Services.AddHttpClient();
+    builder.Services.AddHttpClient("ollama", (sp, client) =>
+    {
+        var cfg = sp.GetRequiredService<IConfiguration>();
+        var minutes = cfg.GetValue<int>("Vision:Ollama:TimeoutMinutes", 10);
+        client.Timeout = TimeSpan.FromMinutes(minutes);
+    });
+    builder.Services.AddScoped<VisionExtractionService>();
+    builder.Services.AddSingleton<UnitConversionService>();
+    builder.Services.AddSingleton<DatabaseStartupService>();
+    builder.Services.AddHostedService<CacheCleanupService>();
+
+    // Vision providers — registrati come singleton per SemaphoreSlim in OllamaVisionProvider
+    builder.Services.AddSingleton<IVisionProvider, OllamaVisionProvider>();
+    builder.Services.AddSingleton<IVisionProvider, ClaudeVisionProvider>();
+    builder.Services.AddSingleton<IVisionProvider, AzureVisionProvider>();
+    builder.Services.AddSingleton<VisionProviderFactory>();
+
+    // Rate limiting
+    builder.Services.AddRateLimiter(options =>
+    {
+        options.AddSlidingWindowLimiter("vision", opt =>
+        {
+            opt.PermitLimit = 3;
+            opt.Window = TimeSpan.FromMinutes(1);
+            opt.SegmentsPerWindow = 3;
+            opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+            opt.QueueLimit = 0;
+        });
+        options.AddSlidingWindowLimiter("aliases", opt =>
+        {
+            opt.PermitLimit = 10;
+            opt.Window = TimeSpan.FromMinutes(1);
+            opt.SegmentsPerWindow = 2;
+            opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+            opt.QueueLimit = 0;
+        });
+        options.AddSlidingWindowLimiter("food-search", opt =>
+        {
+            opt.PermitLimit = 30;
+            opt.Window = TimeSpan.FromMinutes(1);
+            opt.SegmentsPerWindow = 3;
+            opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+            opt.QueueLimit = 0;
+        });
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    });
 
     var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? [];
     builder.Services.AddCors(options =>
@@ -155,6 +210,7 @@ try
     }
 
     app.UseCors(permitGetPost);
+    app.UseRateLimiter();
     app.UseHttpsRedirection();
     app.UseExceptionHandler();
     app.UseStatusCodePages();
@@ -175,12 +231,20 @@ try
     app.MapsUserProfileEndpoints(versionSet);
     app.MapDailySimulationEndpoints(versionSet);
     app.MapsDailySimulationSectionEndpoints(versionSet);
+    app.MapNutritionalTargetEndpoints(versionSet);
+    app.MapFoodVisionEndpoints(versionSet);
+    app.MapVisionProvidersEndpoints(versionSet);
+    app.MapNutrientAliasEndpoints(versionSet);
+    app.MapUserPreferencesEndpoints(versionSet);
+    app.MapHealthEndpoints(versionSet);
 
-    // SEED: garantisce che i ruoli esistano al primo avvio
-    using (var seedScope = app.Services.CreateScope())
+    // SEED: garantisce che i ruoli esistano al primo avvio.
+    // Resiliente: se il DB non è raggiungibile, l'API parte comunque in stato degradato.
+    // Lo stato è consultabile su /api/v1/status e il retry su /api/v1/status/retry-database.
+    var dbStartup = app.Services.GetRequiredService<DatabaseStartupService>();
+    if (!await dbStartup.TryInitializeAsync(CancellationToken.None))
     {
-        var adminService = seedScope.ServiceProvider.GetRequiredService<AdminUserService>();
-        await adminService.EnsureRolesExistAsync();
+        Log.Warning("Database non raggiungibile all'avvio: l'API parte in stato degradato. Stato su /api/v1/status, retry su /api/v1/status/retry-database");
     }
 
     //Log.Information($"Security Protocols Allowed: {ServicePointManager.SecurityProtocol}");

@@ -106,7 +106,7 @@ public partial class DrRepository
     /// <summary>
     /// Restituisce tutti i nutrienti. Se riceve il guid di un cibo restituisce i nutrienti di quel cibo più quelli mancanti.
     /// </summary>
-    public async Task<IEnumerable<NutrientsGetForFoodCreatingInfo>> GetAllNutrientsForFood(Guid? id, CancellationToken ct = default)
+    public async Task<IEnumerable<NutrientsGetForFoodCreatingInfo>> GetAllNutrientsForFoodAsync(Guid? id, CancellationToken ct = default)
     {
         return await drContext.NutrientsGetForFoodCreatingInfoes
             .FromSql($"EXECUTE dbo.Full_Nutrients_For_Food {id}")

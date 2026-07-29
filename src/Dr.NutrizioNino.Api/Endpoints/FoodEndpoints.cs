@@ -5,6 +5,7 @@ using Dr.NutrizioNino.Api.Helpers;
 using Dr.NutrizioNino.Api.Infrastructure.Models;
 using Dr.NutrizioNino.Api.Models;
 using Dr.NutrizioNino.Api.Services;
+using Dr.NutrizioNino.Models.Dto;
 using Microsoft.AspNetCore.Mvc;
 using TinyHelpers.AspNetCore.Extensions;
 
@@ -18,7 +19,7 @@ public static class FoodEndpoints
         string? UnitOfMeasureDescription, string? Abbreviation,
         bool IsDish, string? SupermarketsText,
         bool IsNutritionStale, DateTime? NutrientsCalculatedAt,
-        bool IsOwner);
+        bool IsOwner, string? CategoriesText);
 
     public static IEndpointRouteBuilder MapsFoodsEndpoints(this IEndpointRouteBuilder endpoints, ApiVersionSet versionSet)
     {
@@ -29,7 +30,7 @@ public static class FoodEndpoints
 
         group.MapGet("{id}", async (FoodService service, Guid id, CancellationToken ct) =>
         {
-            var result = await service.GetFullFood(id, ct);
+            var result = await service.GetFullFoodAsync(id, ct);
             return result is not null
                 ? Results.Ok(result)
                 : TypedResults.Problem(new ProblemDetails
@@ -53,7 +54,8 @@ public static class FoodEndpoints
                 f.Id, f.Name, f.Barcode, f.Quantity, f.BrandDescription, f.Calorie,
                 f.UnitOfMeasureDescription, f.Abbreviation, f.IsDish, f.SupermarketsText,
                 f.IsNutritionStale, f.NutrientsCalculatedAt,
-                IsOwner: userId.HasValue && f.OwnerId.HasValue && f.OwnerId == userId)).ToList();
+                IsOwner: userId.HasValue && f.OwnerId.HasValue && f.OwnerId == userId,
+                f.CategoriesText)).ToList();
             return result.Count > 0
                 ? Results.Ok(result)
                 : TypedResults.Problem(new ProblemDetails
@@ -73,18 +75,22 @@ public static class FoodEndpoints
         {
             var item = await service.GetFoodDashboardAsync(id, ct);
             if (item is null)
+            {
                 return TypedResults.Problem(new ProblemDetails
                 {
                     Title = "Data Not Found",
                     Status = StatusCodes.Status404NotFound,
                     Detail = "Dashboard item not found."
                 });
+            }
+
             var userId = user.GetUserId();
             var result = new FoodDashboardResponse(
                 item.Id, item.Name, item.Barcode, item.Quantity, item.BrandDescription, item.Calorie,
                 item.UnitOfMeasureDescription, item.Abbreviation, item.IsDish, item.SupermarketsText,
                 item.IsNutritionStale, item.NutrientsCalculatedAt,
-                IsOwner: userId.HasValue && item.OwnerId.HasValue && item.OwnerId == userId);
+                IsOwner: userId.HasValue && item.OwnerId.HasValue && item.OwnerId == userId,
+                item.CategoriesText);
             return Results.Ok(result);
         })
             .WithName("GetFoodDashboardById")
@@ -93,6 +99,15 @@ public static class FoodEndpoints
             .Produces<FoodDashboardInfo>(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status404NotFound);
 
+        group.MapGet("similar", async (FoodService service, string? query, CancellationToken ct) =>
+            Results.Ok(await service.FindSimilarNamesAsync(query, ct)))
+            .WithName("GetSimilarFoodNames")
+            .WithSummary("Get foods with similar name")
+            .WithDescription("Returns up to 8 existing foods whose name is similar to the query, for duplicate-avoidance suggestions while typing.")
+            .Produces<IList<FoodSuggestionDto>>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status429TooManyRequests)
+            .RequireRateLimiting("food-search");
+
         group.MapGet("newgui", () => Guid.NewGuid().ToString())
             .WithName("GetNewGuiToken")
             .WithSummary("Generate new gui token")
@@ -100,7 +115,7 @@ public static class FoodEndpoints
             .Produces<string>(StatusCodes.Status200OK);
 
         group.MapGet("getnewfood", async (FoodService service, CancellationToken ct) =>
-            await service.GetFullFood(null, ct))
+            await service.GetFullFoodAsync(null, ct))
             .WithName("GetNewFoodTemplate")
             .WithSummary("Get new food template")
             .WithDescription("Returns a template for creating a new food.")
@@ -119,7 +134,7 @@ public static class FoodEndpoints
             }
 
             var ownerId = user.GetUserId();
-            var newFoodId = await service.InsertFullFood(foodInfo, ownerId, ct);
+            var newFoodId = await service.InsertFullFoodAsync(foodInfo, ownerId, ct);
             return Results.Ok(newFoodId);
         })
             .WithName("CreateFood")
@@ -134,7 +149,9 @@ public static class FoodEndpoints
             var ownerId = await service.GetOwnerIdAsync(id, ct);
             var callerId = user.GetUserId();
             if (ownerId.HasValue && ownerId != callerId)
+            {
                 return Results.Forbid();
+            }
 
             if (await service.IsFoodNameTakenAsync(foodInfo.Name, excludeId: foodInfo.Id, ct: ct))
             {
@@ -185,7 +202,9 @@ public static class FoodEndpoints
             var ownerId = await service.GetOwnerIdAsync(id, ct);
             var callerId = user.GetUserId();
             if (ownerId.HasValue && ownerId != callerId)
+            {
                 return Results.Forbid();
+            }
 
             await service.DeleteFoodAsync(id, ct);
             return Results.Ok();
@@ -199,17 +218,19 @@ public static class FoodEndpoints
 
         group.MapPost("{id}/clone", async (FoodService service, Guid id, ClaimsPrincipal user, CancellationToken ct) =>
         {
-            var original = await service.GetFullFood(id, ct);
+            var original = await service.GetFullFoodAsync(id, ct);
             if (original is null)
+            {
                 return TypedResults.Problem(new ProblemDetails
                 {
                     Title = "Data Not Found",
                     Status = StatusCodes.Status404NotFound,
                     Detail = "Food not found for clone."
                 });
+            }
 
             var ownerId = user.GetUserId();
-            var clonedId = await service.InsertFullFood(original with { Id = Guid.Empty, Name = $"{original.Name} (copia)" }, ownerId, ct);
+            var clonedId = await service.InsertFullFoodAsync(original with { Id = Guid.Empty, Name = $"{original.Name} (copia)" }, ownerId, ct);
             return Results.Created($"api/v1/foods/{clonedId}", original with { Id = clonedId });
         })
             .WithName("CloneFood")

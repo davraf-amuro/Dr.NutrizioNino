@@ -41,7 +41,9 @@ public static class DailySimulationSectionEndpoints
         group.MapPost("", async (DailySimulationSectionService service, CreateSimulationSectionDto dto, CancellationToken ct) =>
         {
             if (string.IsNullOrWhiteSpace(dto.Name))
+            {
                 return TypedResults.Problem(new ProblemDetails { Title = "Nome non valido", Status = 400, Detail = "Il nome è obbligatorio." });
+            }
 
             var id = await service.CreateAsync(dto.Name, ct);
             return Results.Created($"api/v1/sections/{id}", new { id });
@@ -67,7 +69,9 @@ public static class DailySimulationSectionEndpoints
         group.MapPut("{id:guid}", async (DailySimulationSectionService service, Guid id, UpdateSimulationSectionDto dto, CancellationToken ct) =>
         {
             if (string.IsNullOrWhiteSpace(dto.Name))
+            {
                 return TypedResults.Problem(new ProblemDetails { Title = "Nome non valido", Status = 400, Detail = "Il nome è obbligatorio." });
+            }
 
             var found = await service.UpdateAsync(id, dto.Name, ct);
             return found ? Results.Ok() : TypedResults.Problem(new ProblemDetails { Title = "Not Found", Status = 404, Detail = "Sezione non trovata." });

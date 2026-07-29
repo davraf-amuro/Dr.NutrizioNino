@@ -1,50 +1,38 @@
 # Onboarding — Dr.NutrizioNino
 
-## Il progetto in tre righe
+## 1. Il progetto in tre righe
 
-Applicazione web per la gestione di un diario alimentare. Permette di censire alimenti con i loro nutrienti, costruire piatti come distinte base di ingredienti, e gestire le anagrafiche di supporto (marche, unità di misura, supermercati, categorie). Autenticazione multi-utente con ruoli `User` e `Admin`.
+Dr.NutrizioNino è un diario alimentare web. Registra alimenti, marche, categorie, supermercati e nutrienti, li compone in piatti e li organizza in simulazioni di giornata alimentare confrontabili con il fabbisogno personale dell'utente.
+Il valore aggiunto è l'estrazione automatica dei nutrienti da una foto dell'etichetta, delegata a un provider LLM scelto dall'utente.
+Backend Minimal API .NET 10, frontend SPA Vue 3, database SQL Server.
 
----
+## 2. Stack e scelte tecniche
 
-## Stack e scelte tecniche
+| Tecnologia | Versione | Motivo della scelta |
+|------------|----------|---------------------|
+| .NET | 10 (`net10.0`) | Standard di progetto; SDK pinned in `global.json` a `10.0.100` |
+| C# | 14 (`LangVersion 14.0`) | Impostato in `Directory.Build.props`, con `Nullable` e `ImplicitUsings` attivi |
+| ASP.NET Core Minimal API | 10 | Nessun Controller: gli endpoint sono extension method in `Endpoints/` |
+| EF Core | 10.0.9 (`SqlServer`) | Accesso dati; registrato come `AddDbContextFactory` |
+| ASP.NET Core Identity | 10.0.9 | Utenti e ruoli; `ApplicationUser` con chiave `Guid` |
+| JWT Bearer | 10.0.9 | Autenticazione stateless; sovrascrive esplicitamente gli schema default di Identity |
+| Asp.Versioning | 10.0.0 | Versionamento via URL segment (`api/v1/...`) |
+| Scalar | 2.16.4 | UI di documentazione API — sostituisce Swagger UI, esposta solo in Development |
+| Serilog | 10.0.0 | Logging strutturato su console e file CompactJson |
+| TinyHelpers.AspNetCore | 4.2.16 | `ProblemDetails` di default e transformer OpenAPI |
+| Vue | 3.5 | Frontend SPA, Composition API |
+| TypeScript | 5.9 | Tipizzazione allineata ai DTO backend |
+| Vite | 8 | Dev server e build frontend |
+| Naive UI | 2.44 | Libreria componenti |
+| Chart.js + vue-chartjs | 4.5 / 5.3 | Grafici nutrienti, con `chartjs-plugin-annotation` per le soglie |
+| Axios | 1.13 | Client HTTP con interceptor JWT |
+| xUnit | — | Test di integrazione in `src/Testing/Dr.NutrizioNino.Api.Test` |
 
-### Backend
+## 3. Come avviare il progetto
 
-| Tecnologia | Versione | Note |
-|---|---|---|
-| .NET / C# | 10 / 14 | Target framework `net10.0` |
-| ASP.NET Core Minimal API | 10.0.3 | No MVC controllers — scelta esplicita di progetto |
-| Entity Framework Core | 10.0.3 | Code-first, mapping manuale via `IEntityTypeConfiguration<T>` |
-| SQL Server | — | Connection string in `appsettings.local.json` |
-| ASP.NET Core Identity | 10.0.3 | `ApplicationUser : IdentityUser<Guid>`, ruoli via `IdentityRole<Guid>` |
-| JWT Bearer | 10.0.3 | HMAC-SHA256, 8 ore, localStorage nel frontend |
-| Asp.Versioning | 8.1.1 | `UrlSegmentApiVersionReader` — versione nell'URL, non nell'header |
-| Scalar | 2.12.50 | Sostituisce Swagger UI — documentazione su `/scalar/v1` |
-| Serilog | 10.0.0 | Console + file rotante, configurazione da `appsettings.json` |
-| TinyHelpers.AspNetCore | 4.1.18 | `AddDefaultProblemDetails`, `ProducesDefaultProblem` |
+**Prerequisiti:** .NET 10 SDK, Node.js, un'istanza SQL Server raggiungibile con il database `DrNutrizioNino` creato.
 
-### Frontend
-
-| Tecnologia | Note |
-|---|---|
-| Vue 3 + TypeScript | Composition API, `<script setup>` |
-| Vite 8 | Dev server su `localhost:5173` |
-| Naive UI | Design system — tutti i componenti UI vengono da qui |
-| Axios | HTTP client con interceptor per header `Authorization: Bearer` |
-| Vue Router 4 | Navigation guard con controllo JWT locale prima di chiamare `/me` |
-
----
-
-## Come avviare il progetto in locale
-
-### Prerequisiti
-
-- .NET 10 SDK
-- Node.js 20+
-- SQL Server raggiungibile con database `DrNutrizioNino` già creato
-- Submoduli Git inizializzati
-
-### 1. Clona con submoduli
+**Passo 1 — clone e submodule**
 
 ```bash
 git clone https://github.com/davraf-amuro/Dr.NutrizioNino.git
@@ -52,32 +40,34 @@ cd Dr.NutrizioNino
 git submodule update --init --recursive
 ```
 
-### 2. Configura il backend
+**Passo 2 — configurazione locale del backend**
 
-Crea `src/Dr.NutrizioNino.Api/appsettings.local.json` (non viene committato):
+`src/Dr.NutrizioNino.Api/appsettings.local.json` non è committato. Va creato con almeno:
 
 ```json
 {
   "ConnectionStrings": {
     "DrNutrizioNinoSql": "Data Source=<server>;Initial Catalog=DrNutrizioNino;Integrated Security=True;Encrypt=True;Trust Server Certificate=True"
   },
-  "Jwt": {
-    "Secret": "<chiave-min-32-caratteri>"
-  },
+  "Jwt": { "Secret": "<segreto di almeno 32 caratteri>" },
   "AllowedOrigins": [ "http://localhost:5173" ]
 }
 ```
 
-### 3. Avvia il backend
+Per usare l'estrazione da immagine serve anche la sezione `Vision` con endpoint e credenziali di almeno un provider (`Ollama`, `Claude`, `Azure`).
+
+**Passo 3 — avvio backend**
 
 ```bash
 cd src/Dr.NutrizioNino.Api
 dotnet run
 ```
 
-API: `http://localhost:5083` — Scalar: `http://localhost:5083/scalar/v1`
+API su `http://localhost:5083`, documentazione Scalar su `http://localhost:5083/scalar`.
 
-### 4. Avvia il frontend
+Se il database non risponde, l'API parte comunque in stato degradato: `GET /api/v1/status` riporta l'errore, `POST /api/v1/status/retry-database` ritenta connessione e seed dei ruoli.
+
+**Passo 4 — avvio frontend**
 
 ```bash
 cd src/Dr.NutrizioNino.WebVue
@@ -85,146 +75,124 @@ npm install
 npm run dev
 ```
 
-Frontend: `http://localhost:5173`
+Frontend su `http://localhost:5173`. La base URL dell'API si configura in `.env.development` tramite `VITE_API_BASE_URL`.
 
-### Alternativa VSCode
+**Avvio da VS Code:** `.vscode/launch.json` e `.vscode/tasks.json` sono versionati nel repository. I profili possono essere rigenerati con la skill `/CreateLaunchProfiles`.
 
-Usa la configurazione **Full Stack (API + Vue)** nel pannello *Run & Debug* (F5) per avviare entrambi insieme.
-
-### Schema DB
-
-Lo schema è gestito tramite script SQL in `schema-migrations/`. Non ci sono EF Core migrations — il DB va allineato manualmente applicando i file `.sql` in ordine cronologico.
-
----
-
-## Struttura del codice
-
-### Backend — `src/Dr.NutrizioNino.Api/`
+## 4. Struttura del codice
 
 ```
-Endopints/          Route handlers — ogni dominio è un extension method Map*Endpoints()
-Services/           Business logic — BrandService, FoodService, DishService, ecc.
-Infrastructure/
-  DrNutrizioNinoContext*.cs   DbContext (partial, un file per dominio aggregato)
-  DrRepository*.cs            Repository (partial, un file per dominio)
-  ModelsFactory.cs            Costruzione entità da DTO
-  Models/                     Entità EF Core
-  Models/Configurations/      IEntityTypeConfiguration<T> per ogni entità
-Middleware/
-  HttpContextLogger.cs        Log richieste/risposte (filtra header sensibili)
-  ValidatorMiddleware.cs      Validazione request su path /api
-Transformers/                 Transformer OpenAPI (AddDocumentInformations, AddHeaders, ecc.)
-Middleware/DatabaseExceptionHandler.cs   Intercetta SqlException → 503
+Dr.NutrizioNino/
+├── src/
+│   ├── Dr.NutrizioNino.Api/        # Backend Minimal API
+│   ├── Dr.NutrizioNino.WebVue/     # Frontend Vue 3
+│   ├── Infrastructure/             # Dr.NutrizioNino.Provider.Sql
+│   └── Testing/                    # Test di integrazione xUnit
+├── Dr.NutrizioNino.Models/         # DTO condivisi tra API e frontend
+├── docs/                           # Documentazione generata
+├── schema-migrations/              # Script SQL di evoluzione schema
+├── tools/dr-mcp-dbschema/          # MCP server per la lettura dello schema DB
+├── davraf-guidelines/              # Submodule linee guida
+└── .ai/plans/                      # Piani di lavoro persistiti
 ```
 
-**Dove tocchi più spesso:**
-- Nuovo endpoint → `Endopints/` + registrazione in `Program.cs`
-- Nuova logica → `Services/`
-- Nuovo accesso DB → `DrRepository.<dominio>.cs`
-- Nuova entità → `Models/` + `Configurations/` + `DrNutrizioNinoContext*.cs`
+**Backend — `src/Dr.NutrizioNino.Api/`**
 
-### Frontend — `src/Dr.NutrizioNino.WebVue/src/`
+| Cartella | Cosa contiene |
+|----------|---------------|
+| `Endpoints/` | Un file per gruppo di route, ognuno con un extension method `Map*Endpoints` invocato da `Program.cs`. È qui che si aggiunge un endpoint |
+| `Services/` | Logica applicativa, una classe per dominio. Gli handler iniettano il Service, mai il livello dati |
+| `Services/Vision/` | `IVisionProvider` e le tre implementazioni (Ollama, Claude, Azure) più la factory |
+| `Infrastructure/` | `DrNutrizioNinoContext` e `DrRepository`, entrambi divisi in file parziali per dominio |
+| `Infrastructure/Models/` | Entità EF Core |
+| `Infrastructure/Models/Configurations/` | `IEntityTypeConfiguration` per ogni entità — il mapping vive qui, non nel `DbContext` |
+| `Infrastructure/Extensions/` | Metodi di proiezione entità → DTO |
+| `Middleware/` | `HttpContextLogger`, `DatabaseExceptionHandler` |
+| `Transformers/` | Transformer OpenAPI (`AddDocumentInformations`, `AddHeaders`, `AddGenericsInformations`) |
+| `Helpers/` | `ClaimsPrincipalExtensions.GetUserId()`, costanti, mapper |
 
-```
-modules/<dominio>/api/           Chiamate HTTP (axios) per feature
-modules/<dominio>/composables/   State management reattivo (useXxx)
-components/<Dominio>/            Componenti UI per dominio
-views/                           Pagine — una per rotta principale
-core/
-  http/apiClient.ts              Istanza Axios con interceptor auth + errori
-  http/ApiError.ts               Classe errore tipizzata (status, title, detail)
-  http/tokenStorage.ts           Getter/setter localStorage per JWT
-  composables/useAsyncState.ts   Pattern async/loading/error condiviso
-  composables/useTableSearch.ts  Ricerca e filtro tabelle
-  composables/useDishCalculator.ts  Calcolo nutrienti piatto da ingredienti
-  utils/sortNutrients.ts         Ordinamento nutrienti (positionOrder → alfa)
-modules/auth/composables/useAuth.ts   Stato autenticazione singleton
-router/index.ts                  Route + navigation guard
-```
+**Frontend — `src/Dr.NutrizioNino.WebVue/src/`**
 
-### Modelli condivisi — `Dr.NutrizioNino.Models/Dto/`
+| Cartella | Cosa contiene |
+|----------|---------------|
+| `modules/<feature>/api/` | Chiamate HTTP di una feature |
+| `modules/<feature>/composables/` | Stato e logica riusabile della feature |
+| `components/<Dominio>/` | Componenti UI raggruppati per dominio |
+| `Interfaces/<dominio>/` | Tipi TypeScript allineati ai DTO backend |
+| `core/http/` | `apiClient` Axios, interceptor JWT, `ApiError` |
+| `core/composables/` | Composable trasversali, es. `useAsyncState` |
+| `views/` e `router/` | Pagine e route con navigation guard |
 
-DTO usati sia dall'API che (come riferimento) dal frontend. Progetto .NET separato referenziato dall'API.
+## 5. Convenzioni obbligatorie
 
----
+Fonte: `.github/copilot-instructions.md` e i file in `.github/instructions/`.
 
-## Convenzioni obbligatorie
+| Regola | Dove è definita |
+|--------|-----------------|
+| Endpoint solo come extension method in `Endpoints/`, mai Controller | `minimal-api-architecture.instructions.md` |
+| Route sempre `api/v{version:apiVersion}/{gruppo}/{comando?}`, con `WithTags` + `WithApiVersionSet` + `MapToApiVersion` | `minimal-api-architecture.instructions.md` |
+| Metadata OpenAPI completi su ogni endpoint: `WithSummary`, `WithDescription`, `WithName`, `Produces<T>` per ogni risultato | `minimal-api-architecture.instructions.md` |
+| Handler iniettano il Service, mai direttamente il livello dati | `minimal-api-architecture.instructions.md` |
+| Primary constructor e `async`/`await` su ogni I/O | `copilot-instructions.md` |
+| Logging strutturato con placeholder, mai interpolazione di stringa nei log | `copilot-instructions.md`, `logging.instructions.md` |
+| Naming: namespace `snake_case`, classi `PascalCase`, variabili `camelCase` | `copilot-instructions.md` |
+| Un tipo per file, record inclusi | `code-organization.instructions.md` |
+| Nessun valore letterale hardcoded: centralizzare in costanti o configurazione | `no-hardcoded-values.instructions.md` |
+| Credenziali mai in file committati; `appsettings.local.json` è in `.gitignore` | `sensitive-data.instructions.md` |
+| Task con ≥ 2 operazioni: piano su disco in `.ai/plans/<YYYY-MM-DD>-<slug>/` prima di agire | `plan-tracking.instructions.md` |
+| Ogni documento in `docs/` chiude con `*Revisione vN — YYYY-MM-DD HH:MM — modello*` | `doc-versioning.instructions.md` |
+| Ogni regola condivisa deve funzionare sia con Claude Code sia con GitHub Copilot | `CLAUDE.md` |
 
-### Backend
+**Divergenze note tra istruzioni e codice esistente.** Vale la pena saperlo prima di aprire una PR:
 
-| Regola | Dettaglio |
-|---|---|
-| Solo Minimal API | Niente MVC Controllers, niente AutoMapper, niente MediatR |
-| Endpoint in extension method | `public static IEndpointRouteBuilder Map*Endpoints(this IEndpointRouteBuilder, ApiVersionSet)` |
-| Route format | `api/v{version:apiVersion}/{risorsa}` — sempre |
-| Metadata OpenAPI | `Produces` + `WithName` + `WithSummary` + `WithDescription` obbligatori |
-| Errori | `TypedResults.Problem(new ProblemDetails { ... })` — mai `throw` nei handler |
-| FK pre-check su DELETE | Prima di cancellare un record, verifica che non sia referenziato; ritorna 409 se in uso |
-| Ordine parametri handler | route → query → body → servizi DI → `CancellationToken` ultimo |
-| Logging | Serilog con placeholder strutturati — `Log.Information("Testo {Param}", val)` |
+- `minimal-api-architecture.instructions.md` prescrive un Provider con `Filter.ToExpression()` e DTO con `static Projection`. Il codice usa invece `DrRepository`, diviso in file parziali per dominio, con proiezioni negli extension method di `Infrastructure/Extensions/`.
+- La stessa istruzione prescrive `IValidator<T>` per ogni body. Nel progetto non esiste alcun validatore: i controlli sono inline negli handler e, dove serve coerenza tra route e body, in un `AddEndpointFilter` (esempio: `PUT /api/v1/foods/{id}`).
 
-### Frontend
+Prima di allineare il codice alle istruzioni o viceversa, concorda la direzione: entrambe le scelte impattano tutti i gruppi di endpoint.
 
-| Regola | Dettaglio |
-|---|---|
-| Async state | Sempre tramite `useAsyncState` — non gestire loading/error a mano |
-| Cache | Ogni composable mantiene una cache in-memory 60s; `load(force: true)` per invalidare |
-| Errori HTTP | Intercettati da `apiClient`; usare `ApiError` per accedere a `status`, `title`, `detail` |
-| Componenti UI | Solo Naive UI — non mescolare librerie |
+## 6. Flusso di lavoro
 
-### Ciclo di sviluppo (AI-agent e umano)
+| Attività | Come si fa |
+|----------|-----------|
+| Branch di lavoro | Si parte da `dev`. `master` è il branch principale |
+| Promozione | Skill `/promote-to <target-branch>` — esegue commit, push e apre la PR |
+| Lint .NET (gate di push) | `dotnet format src/Dr.NutrizioNino.Api/Dr.NutrizioNino.Api.csproj --verify-no-changes` |
+| Lint frontend (gate di push) | `npm run lint` da `src/Dr.NutrizioNino.WebVue` |
+| Type-check frontend | `npm run type-check` |
+| Test di integrazione | `dotnet test src/Testing/Dr.NutrizioNino.Api.Test/Dr.NutrizioNino.Api.IntegrationTest.csproj` |
+| Aggiornamento linee guida | Skill `/get-latest` — aggiorna il submodule `davraf-guidelines` e propaga i file |
 
-Prima di modificare codice: dichiara file + motivo + scope negativo. Una modifica per turno. Rileggi dopo ogni modifica per verificare. Vedi `.github/instructions/dev-cycle.instructions.md`.
+> Regola assoluta: nessun `git push` senza lint pulito. Exit code diverso da zero blocca la push.
 
----
+**Evoluzione dello schema database.** Il progetto non usa le migration EF Core: gli script SQL stanno in `schema-migrations/` e in `docs/migrations/`, e vanno eseguiti sul database prima di avviare il codice che li richiede.
 
-## Flusso di lavoro
+## 7. Dati sensibili e configurazione locale
 
-| Aspetto | Dettaglio |
-|---|---|
-| Branch principale | `master` — stabile |
-| Branch di sviluppo | `dev` — qui si lavora normalmente |
-| PR | `dev` → `master` via pull request |
-| Commit | Formato `type(scope): descrizione` — es. `feat(foods): aggiungi colonna categoria` |
-| CI/CD | Non configurato al momento |
-| Schema DB | File `.sql` in `schema-migrations/` con nome `YYYY-MM-DD_<descrizione>.sql` — applicati manualmente via `sqlcmd` o MCP `db-schema` |
+| File | Contenuto | Committato |
+|------|-----------|------------|
+| `src/Dr.NutrizioNino.Api/appsettings.json` | Solo placeholder (`CHISSADOVE`, `CHISSAQUALE`) | Sì |
+| `src/Dr.NutrizioNino.Api/appsettings.local.json` | Connection string, `Jwt:Secret`, chiavi dei provider vision | No — in `.gitignore` |
+| `src/Dr.NutrizioNino.WebVue/.env.development` | `VITE_API_BASE_URL` | Regolato dal `.gitignore` del frontend |
+| `.mcp.json` | Configurazione MCP con percorsi reali | No — usare `.mcp.example.json` come modello |
+| `docs/*-wiki.md` | Schede operative con valori reali | No — in `.gitignore` |
 
-### Submoduli Git
+Ogni configurazione è sovrascrivibile da variabile d'ambiente: `Program.cs` chiama `AddEnvironmentVariables()` e il separatore di sezione è `__` (esempio: `ConnectionStrings__DrNutrizioNinoSql`).
 
-Il progetto include `dr-mcp-dbschema` come submodulo in `tools/mcp-db-schema/`. Dopo ogni pull:
+Regole complete in `.github/instructions/sensitive-data.instructions.md`.
 
-```bash
-git submodule update --init --recursive
-```
+## 8. Dove chiedere / cosa leggere dopo
 
----
+| Documento | Contenuto |
+|-----------|-----------|
+| [`CLAUDE.md`](../CLAUDE.md) | Regole di collaborazione con gli agenti AI, invocazione delle skill |
+| [`.github/copilot-instructions.md`](../.github/copilot-instructions.md) | Standard di progetto .NET, checklist pre e post generazione |
+| [`.github/instructions/`](../.github/instructions/) | Istruzioni modulari: architettura, logging, validazione, dati sensibili, CI/CD |
+| [`docs/card-Dr.NutrizioNino.Api.md`](card-Dr.NutrizioNino.Api.md) | Scheda del backend: stack, dipendenze, endpoint group, hosting |
+| [`docs/card-Dr.NutrizioNino.WebVue.md`](card-Dr.NutrizioNino.WebVue.md) | Scheda del frontend |
+| `docs/endpoint-*.md` | Un documento per gruppo di endpoint, con tabelle e diagrammi di flusso |
+| `http://localhost:5083/scalar` | Documentazione API interattiva, disponibile in Development |
 
-## Dati sensibili e configurazione locale
-
-| File | Stato Git | Contiene |
-|---|---|---|
-| `appsettings.json` | Committato | Solo placeholder |
-| `appsettings.local.json` | **Non committato** | Connection string, Jwt:Secret, AllowedOrigins reali |
-| `.mcp.json` | **Non committato** | Configurazione MCP con connection string |
-| `.mcp.example.json` | Committato | Template con placeholder |
-
-Regola: nessun valore reale va in file committati. Mai. Vedi `.github/instructions/sensitive-data.instructions.md`.
-
----
-
-## Dove leggere dopo
-
-| Documento | Cosa risponde |
-|---|---|
-| [`docs/authentication.md`](authentication.md) | Come funziona JWT, localStorage, navigation guard, endpoint protetti |
-| [`docs/architecture-backend-findings.md`](architecture-backend-findings.md) | Architettura backend, cronologia decisioni, anti-pattern risolti |
-| [`docs/architecture-frontend-findings.md`](architecture-frontend-findings.md) | Architettura frontend, feature aggiunte per sessione |
-| [`docs/architecture-backend-plan.md`](architecture-backend-plan.md) | Backlog backend con stato e KPI |
-| [`docs/architecture-frontend-plan.md`](architecture-frontend-plan.md) | Backlog frontend con stato e KPI |
-| [`.github/copilot-instructions.md`](../.github/copilot-instructions.md) | Stack obbligatorio e checklist post-generazione |
-| [`.github/instructions/minimal-api-architecture.instructions.md`](../.github/instructions/minimal-api-architecture.instructions.md) | Pattern Minimal API — copia e incolla da qui |
-| [`http://localhost:5083/scalar/v1`](http://localhost:5083/scalar/v1) | Documentazione interattiva endpoint (solo con backend avviato) |
+Le domande sul dominio nutrizionale (formule, categorie, correttezza dei dati) hanno una skill dedicata: `/nutrizionista`.
 
 ---
-
-*Revisione v1.0 — 2026-04-04 — claude-sonnet-4-6*
+*Revisione v2.0 — 2026-07-29 22:24 — claude-opus-5*

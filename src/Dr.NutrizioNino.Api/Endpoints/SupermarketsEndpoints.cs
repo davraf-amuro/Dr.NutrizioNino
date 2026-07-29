@@ -133,12 +133,14 @@ public static class SupermarketsEndpoints
         group.MapDelete("{id}", async (SupermarketService service, Guid id, CancellationToken ct) =>
         {
             if (await service.IsSupermarketInUseAsync(id, ct))
+            {
                 return TypedResults.Problem(new ProblemDetails
                 {
                     Title = "Conflict",
                     Status = StatusCodes.Status409Conflict,
                     Detail = "Il supermercato è in uso e non può essere eliminato."
                 });
+            }
 
             var deleted = await service.DeleteSupermarketAsync(id, ct);
             return deleted

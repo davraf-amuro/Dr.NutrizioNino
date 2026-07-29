@@ -92,13 +92,26 @@ public partial class DrRepository
             .ToListAsync(ct)
             .ConfigureAwait(false);
 
+    /// <summary>Returns up to <paramref name="take"/> foods whose name contains <paramref name="query"/>, prefix matches first.</summary>
+    public async Task<IList<FoodSuggestionDto>> GetSimilarFoodNamesAsync(string query, int take, CancellationToken ct = default) =>
+        // Query mirata (no navigation, no tracking): usata per il typeahead durante la digitazione del nome alimento.
+        await drContext.Foods
+            .AsNoTracking()
+            .Where(f => EF.Functions.Like(f.Name, $"%{query}%"))
+            .OrderByDescending(f => f.Name.ToLower().StartsWith(query.ToLower()))
+            .ThenBy(f => f.Name)
+            .Take(take)
+            .Select(f => new FoodSuggestionDto(f.Id, f.Name, f.Brand != null ? f.Brand.Name : null))
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+
     internal async Task<FoodDashboardInfo?> GetFoodDashboardAsync(Guid id, CancellationToken ct = default) =>
         await drContext.FoodsDashboard
             .AsNoTracking()
             .FirstOrDefaultAsync(f => f.Id == id, ct)
             .ConfigureAwait(false);
 
-    internal async Task<Guid> InsertFullFood(Food food, CancellationToken ct = default)
+    internal async Task<Guid> InsertFullFoodAsync(Food food, CancellationToken ct = default)
     {
         drContext.Foods.Add(food);
         await drContext.SaveChangesAsync(ct).ConfigureAwait(false);

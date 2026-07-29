@@ -23,8 +23,9 @@ Il README deve contenere queste sezioni, in questo ordine:
 | 6 | Istruzioni Modulari (Copilot / Claude) | 🤖 | Tabella dei file `.instructions.md` presenti |
 | 7 | Claude Code Skills | 🤖 | Una voce per ogni skill in `.claude/skills/` |
 | 8 | MCP Servers | 🔌 | Una voce per ogni server in `.mcp.json` |
-| 9 | FAQ | ❓ | Domande frequenti in formato Q/A |
-| 10 | Footer | — | `*Documento aggiornato: Mese Anno*` |
+| 9 | Documentazione | 📄 | Tabella di tutti i file `.md` in `docs/` con descrizione |
+| 10 | FAQ | ❓ | Domande frequenti in formato Q/A |
+| 11 | Footer | — | `*Documento aggiornato: Mese Anno — Revisione vN — YYYY-MM-DD — modello*` |
 
 ---
 
@@ -35,7 +36,7 @@ Il README deve contenere queste sezioni, in questo ordine:
 - Una sola riga di descrizione, concreta e diretta
 
 ### 2 — Avvio Rapido (nuovo progetto)
-- Mostra il comando PowerShell `irm ... | iex` per eseguire `CreateNewSolution.ps1`
+- Mostra i comandi PowerShell per scaricare (`irm ... -OutFile`), ispezionare ed eseguire `CreateNewSolution.ps1` — mai `irm ... | iex` diretto (esecuzione cieca di script remoti)
 - Elenca i passi che lo script esegue (lista numerata, breve)
 - **Non modificare il comando PowerShell** senza verificare che l'URL sia ancora valido
 
@@ -49,7 +50,7 @@ Il README deve contenere queste sezioni, in questo ordine:
 
 ### 5 — Aggiornare le Guidelines
 - Comando `git submodule update --remote davraf-guidelines`
-- Nota su quali file si aggiornano automaticamente (junction `.github/`) e quali no (file copiati)
+- Nota che `setup.ps1` **copia** i file nel progetto host (`.github/` è una cartella reale copiata, non più una junction): dopo l'update del submodule ri-esegui `setup.ps1 -Update` per propagare le modifiche
 
 ### 6 — Istruzioni Modulari
 - Tabella con colonne: `File | Quando usarlo`
@@ -66,14 +67,21 @@ Il README deve contenere queste sezioni, in questo ordine:
 - Per ogni server: prerequisito di installazione + snippet `.mcp.json` da copiare
 - Chiudi sempre con: `Poi riavvia Claude Code per caricare il server.`
 
-### 9 — FAQ
+### 9 — Documentazione
+- Tabella con colonne: `File | Contenuto`
+- Una riga per ogni file `.md` in `docs/` (escludi `*-wiki.md` — non committati)
+- Link markdown clickable: `[docs/nome.md](docs/nome.md)`
+- Aggiorna la tabella quando aggiungi o rimuovi file in `docs/`
+
+### 10 — FAQ
 - Formato: `### Q: domanda` / `**A:** risposta`
 - Aggiungi una voce quando emerge una domanda ricorrente
 - Non rimuovere voci esistenti senza motivo esplicito
 
-### 10 — Footer
-- Formato esatto: `*Documento aggiornato: Mese Anno*`
-- Aggiorna mese e anno ad ogni modifica significativa
+### 11 — Footer
+- Formato esatto: `*Documento aggiornato: Mese Anno — Revisione vN — YYYY-MM-DD — modello-llm*`
+- Aggiorna mese/anno, numero revisione, data e modello ad ogni modifica significativa
+- Incrementa la revisione di 0.1 per modifiche normali, di 1.0 per ristrutturazioni (stessa logica di `doc-versioning.instructions.md`)
 
 ---
 
@@ -85,6 +93,7 @@ Il README deve contenere queste sezioni, in questo ordine:
 | Nuovo file instruction in `.github/instructions/` | Sezione "Istruzioni Modulari" |
 | Nuovo MCP server in `.mcp.json` | Sezione "MCP Servers" |
 | `setup.ps1` installa nuovi file | Tabella "Cosa viene configurato" |
+| Nuovo file in `docs/` | Sezione "Documentazione" |
 | Nuova domanda frequente | Sezione FAQ |
 
-*Template v1.0 - davraf-guidelines - Last Update 2026-03-17 21:28*
+*Template v1.2 - davraf-guidelines - Last Update 2026-07-02 00:03 — claude-fable-5*

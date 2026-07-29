@@ -6,5 +6,6 @@ public class ApplicationUser : IdentityUser<Guid>
 {
     public DateOnly DateOfBirth { get; set; }
     public string ThemePreference { get; set; } = "light";
+    public string? NutrientChartPreferences { get; set; }
     public ICollection<UserProfileEntry> ProfileEntries { get; set; } = [];
 }

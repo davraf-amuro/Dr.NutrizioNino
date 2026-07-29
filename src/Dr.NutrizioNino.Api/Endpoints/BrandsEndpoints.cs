@@ -87,7 +87,9 @@ public static class BrandsEndpoints
             var ownerId = await service.GetOwnerIdAsync(id, ct);
             var callerId = user.GetUserId();
             if (ownerId.HasValue && ownerId != callerId)
+            {
                 return Results.Forbid();
+            }
 
             if (await service.IsBrandNameTakenAsync(brand.Name, excludeId: brand.Id, ct: ct))
             {
@@ -152,15 +154,19 @@ public static class BrandsEndpoints
             var ownerId = await service.GetOwnerIdAsync(id, ct);
             var callerId = user.GetUserId();
             if (ownerId.HasValue && ownerId != callerId)
+            {
                 return Results.Forbid();
+            }
 
             if (await service.IsBrandInUseAsync(id, ct))
+            {
                 return TypedResults.Problem(new ProblemDetails
                 {
                     Title = "Conflict",
                     Status = StatusCodes.Status409Conflict,
                     Detail = "La marca è in uso e non può essere eliminata."
                 });
+            }
 
             var deleted = await service.DeleteBrandAsync(id, ct);
             return deleted
@@ -183,12 +189,14 @@ public static class BrandsEndpoints
         {
             var original = await service.GetBrandAsync(id, ct);
             if (original is null)
+            {
                 return TypedResults.Problem(new ProblemDetails
                 {
                     Title = "Data Not Found",
                     Status = StatusCodes.Status404NotFound,
                     Detail = "Brand not found for clone."
                 });
+            }
 
             var ownerId = user.GetUserId();
             var cloned = await service.CreateBrandAsync(new CreateBrandDto($"{original.Name} (copia)"), ownerId, ct);
