@@ -84,6 +84,7 @@ Regola assoluta: se il nome progetto non è ricavabile né confermato, **fermati
    - Filter class: `Infrastructure/Provider/Filters/<Entity>Filter.cs` — espone `ToExpression()` che ritorna `Expression<Func<TEntity, bool>>`
    - Ogni DTO record espone `static Expression<Func<TEntity, TDto>> Projection => e => new(...)` — EF-traducibile
    - **DTO multipli obbligatori**: per ogni entity genera almeno due DTO record con Projection — `<Entity>Dto` completo (tutti i campi) e `<Entity>SummaryDto` ridotto (chiave + campi identificativi). Esponi `GET /` con il DTO completo e `GET /summary` con il ridotto — stesso filter, stesso provider, selector diverso
+   - **Ogni DTO record in file separato**: `Dto/<Entity>Dto.cs` e `Dto/<Entity>SummaryDto.cs` — mai due record nello stesso file, anche se correlati (segui `code-organization.instructions.md` Regola 1, vale anche per i record)
    - Handler usa `[AsParameters]` se filtro ha ≥ 2 campi
    - Il filtro ha sempre un validator `<Entity>FilterValidator : IValidator<<Entity>Filter>` con regole **ereditate dai metadati dell'entità** (es. `varchar(50)` → maxLength 50); l'handler valida prima della query → 400; `Produces(400)` anche sui GET con filtro. Vedi `input-validation.instructions.md`
    - Provider: `Get<Entity>Async<TDto>(<Entity>Filter filter, Expression<Func<TEntity, TDto>> selector, CancellationToken ct)` — mai GetAllAsync senza filtro
@@ -127,33 +128,7 @@ Serilog.Sinks.File
 Serilog.Sinks.Console
 ```
 
-**Program.cs — configurazione (prima di `builder.Build()`):**
-```csharp
-builder.Host.UseSerilog((context, services, configuration) => configuration
-    .ReadFrom.Configuration(context.Configuration)
-    .ReadFrom.Services(services)
-    .Enrich.FromLogContext()
-    .WriteTo.Console()
-    .WriteTo.File(
-        path: "logs/log-.txt",
-        rollingInterval: RollingInterval.Day,
-        retainedFileCountLimit: 30,
-        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}"));
-```
-
-**appsettings.json — sezione Serilog:**
-```json
-"Serilog": {
-  "MinimumLevel": {
-    "Default": "Information",
-    "Override": {
-      "Microsoft": "Warning",
-      "Microsoft.Hosting.Lifetime": "Information",
-      "System": "Warning"
-    }
-  }
-}
-```
+**Configurazione (Program.cs, template di output, enrichers ThreadId/TaskId):** segui `logging.instructions.md` — è la **fonte unica** della configurazione Serilog. Non duplicare qui varianti alternative: due configurazioni divergenti per lo stesso stack generano codice incoerente.
 
 **Cartella logs — aggiungere a `.gitignore`:**
 ```
@@ -248,9 +223,9 @@ public class AddDocumentInformations : IOpenApiDocumentTransformer
         document.Info.Version = "v1";
         document.Info.Contact = new OpenApiContact
         {
-            Name = "Voisoft per Unidata spa, @ <Year>",
-            Url = new Uri("https://www.twt.it/"),
-            Email = "tron@twt.it"
+            Name = "<Organizzazione>, @ <Year>",
+            Url = new Uri("https://<dominio>/"),
+            Email = "<email-contatto>"
         };
 
         return Task.CompletedTask;
@@ -425,7 +400,7 @@ builder.Services.AddScoped<ModelKitService>();
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/src/<project>/bin/net10.0/<project>.dll",
+      "program": "${workspaceFolder}/src/<project>/bin/Debug/net10.0/<project>.dll",
       "args": [],
       "cwd": "${workspaceFolder}/src/<project>",
       "stopAtEntry": false,
@@ -439,7 +414,7 @@ builder.Services.AddScoped<ModelKitService>();
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/src/<project>/bin/net10.0/<project>.dll",
+      "program": "${workspaceFolder}/src/<project>/bin/Debug/net10.0/<project>.dll",
       "args": [],
       "cwd": "${workspaceFolder}/src/<project>",
       "stopAtEntry": false,
@@ -452,7 +427,7 @@ builder.Services.AddScoped<ModelKitService>();
 }
 ```
 
-> **Nota:** Il percorso `bin/net10.0/` si applica quando `Directory.Build.props` setta `<OutputPath>bin\$(Configuration)\</OutputPath>`. Senza override, il percorso standard .NET è `bin/Debug/net10.0/`.
+> **Nota:** Il percorso di `program` dipende da `OutputPath`: default standard .NET = `bin/Debug/<tfm>/`. Se `Directory.Build.props` o il csproj sovrascrivono `<OutputPath>`, leggi il valore reale e calcola il percorso di conseguenza. Con Claude Code la generazione guidata di questi file è disponibile via skill `CreateLaunchProfiles` (stesso percorso di default).
 
 **tasks.json**:
 ```json
@@ -496,7 +471,7 @@ builder.Services.AddScoped<ModelKitService>();
 - [ ] Transformer AddDocumentInformations creato e registrato
 - [ ] Program.cs chiama MapOpenApi prima dei Map*Endpoints
 - [ ] GET list: `<Entity>Filter.cs` in `Infrastructure/Provider/Filters/` con `ToExpression()`, ogni DTO ha `static Projection`, provider usa `Get<Entity>Async<TDto>(filter, selector, ct)`
-- [ ] DTO multipli: `<Entity>Dto` completo + `<Entity>SummaryDto` ridotto, endpoint `GET /` e `GET /summary`
+- [ ] DTO multipli: `<Entity>Dto` completo + `<Entity>SummaryDto` ridotto, endpoint `GET /` e `GET /summary`, ciascuno nel proprio file (`Dto/<Entity>Dto.cs` + `Dto/<Entity>SummaryDto.cs`)
 - [ ] Service layer: `Services/<Entity>Service.cs` creato e registrato; handler iniettano solo il Service
 - [ ] EF: SELECT con sole colonne del DTO (Projection), WHERE con soli filtri valorizzati (ToExpression), `AsTracking()` su Update/Delete
 - [ ] Commenti: `///` su provider/service/handler/validator + inline su operazioni DB (code-organization Regola 6)
@@ -505,7 +480,7 @@ builder.Services.AddScoped<ModelKitService>();
 - [ ] File .http aggiunto per endpoint nuovi
 - [ ] `.vscode/launch.json` e `tasks.json` creati con `type: coreclr`
 - [ ] `appsettings.json` contiene solo valori fake/placeholder per dati sensibili, mai credenziali reali
-- [ ] Se Serilog confermato: `UseSerilog` in Program.cs, sezione `Serilog` in appsettings.json, `logs/` in .gitignore
+- [ ] Se Serilog confermato: configurazione conforme a `logging.instructions.md` (fonte unica), `logs/` in .gitignore
 
 ## 🎯 Criteri di successo (verificare prima di iniziare)
 
@@ -519,5 +494,5 @@ Se una risposta è NO → chiedi chiarimenti all'utente prima di procedere.
 ## Test
 - Aggiungi sempre un file .http per endpoint nuovi
 
-*Template v2.0 - .NET 10 - Token-optimized for AI agents* - Last Update 2026-06-13 — claude-sonnet-4-6
+*Template v2.2 - .NET 10 - Token-optimized for AI agents* - Last Update 2026-07-22 — claude-opus-4-8
 
