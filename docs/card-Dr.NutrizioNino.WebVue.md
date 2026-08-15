@@ -45,7 +45,7 @@
 
 | Cartella | Contenuto |
 |----------|-----------|
-| `src/components/<Dominio>/` | Componenti UI per dominio: Admin, Brands, Categories, DailySimulations, Dishes, Foods, Nutrients, Supermarkets, Units, icons |
+| `src/components/<Dominio>/` | Componenti UI per dominio: Admin, Brands, Categories, DailySimulations, Foods, Nutrients, Recipes, Supermarkets, Units, icons |
 | `src/modules/<feature>/api/` | Chiamate HTTP verso il backend, una cartella per feature |
 | `src/modules/<feature>/composables/` | Stato e logica riusabile della feature |
 | `src/Interfaces/<dominio>/` | Tipi TypeScript allineati ai DTO del backend |

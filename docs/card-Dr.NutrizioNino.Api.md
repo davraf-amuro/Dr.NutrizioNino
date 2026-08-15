@@ -1,7 +1,7 @@
 # Card: Dr.NutrizioNino.Api
 
-**Minimal API** che espone il diario alimentare Dr.NutrizioNino: alimenti, nutrienti, piatti, simulazioni giornaliere ed estrazione nutrienti da foto di etichette tramite provider LLM.
-Espone 16 endpoint group: `Foods`, `Dishes`, `Brands`, `Nutrients`, `Units Of Measures`, `Supermarkets`, `Categories`, `Auth`, `Admin`, `UserProfile`, `Users`, `NutritionalTarget`, `DailySimulations`, `Sections`, `Vision`, `Status`.
+**Minimal API** che espone il diario alimentare Dr.NutrizioNino: alimenti, nutrienti, ricette, simulazioni giornaliere ed estrazione nutrienti da foto di etichette tramite provider LLM.
+Espone 16 endpoint group: `Foods`, `Recipes`, `Brands`, `Nutrients`, `Units Of Measures`, `Supermarkets`, `Categories`, `Auth`, `Admin`, `UserProfile`, `Users`, `NutritionalTarget`, `DailySimulations`, `Sections`, `Vision`, `Status`.
 
 ## Identificazione
 - **Progetto:** Dr.NutrizioNino.Api
@@ -26,7 +26,7 @@ Espone 16 endpoint group: `Foods`, `Dishes`, `Brands`, `Nutrients`, `Units Of Me
 | Group | File Mapping | Route Base | Tag Scalar |
 |-------|--------------|------------|------------|
 | `Foods` | `Endpoints/FoodEndpoints.cs`, `Endpoints/FoodVisionMapping.cs` | `api/v1/foods` | Foods |
-| `Dishes` | `Endpoints/DishEndpoints.cs` | `api/v1/dishes` | Dishes |
+| `Recipes` | `Endpoints/RecipeEndpoints.cs` | `api/v1/recipes` | Recipes |
 | `Brands` | `Endpoints/BrandsEndpoints.cs` | `api/v1/brands` | Brands |
 | `Nutrients` | `Endpoints/NutrientsEndpoints.cs`, `Endpoints/NutrientAliasMapping.cs` | `api/v1/nutrients` | Nutrients |
 | `Units Of Measures` | `Endpoints/UnitsOfMeasureEndpoints.cs` | `api/v1/unitsOfMeasures` | Units Of Measures |

@@ -2,7 +2,7 @@
 
 ## 1. Introduzione
 
-Il gruppo `DailySimulations` gestisce le simulazioni di giornata alimentare: insiemi di alimenti e piatti distribuiti nelle sezioni del giorno (colazione, pranzo, cena e così via) di cui il sistema calcola l'apporto nutrizionale complessivo. Oltre al CRUD, espone la gestione delle singole voci e il confronto tra due simulazioni.
+Il gruppo `DailySimulations` gestisce le simulazioni di giornata alimentare: insiemi di alimenti e ricette distribuiti nelle sezioni del giorno (colazione, pranzo, cena e così via) di cui il sistema calcola l'apporto nutrizionale complessivo. Oltre al CRUD, espone la gestione delle singole voci e il confronto tra due simulazioni.
 
 - **Route base:** `api/v1/daily-simulations`
 - **Tag Scalar:** `DailySimulations`

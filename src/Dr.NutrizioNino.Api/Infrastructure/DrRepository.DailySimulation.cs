@@ -385,13 +385,13 @@ public partial class DrRepository
             .FirstOrDefaultAsync(f => f.Id == foodId, ct)
             .ConfigureAwait(false);
 
-    internal async Task<Dish?> GetDishWithNutrientsAsync(Guid dishId, CancellationToken ct = default) =>
-        await drContext.Dishes
+    internal async Task<Recipe?> GetRecipeWithNutrientsAsync(Guid recipeId, CancellationToken ct = default) =>
+        await drContext.Recipes
             .AsNoTracking()
-            .Include(d => d.DishNutrients)
-                .ThenInclude(dn => dn.Nutrient)
-            .Include(d => d.DishNutrients)
-                .ThenInclude(dn => dn.UnitOfMeasureNavigation)
-            .FirstOrDefaultAsync(d => d.Id == dishId, ct)
+            .Include(r => r.RecipeNutrients)
+                .ThenInclude(rn => rn.Nutrient)
+            .Include(r => r.RecipeNutrients)
+                .ThenInclude(rn => rn.UnitOfMeasureNavigation)
+            .FirstOrDefaultAsync(r => r.Id == recipeId, ct)
             .ConfigureAwait(false);
 }

@@ -2,7 +2,7 @@
 
 ## 1. Introduzione
 
-Il gruppo `Units Of Measures` gestisce l'anagrafica delle unità di misura usate da alimenti, nutrienti e piatti (grammi, millilitri, porzioni e simili). Espone il CRUD completo.
+Il gruppo `Units Of Measures` gestisce l'anagrafica delle unità di misura usate da alimenti, nutrienti e ricette (grammi, millilitri, porzioni e simili). Espone il CRUD completo.
 
 - **Route base:** `api/v1/unitsOfMeasures`
 - **Tag Scalar:** `Units Of Measures`
@@ -15,7 +15,7 @@ Il gruppo `Units Of Measures` gestisce l'anagrafica delle unità di misura usate
 |------------|----------------|
 | `UnitsOfMeasureEndpoints` | Mapping e risposte `ProblemDetails` |
 | `UnitsOfMeasureService` | Logica applicativa CRUD |
-| `UnitConversionService` | Conversioni tra unità, usata dal calcolo nutrizionale dei piatti |
+| `UnitConversionService` | Conversioni tra unità, usata dal calcolo nutrizionale delle ricette |
 | `DrRepository` (`DrRepository.UnitsOfMeasures.cs`) | Accesso dati EF Core |
 | `UnitOfMeasure`, `UnitConversion` | Entità EF Core |
 | `UnitOfMeasureExtensions` | Proiezione entità → DTO |

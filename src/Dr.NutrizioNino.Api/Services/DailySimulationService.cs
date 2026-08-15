@@ -48,13 +48,13 @@ public class DailySimulationService(DrRepository drRepository)
 
         var nutrients = sourceType == DailySimulationSourceType.Food
             ? await BuildFoodSnapshotAsync(dto.SourceId, dto.QuantityGrams, ct).ConfigureAwait(false)
-            : await BuildDishSnapshotAsync(dto.SourceId, dto.QuantityGrams, ct).ConfigureAwait(false);
+            : await BuildRecipeSnapshotAsync(dto.SourceId, dto.QuantityGrams, ct).ConfigureAwait(false);
 
         if (nutrients is null)
         {
             return (null, sourceType == DailySimulationSourceType.Food
                 ? "Alimento non trovato."
-                : "Piatto non trovato.");
+                : "Ricetta non trovata.");
         }
 
         var entryId = Guid.NewGuid();
@@ -76,8 +76,8 @@ public class DailySimulationService(DrRepository drRepository)
         }
         else
         {
-            var dish = await drRepository.GetDishWithNutrientsAsync(dto.SourceId, ct).ConfigureAwait(false);
-            entry.SourceName = dish!.Name;
+            var recipe = await drRepository.GetRecipeWithNutrientsAsync(dto.SourceId, ct).ConfigureAwait(false);
+            entry.SourceName = recipe!.Name;
         }
 
         foreach (var n in nutrients)
@@ -112,7 +112,7 @@ public class DailySimulationService(DrRepository drRepository)
 
         var nutrients = entry.SourceType == DailySimulationSourceType.Food
             ? await BuildFoodSnapshotAsync(entry.SourceId.Value, newQuantityGrams, ct).ConfigureAwait(false)
-            : await BuildDishSnapshotAsync(entry.SourceId.Value, newQuantityGrams, ct).ConfigureAwait(false);
+            : await BuildRecipeSnapshotAsync(entry.SourceId.Value, newQuantityGrams, ct).ConfigureAwait(false);
 
         if (nutrients is null)
         {
@@ -160,21 +160,21 @@ public class DailySimulationService(DrRepository drRepository)
         )).ToList();
     }
 
-    private async Task<IList<NutrientSnapshot>?> BuildDishSnapshotAsync(Guid dishId, decimal quantityGrams, CancellationToken ct)
+    private async Task<IList<NutrientSnapshot>?> BuildRecipeSnapshotAsync(Guid recipeId, decimal quantityGrams, CancellationToken ct)
     {
-        var dish = await drRepository.GetDishWithNutrientsAsync(dishId, ct).ConfigureAwait(false);
-        if (dish is null)
+        var recipe = await drRepository.GetRecipeWithNutrientsAsync(recipeId, ct).ConfigureAwait(false);
+        if (recipe is null)
         {
             return null;
         }
 
-        var refWeight = dish.WeightGrams > 0 ? dish.WeightGrams : 100m;
+        var refWeight = recipe.WeightGrams > 0 ? recipe.WeightGrams : 100m;
 
-        return dish.DishNutrients.Select(dn => new NutrientSnapshot(
-            dn.Nutrient.Name,
-            dn.Nutrient.PositionOrder,
-            Math.Round(dn.Quantity * (quantityGrams / refWeight), 4),
-            dn.UnitOfMeasureNavigation.Abbreviation
+        return recipe.RecipeNutrients.Select(rn => new NutrientSnapshot(
+            rn.Nutrient.Name,
+            rn.Nutrient.PositionOrder,
+            Math.Round(rn.Quantity * (quantityGrams / refWeight), 4),
+            rn.UnitOfMeasureNavigation.Abbreviation
         )).ToList();
     }
 }

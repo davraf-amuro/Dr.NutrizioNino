@@ -3,7 +3,7 @@ namespace Dr.NutrizioNino.Api.Models;
 public enum DailySimulationSourceType : byte
 {
     Food = 0,
-    Dish = 1
+    Recipe = 1
 }
 
 public class DailySimulationEntry

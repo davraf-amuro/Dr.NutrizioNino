@@ -1,6 +1,6 @@
 # Dr.NutrizioNino
 
-Diario alimentare web. Censisce alimenti con i relativi nutrienti, li compone in piatti e li organizza in simulazioni di giornata confrontabili con il fabbisogno nutrizionale personale. I nutrienti possono essere estratti automaticamente dalla foto di un'etichetta tramite un provider LLM a scelta.
+Diario alimentare web. Censisce alimenti con i relativi nutrienti, li compone in ricette e li organizza in simulazioni di giornata confrontabili con il fabbisogno nutrizionale personale. I nutrienti possono essere estratti automaticamente dalla foto di un'etichetta tramite un provider LLM a scelta.
 
 Backend Minimal API .NET 10 con database SQL Server, frontend SPA Vue 3, autenticazione JWT con ruoli `User` e `Admin`.
 
@@ -22,7 +22,7 @@ Per installazione, avvio locale, struttura del codice e convenzioni: [`docs/onbo
 | File | Contenuto |
 |------|-----------|
 | [docs/endpoint-foods.md](docs/endpoint-foods.md) | Alimenti: CRUD, dashboard, nomi simili, estrazione nutrienti da immagine |
-| [docs/endpoint-dishes.md](docs/endpoint-dishes.md) | Piatti: CRUD, ricalcolo nutrizionale, riscalamento del peso |
+| [docs/endpoint-recipes.md](docs/endpoint-recipes.md) | Ricette: CRUD, ricalcolo nutrizionale, riscalamento del peso |
 | [docs/endpoint-brands.md](docs/endpoint-brands.md) | Marche: CRUD, verifica utilizzo, clonazione |
 | [docs/endpoint-nutrients.md](docs/endpoint-nutrients.md) | Nutrienti: CRUD, riordino, alias riconosciuti dall'AI |
 | [docs/endpoint-units-of-measures.md](docs/endpoint-units-of-measures.md) | Unità di misura: CRUD |

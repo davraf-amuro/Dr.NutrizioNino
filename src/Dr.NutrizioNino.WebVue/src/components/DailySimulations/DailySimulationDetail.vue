@@ -31,7 +31,7 @@
               :options="combinedOptions"
               filterable
               clearable
-              placeholder="Seleziona alimento o piatto..."
+              placeholder="Seleziona alimento o ricetta..."
             />
           </n-form-item>
         </n-gi>
@@ -180,7 +180,7 @@ import {
 import { formatNutrient } from '@/core/utils/formatNutrient'
 import type { DailySimulationDetailDto, DailySimulationEntryDto, DailySimulationSectionDto } from '@/Interfaces/dailySimulations/DailySimulationDto'
 import { getFoodsDashboard } from '@/modules/foods/api/foods.api'
-import { getDishesDashboard } from '@/modules/dishes/api/dishes.api'
+import { getRecipesDashboard } from '@/modules/recipes/api/recipes.api'
 import { addEntry, updateEntryQuantity, deleteEntry, renameSimulation } from '@/modules/dailySimulations/api/dailySimulations.api'
 import type { AddSimulationEntryRequest } from '@/Interfaces/dailySimulations/DailySimulationDto'
 import type { FoodDashboardDto } from '@/Interfaces/foods/FoodDashboardDto'
@@ -222,7 +222,7 @@ const handleSaveName = async () => {
 const isAdding = ref(false)
 const showChart = ref(false)
 
-// combinedSourceKey: "food:<id>" | "dish:<id>"
+// combinedSourceKey: "food:<id>" | "recipe:<id>"
 const newEntry = reactive<{ sectionId: string; combinedSourceKey: string; quantityGrams: number }>({
   sectionId: '',
   combinedSourceKey: '',
@@ -232,13 +232,13 @@ const newEntry = reactive<{ sectionId: string; combinedSourceKey: string; quanti
 const { sectionOptions, loadSectionConfigs } = useSectionConfigs()
 
 const foodData = ref<FoodDashboardDto[]>([])
-const dishData = ref<FoodDashboardDto[]>([])
+const recipeData = ref<FoodDashboardDto[]>([])
 
 interface CombinedOption extends SelectOption { sourceType: number; unit: string }
 
 const combinedOptions = computed<CombinedOption[]>(() => [
   ...foodData.value.map((f) => ({ label: `${f.name} (${f.abbreviation})`, value: `food:${f.id}`, sourceType: 0, unit: f.abbreviation })),
-  ...dishData.value.map((d) => ({ label: `${d.name} (${d.abbreviation})`, value: `dish:${d.id}`, sourceType: 1, unit: d.abbreviation }))
+  ...recipeData.value.map((r) => ({ label: `${r.name} (${r.abbreviation})`, value: `recipe:${r.id}`, sourceType: 1, unit: r.abbreviation }))
 ])
 
 const selectedOption = computed<CombinedOption | undefined>(() =>
@@ -247,9 +247,9 @@ const selectedOption = computed<CombinedOption | undefined>(() =>
 const selectedUnit = computed<string | undefined>(() => selectedOption.value?.unit)
 
 onMounted(async () => {
-  await Promise.all([getFoodsDashboard(), getDishesDashboard(), loadSectionConfigs()]).then(([foods, dishes]) => {
+  await Promise.all([getFoodsDashboard(), getRecipesDashboard(), loadSectionConfigs()]).then(([foods, recipes]) => {
     foodData.value = foods
-    dishData.value = dishes
+    recipeData.value = recipes
   })
   // Pre-seleziona la prima sezione attiva
   if (!newEntry.sectionId && sectionOptions.value.length > 0) {
@@ -261,7 +261,7 @@ onMounted(async () => {
 watch(() => newEntry.combinedSourceKey, (key) => {
   if (!key || !selectedOption.value) return
   const [type, id] = key.split(':')
-  const data = type === 'food' ? foodData.value : dishData.value
+  const data = type === 'food' ? foodData.value : recipeData.value
   const item = data.find((d) => d.id === id)
   if (item?.quantity) newEntry.quantityGrams = item.quantity
 })

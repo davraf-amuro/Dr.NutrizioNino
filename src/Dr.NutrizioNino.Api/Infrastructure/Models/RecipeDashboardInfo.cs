@@ -2,18 +2,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Dr.NutrizioNino.Api.Infrastructure.Models;
 
-[Table("Foods_Dashboard")]
-public class FoodDashboardInfo
+[Table("Recipes_Dashboard")]
+public class RecipeDashboardInfo
 {
     public Guid Id { get; set; }
 
     public string? Name { get; set; }
 
-    public string? Barcode { get; set; }
-
     public decimal Quantity { get; set; }
-
-    public string? BrandDescription { get; set; }
 
     public decimal Calorie { get; set; }
 
@@ -21,15 +17,9 @@ public class FoodDashboardInfo
 
     public string? Abbreviation { get; set; }
 
-    public bool IsRecipe { get; set; }
-
-    public string? SupermarketsText { get; set; }
-
     public bool IsNutritionStale { get; set; }
 
     public DateTime? NutrientsCalculatedAt { get; set; }
 
     public Guid? OwnerId { get; set; }
-
-    public string? CategoriesText { get; set; }
 }

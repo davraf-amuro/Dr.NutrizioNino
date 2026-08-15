@@ -6,7 +6,7 @@ public record CreateDailySimulationDto(string Name);
 
 public record RenameDailySimulationDto(string Name);
 
-/// <summary>SourceType: 0=Food 1=Dish</summary>
+/// <summary>SourceType: 0=Food 1=Recipe</summary>
 public record AddSimulationEntryDto(Guid SectionId, byte SourceType, Guid SourceId, decimal QuantityGrams);
 
 public record UpdateEntryQuantityDto(decimal QuantityGrams);

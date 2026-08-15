@@ -17,7 +17,7 @@ public static class FoodEndpoints
         Guid Id, string? Name, string? Barcode, decimal Quantity,
         string? BrandDescription, decimal Calorie,
         string? UnitOfMeasureDescription, string? Abbreviation,
-        bool IsDish, string? SupermarketsText,
+        bool IsRecipe, string? SupermarketsText,
         bool IsNutritionStale, DateTime? NutrientsCalculatedAt,
         bool IsOwner, string? CategoriesText);
 
@@ -52,7 +52,7 @@ public static class FoodEndpoints
             var userId = user.GetUserId();
             var result = items.Select(f => new FoodDashboardResponse(
                 f.Id, f.Name, f.Barcode, f.Quantity, f.BrandDescription, f.Calorie,
-                f.UnitOfMeasureDescription, f.Abbreviation, f.IsDish, f.SupermarketsText,
+                f.UnitOfMeasureDescription, f.Abbreviation, f.IsRecipe, f.SupermarketsText,
                 f.IsNutritionStale, f.NutrientsCalculatedAt,
                 IsOwner: userId.HasValue && f.OwnerId.HasValue && f.OwnerId == userId,
                 f.CategoriesText)).ToList();
@@ -87,7 +87,7 @@ public static class FoodEndpoints
             var userId = user.GetUserId();
             var result = new FoodDashboardResponse(
                 item.Id, item.Name, item.Barcode, item.Quantity, item.BrandDescription, item.Calorie,
-                item.UnitOfMeasureDescription, item.Abbreviation, item.IsDish, item.SupermarketsText,
+                item.UnitOfMeasureDescription, item.Abbreviation, item.IsRecipe, item.SupermarketsText,
                 item.IsNutritionStale, item.NutrientsCalculatedAt,
                 IsOwner: userId.HasValue && item.OwnerId.HasValue && item.OwnerId == userId,
                 item.CategoriesText);

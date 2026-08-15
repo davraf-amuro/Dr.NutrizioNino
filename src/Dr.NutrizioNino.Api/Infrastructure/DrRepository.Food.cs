@@ -171,7 +171,7 @@ public partial class DrRepository
 
         if (nutrientsChanged)
         {
-            await MarkDishesStaleByFoodIdAsync(food.Id, ct).ConfigureAwait(false);
+            await MarkRecipesStaleByFoodIdAsync(food.Id, ct).ConfigureAwait(false);
         }
 
         return true;

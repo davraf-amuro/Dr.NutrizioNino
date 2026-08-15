@@ -24,7 +24,7 @@ const { resolvedTheme } = useTheme()
 const menuOptions = computed<MenuOption[]>(() => {
   const items: MenuOption[] = [
     { label: 'Alimenti', key: '/foods' },
-    { label: 'Piatti', key: '/dishes' },
+    { label: 'Ricette', key: '/recipes' },
     { label: 'Simulazioni', key: '/daily-simulations' },
     {
       label: 'Configurazione',
@@ -46,7 +46,7 @@ const menuOptions = computed<MenuOption[]>(() => {
 })
 
 const activeKey = computed(() => {
-  if (route.path.startsWith('/dishes')) return '/dishes'
+  if (route.path.startsWith('/recipes')) return '/recipes'
   if (route.path.startsWith('/brands')) return '/brands'
   if (route.path.startsWith('/nutrients')) return '/nutrients'
   if (route.path.startsWith('/units')) return '/units'

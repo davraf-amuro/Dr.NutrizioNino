@@ -2,7 +2,7 @@
 
 ## 1. Il progetto in tre righe
 
-Dr.NutrizioNino è un diario alimentare web. Registra alimenti, marche, categorie, supermercati e nutrienti, li compone in piatti e li organizza in simulazioni di giornata alimentare confrontabili con il fabbisogno personale dell'utente.
+Dr.NutrizioNino è un diario alimentare web. Registra alimenti, marche, categorie, supermercati e nutrienti, li compone in ricette e li organizza in simulazioni di giornata alimentare confrontabili con il fabbisogno personale dell'utente.
 Il valore aggiunto è l'estrazione automatica dei nutrienti da una foto dell'etichetta, delegata a un provider LLM scelto dall'utente.
 Backend Minimal API .NET 10, frontend SPA Vue 3, database SQL Server.
 

@@ -15,7 +15,7 @@ export interface DailySimulationEntryNutrientDto {
 export interface DailySimulationEntryDto {
   id: string
   sourceName: string
-  sourceType: number // 0=Food 1=Dish
+  sourceType: number // 0=Food 1=Recipe
   quantityGrams: number
   nutrients: DailySimulationEntryNutrientDto[]
 }
