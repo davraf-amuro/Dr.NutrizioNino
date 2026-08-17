@@ -9,6 +9,9 @@ using Dr.NutrizioNino.Api.Models;
 using Dr.NutrizioNino.Api.Services;
 using Dr.NutrizioNino.Api.Services.Vision;
 using Dr.NutrizioNino.Api.Transformers;
+using Dr.NutrizioNino.Api.Validators;
+using Dr.NutrizioNino.Models.Dto;
+using Dr.NutrizioNino.Models.Dto.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
@@ -124,9 +127,15 @@ try
     builder.Services.AddScoped<AuthService>();
     builder.Services.AddScoped<AdminUserService>();
     builder.Services.AddScoped<UserProfileService>();
+    builder.Services.AddScoped<SciaudoneCardService>();
     builder.Services.AddScoped<DailySimulationService>();
     builder.Services.AddScoped<DailySimulationSectionService>();
     builder.Services.AddScoped<NutritionalTargetService>();
+
+    // Validatori degli input esterni
+    builder.Services.AddScoped<IValidator<CompareRecipesRequest>, CompareRecipesRequestValidator>();
+    builder.Services.AddScoped<IValidator<AddProfileEntryRequest>, AddProfileEntryRequestValidator>();
+
     builder.Services.AddHttpClient();
     builder.Services.AddHttpClient("ollama", (sp, client) =>
     {

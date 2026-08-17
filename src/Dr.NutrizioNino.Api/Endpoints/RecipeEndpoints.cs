@@ -4,6 +4,7 @@ using Asp.Versioning.Builder;
 using Dr.NutrizioNino.Api.Helpers;
 using Dr.NutrizioNino.Api.Infrastructure.Models;
 using Dr.NutrizioNino.Api.Services;
+using Dr.NutrizioNino.Api.Validators;
 using Dr.NutrizioNino.Models.Dto;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -59,6 +60,32 @@ public static class RecipeEndpoints
             .WithDescription("Returns recipe details with ingredients and nutrients.")
             .Produces<RecipeDetailDto>(StatusCodes.Status200OK)
             .ProducesDefaultProblem(StatusCodes.Status404NotFound);
+
+        group.MapPost("compare", async (RecipeService service, IValidator<CompareRecipesRequest> validator, CompareRecipesRequest request, CancellationToken ct) =>
+        {
+            var validation = validator.Validate(request);
+            if (!validation.IsValid)
+            {
+                return TypedResults.ValidationProblem(validation.Errors);
+            }
+
+            var result = await service.CompareRecipesAsync(request, ct);
+            return result is not null
+                ? Results.Ok(result)
+                : TypedResults.Problem(new ProblemDetails
+                {
+                    Title = "Data Not Found",
+                    Status = StatusCodes.Status404NotFound,
+                    Detail = "Una o più ricette da confrontare non esistono."
+                });
+        })
+            .WithName("CompareRecipes")
+            .WithSummary("Compare recipes")
+            .WithDescription("Compares from 2 to 3 recipes, scaling their nutrients to the requested quantity in grams. Read-only: recipe weight and stored nutrients are left untouched.")
+            .Produces<RecipeComparisonDto>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status400BadRequest)
+            .ProducesDefaultProblem(StatusCodes.Status404NotFound)
+            .RequireAuthorization();
 
         group.MapPost("", async (RecipeService service, CreateRecipeDto dto, ClaimsPrincipal user, CancellationToken ct) =>
         {

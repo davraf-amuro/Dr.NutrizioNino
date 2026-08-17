@@ -6,4 +6,9 @@
 -- timestamp : 2026-04-02 17:15:06 UTC
 -- ============================================================
 
-DELETE FROM AspNetUsers WHERE UserName = 'davraf';
+-- DISINNESCATA il 2026-08-09.
+-- Lo statement è già stato eseguito il 2026-04-02; l'utente 'davraf' è stato
+-- successivamente ricreato ed è oggi l'account Admin attivo.
+-- Rieseguire l'intera cartella schema-migrations/ lo cancellerebbe di nuovo,
+-- quindi lo statement resta a scopo di sola documentazione storica.
+-- DELETE FROM AspNetUsers WHERE UserName = 'davraf';

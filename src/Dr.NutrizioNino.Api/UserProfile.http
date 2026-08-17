@@ -1,0 +1,66 @@
+### Storico completo delle misurazioni
+GET {{DrNutrizioNino_Api_HostAddress}}/api/v1/users/me/profile
+Authorization: Bearer {{token}}
+
+###
+
+### Ultima misurazione registrata
+GET {{DrNutrizioNino_Api_HostAddress}}/api/v1/users/me/profile/current
+Authorization: Bearer {{token}}
+
+###
+
+### Nuova misurazione — con peso ideale: genera anche la scheda Sciaudone
+POST {{DrNutrizioNino_Api_HostAddress}}/api/v1/users/me/profile
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "weightKg": 75,
+  "idealWeightKg": 70,
+  "heightCm": 178,
+  "sex": "M",
+  "job": "moderato"
+}
+
+###
+
+### Nuova misurazione — senza peso ideale: nessuna scheda generata
+POST {{DrNutrizioNino_Api_HostAddress}}/api/v1/users/me/profile
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "weightKg": 75,
+  "heightCm": 178,
+  "sex": "M",
+  "job": "moderato"
+}
+
+###
+
+### Nuova misurazione — body non valido: attesa 400
+POST {{DrNutrizioNino_Api_HostAddress}}/api/v1/users/me/profile
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "weightKg": -5,
+  "idealWeightKg": 0,
+  "sex": "X",
+  "job": "astronauta"
+}
+
+###
+
+### Scheda Sciaudone corrente — 404 se l'utente non ne ha ancora
+# Valori attesi per weightKg 75 / idealWeightKg 70:
+#   kcal 1650, proteine 140 g, grassi 49.5 g, fibre 24.8 g, carboidrati 165 g
+GET {{DrNutrizioNino_Api_HostAddress}}/api/v1/users/me/profile/sciaudone
+Authorization: Bearer {{token}}
+
+###
+
+### Storico delle schede Sciaudone
+GET {{DrNutrizioNino_Api_HostAddress}}/api/v1/users/me/profile/sciaudone/history
+Authorization: Bearer {{token}}

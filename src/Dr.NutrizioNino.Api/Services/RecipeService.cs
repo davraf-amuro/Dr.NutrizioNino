@@ -88,6 +88,65 @@ public class RecipeService(DrRepository drRepository)
         return (detail, null);
     }
 
+    /// <summary>
+    /// Confronta le ricette richieste proiettando i nutrienti sulla quantità indicata per ciascuna.
+    /// Operazione di sola lettura: non modifica peso né nutrienti persistiti.
+    /// Restituisce null se anche una sola ricetta non esiste.
+    /// </summary>
+    public async Task<RecipeComparisonDto?> CompareRecipesAsync(CompareRecipesRequest request, CancellationToken ct = default)
+    {
+        var recipeIds = request.Items.Select(i => i.RecipeId).ToList();
+
+        // Una sola lettura per tutte le ricette da confrontare.
+        var recipes = (await drRepository.GetRecipesForComparisonAsync(recipeIds, ct).ConfigureAwait(false))
+            .ToDictionary(r => r.Id);
+
+        if (recipeIds.Any(id => !recipes.ContainsKey(id)))
+        {
+            return null;
+        }
+
+        var items = new List<RecipeComparisonItemDto>(request.Items.Count);
+        foreach (var item in request.Items)
+        {
+            var recipe = recipes[item.RecipeId];
+
+            // Peso base non valorizzato: il fattore di scala non è calcolabile, si restituisce l'elenco vuoto.
+            List<RecipeComparisonNutrientDto> nutrients = recipe.WeightGrams <= 0
+                ? []
+                : ScaleNutrients(recipe, item.QuantityGrams);
+
+            items.Add(new RecipeComparisonItemDto(
+                recipe.Id,
+                recipe.Name,
+                recipe.WeightGrams,
+                item.QuantityGrams,
+                recipe.IsNutritionStale,
+                nutrients));
+        }
+
+        return new RecipeComparisonDto(items);
+    }
+
+    /// <summary>
+    /// Proietta i nutrienti della ricetta sulla quantità richiesta.
+    /// Il fattore resta a piena precisione decimal: l'arrotondamento avviene solo sul valore finale.
+    /// </summary>
+    private static List<RecipeComparisonNutrientDto> ScaleNutrients(Recipe recipe, decimal quantityGrams)
+    {
+        var factor = quantityGrams / recipe.WeightGrams;
+
+        return recipe.RecipeNutrients
+            .OrderBy(rn => rn.Nutrient.PositionOrder)
+            .Select(rn => new RecipeComparisonNutrientDto(
+                rn.NutrientId,
+                rn.Nutrient.Name,
+                rn.Nutrient.PositionOrder,
+                rn.UnitOfMeasureId,
+                Math.Round(rn.Quantity * factor, 2)))
+            .ToList();
+    }
+
     public async Task<IList<RecipeDashboardInfo>> GetRecipesDashboardAsync(CancellationToken ct = default) =>
         (await drRepository.GetRecipesDashboardAsync(ct).ConfigureAwait(false)).ToList();
 

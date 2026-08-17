@@ -1,0 +1,32 @@
+-- ============================================================
+-- ALTER TABLE audit record
+-- status    : EXECUTED
+-- tabella   : AspNetUsers
+-- token     : 6C1F0A73B5D2
+-- timestamp : 2026-08-09 10:00:00 UTC
+-- ============================================================
+
+-- Reset password dell'utente 'davraf' (account Admin).
+-- L'hash precedente era in formato ASP.NET Identity V3 (PBKDF2, non reversibile):
+-- la password originale non era recuperabile e l'utente non riusciva più ad accedere.
+--
+-- L'hash nuovo è stato generato con Microsoft.AspNetCore.Identity.PasswordHasher<T>
+-- (stesso algoritmo usato da UserManager.CheckPasswordAsync) ed è stato applicato
+-- direttamente sul DB. Il valore NON è riportato qui: gli hash delle credenziali
+-- non vanno committati, vedi sensitive-data.instructions.md.
+--
+-- Statement effettivamente eseguito (hash omesso di proposito):
+--
+--   UPDATE AspNetUsers
+--   SET PasswordHash      = '<hash Identity V3, non committato>',
+--       SecurityStamp     = CONVERT(nvarchar(36), NEWID()),
+--       ConcurrencyStamp  = CONVERT(nvarchar(36), NEWID()),
+--       LockoutEnd        = NULL,
+--       AccessFailedCount = 0
+--   WHERE UserName = 'davraf';
+--
+-- Nota operativa: la tabella ha un indice unique filtrato
+-- (IX_AspNetUsers_NormalizedEmail_Unique), quindi ogni UPDATE via sqlcmd
+-- richiede QUOTED_IDENTIFIER ON — usare il flag -I.
+--
+-- Nessuno statement attivo in questo file: è un record di audit.

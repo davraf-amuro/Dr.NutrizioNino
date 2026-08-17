@@ -21,6 +21,19 @@ public partial class DrRepository
             .ToListAsync(ct)
             .ConfigureAwait(false);
 
+    /// <summary>
+    /// Carica in una sola query le ricette richieste con i soli nutrienti aggregati, per il confronto.
+    /// Sola lettura: non tocca gli ingredienti e non scrive nulla.
+    /// </summary>
+    public async Task<IEnumerable<Recipe>> GetRecipesForComparisonAsync(IReadOnlyList<Guid> ids, CancellationToken ct = default) =>
+        // Un solo round-trip con IN (@ids): niente N chiamate a GetRecipeByIdAsync, niente Include sugli ingredienti.
+        await drContext.Recipes
+            .AsNoTracking()
+            .Where(r => ids.Contains(r.Id))
+            .Include(r => r.RecipeNutrients).ThenInclude(rn => rn.Nutrient)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+
     public async Task<RecipeDetailDto?> GetRecipeByIdAsync(Guid id, CancellationToken ct = default)
     {
         var recipe = await drContext.Recipes

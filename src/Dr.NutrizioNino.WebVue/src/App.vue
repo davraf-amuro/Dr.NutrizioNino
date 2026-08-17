@@ -25,6 +25,7 @@ const menuOptions = computed<MenuOption[]>(() => {
   const items: MenuOption[] = [
     { label: 'Alimenti', key: '/foods' },
     { label: 'Ricette', key: '/recipes' },
+    { label: 'Confronto ricette', key: '/recipes/compare' },
     { label: 'Simulazioni', key: '/daily-simulations' },
     {
       label: 'Configurazione',
@@ -46,6 +47,7 @@ const menuOptions = computed<MenuOption[]>(() => {
 })
 
 const activeKey = computed(() => {
+  if (route.path.startsWith('/recipes/compare')) return '/recipes/compare'
   if (route.path.startsWith('/recipes')) return '/recipes'
   if (route.path.startsWith('/brands')) return '/brands'
   if (route.path.startsWith('/nutrients')) return '/nutrients'

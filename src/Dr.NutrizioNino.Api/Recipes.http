@@ -1,0 +1,110 @@
+### Confronta 3 ricette — atteso 200
+POST {{DrNutrizioNino_Api_HostAddress}}/api/v1/recipes/compare
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "items": [
+    { "recipeId": "00000000-0000-0000-0000-000000000001", "quantityGrams": 150 },
+    { "recipeId": "00000000-0000-0000-0000-000000000002", "quantityGrams": 200 },
+    { "recipeId": "00000000-0000-0000-0000-000000000003", "quantityGrams": 100 }
+  ]
+}
+
+###
+
+### Confronta 2 ricette — atteso 200
+POST {{DrNutrizioNino_Api_HostAddress}}/api/v1/recipes/compare
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "items": [
+    { "recipeId": "00000000-0000-0000-0000-000000000001", "quantityGrams": 150 },
+    { "recipeId": "00000000-0000-0000-0000-000000000002", "quantityGrams": 200 }
+  ]
+}
+
+###
+
+### Una sola ricetta — atteso 400 (servono da 2 a 3 ricette)
+POST {{DrNutrizioNino_Api_HostAddress}}/api/v1/recipes/compare
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "items": [
+    { "recipeId": "00000000-0000-0000-0000-000000000001", "quantityGrams": 150 }
+  ]
+}
+
+###
+
+### Quattro ricette — atteso 400 (oltre il massimo)
+POST {{DrNutrizioNino_Api_HostAddress}}/api/v1/recipes/compare
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "items": [
+    { "recipeId": "00000000-0000-0000-0000-000000000001", "quantityGrams": 100 },
+    { "recipeId": "00000000-0000-0000-0000-000000000002", "quantityGrams": 100 },
+    { "recipeId": "00000000-0000-0000-0000-000000000003", "quantityGrams": 100 },
+    { "recipeId": "00000000-0000-0000-0000-000000000004", "quantityGrams": 100 }
+  ]
+}
+
+###
+
+### Ricette duplicate — atteso 400
+POST {{DrNutrizioNino_Api_HostAddress}}/api/v1/recipes/compare
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "items": [
+    { "recipeId": "00000000-0000-0000-0000-000000000001", "quantityGrams": 150 },
+    { "recipeId": "00000000-0000-0000-0000-000000000001", "quantityGrams": 200 }
+  ]
+}
+
+###
+
+### Quantità non valida — atteso 400
+POST {{DrNutrizioNino_Api_HostAddress}}/api/v1/recipes/compare
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "items": [
+    { "recipeId": "00000000-0000-0000-0000-000000000001", "quantityGrams": 0 },
+    { "recipeId": "00000000-0000-0000-0000-000000000002", "quantityGrams": 20000 }
+  ]
+}
+
+###
+
+### Ricetta inesistente — atteso 404
+POST {{DrNutrizioNino_Api_HostAddress}}/api/v1/recipes/compare
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "items": [
+    { "recipeId": "00000000-0000-0000-0000-000000000001", "quantityGrams": 150 },
+    { "recipeId": "ffffffff-ffff-ffff-ffff-ffffffffffff", "quantityGrams": 200 }
+  ]
+}
+
+###
+
+### Senza token — atteso 401
+POST {{DrNutrizioNino_Api_HostAddress}}/api/v1/recipes/compare
+Content-Type: application/json
+
+{
+  "items": [
+    { "recipeId": "00000000-0000-0000-0000-000000000001", "quantityGrams": 150 },
+    { "recipeId": "00000000-0000-0000-0000-000000000002", "quantityGrams": 200 }
+  ]
+}

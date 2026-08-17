@@ -31,6 +31,11 @@ const router = createRouter({
       component: () => import('../views/RecipesView.vue')
     },
     {
+      path: '/recipes/compare',
+      name: 'recipe-comparison',
+      component: () => import('../views/RecipeComparisonView.vue')
+    },
+    {
       path: '/nutrients',
       name: 'nutrients',
       component: () => import('../views/NutrientsView.vue')

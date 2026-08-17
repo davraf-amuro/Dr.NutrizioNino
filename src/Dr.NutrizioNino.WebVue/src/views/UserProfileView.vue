@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
-import { NButton, NCard, NFormItem, NGi, NGrid, NInputNumber, NRadioGroup, NRadioButton, NSpace, NText, NAlert, useMessage } from 'naive-ui'
+import { NButton, NCard, NFormItem, NGi, NGrid, NInputNumber, NRadioGroup, NRadioButton, NSelect, NSpace, NText, NAlert, useMessage } from 'naive-ui'
 import { useAuth } from '@/modules/auth/composables/useAuth'
 import { useTheme } from '@/modules/auth/composables/useTheme'
 import { getMyNutritionalTarget, setMyNutritionalTarget } from '@/modules/nutritionalTarget/api/nutritionalTarget.api'
+import { addProfileEntry, getCurrentProfileEntry, getSciaudoneCard } from '@/modules/userProfile/api/userProfile.api'
+import SciaudoneCardPanel from '@/components/UserProfile/SciaudoneCardPanel.vue'
+import type { SciaudoneCardDto } from '@/Interfaces/userProfile/SciaudoneCardDto'
 
 const { user } = useAuth()
 const { preference, setTheme } = useTheme()
@@ -40,6 +43,29 @@ const target = reactive<{ kcalTarget: number | null; carbsTarget: number | null;
 })
 const savingTarget = ref(false)
 
+// ── Misurazione e scheda Sciaudone ────────────────────────────
+const measurement = reactive<{ weightKg: number | null; idealWeightKg: number | null; heightCm: number | null; sex: string | null; job: string | null }>({
+  weightKg: null,
+  idealWeightKg: null,
+  heightCm: null,
+  sex: null,
+  job: null
+})
+const savingMeasurement = ref(false)
+const sciaudoneCard = ref<SciaudoneCardDto | null>(null)
+
+const sexOptions = [
+  { label: 'Uomo', value: 'M' },
+  { label: 'Donna', value: 'F' }
+]
+
+const jobOptions = [
+  { label: 'Sedentario', value: 'sedentario' },
+  { label: 'Moderato', value: 'moderato' },
+  { label: 'Attivo', value: 'attivo' },
+  { label: 'Molto attivo', value: 'molto_attivo' }
+]
+
 onMounted(async () => {
   const current = await getMyNutritionalTarget()
   if (current) {
@@ -48,6 +74,18 @@ onMounted(async () => {
     target.proteinTarget = current.proteinTarget
     target.fatTarget = current.fatTarget
   }
+
+  // Precarico l'ultima misurazione così il form parte dai valori noti
+  const lastEntry = await getCurrentProfileEntry()
+  if (lastEntry) {
+    measurement.weightKg = lastEntry.weightKg
+    measurement.idealWeightKg = lastEntry.idealWeightKg
+    measurement.heightCm = lastEntry.heightCm
+    measurement.sex = lastEntry.sex
+    measurement.job = lastEntry.job
+  }
+
+  sciaudoneCard.value = await getSciaudoneCard()
 })
 
 async function handleSaveTarget(): Promise<void> {
@@ -59,6 +97,20 @@ async function handleSaveTarget(): Promise<void> {
     message.error('Errore nel salvataggio del fabbisogno')
   } finally {
     savingTarget.value = false
+  }
+}
+
+/** Salva la misurazione e ricarica la scheda, che il backend ricalcola a ogni nuova misurazione. */
+async function handleSaveMeasurement(): Promise<void> {
+  savingMeasurement.value = true
+  try {
+    await addProfileEntry({ ...measurement })
+    sciaudoneCard.value = await getSciaudoneCard()
+    message.success('Misurazione registrata')
+  } catch {
+    message.error('Errore nel salvataggio della misurazione')
+  } finally {
+    savingMeasurement.value = false
   }
 }
 </script>
@@ -93,6 +145,41 @@ async function handleSaveTarget(): Promise<void> {
         </div>
       </n-space>
     </n-card>
+
+    <n-card title="Misurazione" size="large">
+      <n-grid :cols="2" :x-gap="12" :y-gap="8">
+        <n-gi>
+          <n-form-item label="Peso attuale (kg)">
+            <n-input-number v-model:value="measurement.weightKg" :min="0.1" :precision="2" clearable style="width: 100%" />
+          </n-form-item>
+        </n-gi>
+        <n-gi>
+          <n-form-item label="Peso ideale (kg)">
+            <n-input-number v-model:value="measurement.idealWeightKg" :min="0.1" :precision="2" clearable style="width: 100%" />
+          </n-form-item>
+        </n-gi>
+        <n-gi>
+          <n-form-item label="Altezza (cm)">
+            <n-input-number v-model:value="measurement.heightCm" :min="0.1" :precision="2" clearable style="width: 100%" />
+          </n-form-item>
+        </n-gi>
+        <n-gi>
+          <n-form-item label="Sesso">
+            <n-select v-model:value="measurement.sex" :options="sexOptions" clearable style="width: 100%" />
+          </n-form-item>
+        </n-gi>
+        <n-gi :span="2">
+          <n-form-item label="Livello di attività">
+            <n-select v-model:value="measurement.job" :options="jobOptions" clearable style="width: 100%" />
+          </n-form-item>
+        </n-gi>
+        <n-gi :span="2">
+          <n-button type="primary" :loading="savingMeasurement" @click="handleSaveMeasurement">Salva misurazione</n-button>
+        </n-gi>
+      </n-grid>
+    </n-card>
+
+    <sciaudone-card-panel :card="sciaudoneCard" />
 
     <n-card title="Fabbisogno giornaliero" size="large">
       <n-grid :cols="2" :x-gap="12" :y-gap="8">
